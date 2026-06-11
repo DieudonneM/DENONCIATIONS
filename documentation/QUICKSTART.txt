@@ -1,0 +1,228 @@
+"""
+Instructions de démarrage rapide.
+
+Commandes de démarrage du projet.
+"""
+
+# =============================================================================
+# ÉTAPE 1 : INSTALLATION ET CONFIGURATION INITIALE
+# =============================================================================
+
+"""
+1. Créer un environnement virtuel
+   ================================
+   
+   Windows :
+   > python -m venv venv
+   > venv\Scripts\activate
+   
+   Linux/Mac :
+   $ python -m venv venv
+   $ source venv/bin/activate
+
+2. Installer les dépendances
+   ==========================
+   
+   $ pip install -r requirements.txt
+
+3. Créer les migrations
+   ====================
+   
+   $ python manage.py makemigrations
+
+4. Appliquer les migrations
+   ========================
+   
+   $ python manage.py migrate
+
+5. Initialiser les données
+   =======================
+   
+   $ python manage.py init_data
+   
+   Cela va créer :
+   - Toutes les 23 provinces de la RDC
+   - Un compte administrateur (username: admin, password: admin123)
+
+6. Lancer le serveur
+   =================
+   
+   $ python manage.py runserver
+   
+   Puis allez à : http://localhost:8000/admin/
+
+7. (OPTIONNEL) Charger les données de démo
+   ========================================
+   
+   $ python manage.py shell < demo_script.py
+   
+   Cela va créer :
+   - Un travailleur de test
+   - Un agent de test
+   - Un employeur de test
+   - Une dénonciation de test
+   - Commentaires d'exemple
+
+"""
+
+# =============================================================================
+# ÉTAPE 2 : VÉRIFICATION DE L'INSTALLATION
+# =============================================================================
+
+"""
+Tests rapides à exécuter :
+
+1. Vérifier les modèles
+   $ python manage.py dbshell
+   sqlite> .tables
+   sqlite> SELECT COUNT(*) FROM core_province;
+   sqlite> .quit
+
+2. Accéder à l'admin
+   - URL : http://localhost:8000/admin/
+   - Username : admin
+   - Password : admin123
+   
+3. Lancer les tests unitaires
+   $ python manage.py test core
+   
+   Vous devriez voir tous les tests passer.
+
+4. Vérifier l'ORM Django
+   $ python manage.py shell
+   >>> from core.models import Province, User, Incident
+   >>> Province.objects.count()  # Devrait retourner 23
+   >>> User.objects.count()      # Devrait retourner au moins 1 (admin)
+   >>> exit()
+
+"""
+
+# =============================================================================
+# ÉTAPE 3 : FICHIERS IMPORTANTS
+# =============================================================================
+
+"""
+Structure du projet :
+
+denunciations_app/
+├── manage.py
+├── requirements.txt
+├── README.md                    # Documentation principale
+├── PERMISSIONS.md              # Guide des permissions
+├── ETAPE1_CHECKLIST.md         # Checklist complète
+├── QUICKSTART.txt              # Ce fichier
+├── denunciations_app/
+│   ├── settings.py             # Configuration Django
+│   ├── urls.py                 # Routes principales
+│   └── wsgi.py
+└── core/
+    ├── models.py               # Modèles (7 modèles)
+    ├── admin.py                # Admin Django personnalisé
+    ├── apps.py                 # Configuration app
+    ├── signals.py              # Signaux Django
+    ├── auth_backends.py        # Backend d'authentification
+    ├── utils.py                # Fonctions utilitaires
+    ├── forms.py                # Formulaires (à remplir Étape 2)
+    ├── views.py                # Vues (à remplir Étape 2)
+    ├── urls.py                 # URLs (à remplir Étape 2)
+    ├── tests.py                # Tests unitaires
+    ├── management/
+    │   └── commands/
+    │       └── init_data.py    # Commande d'initialisation
+    ├── migrations/             # Migrations Django
+    ├── templates/              # Templates (à créer Étape 3)
+    └── static/
+        ├── css/               # CSS (à créer Étape 3)
+        └── js/                # JavaScript (à créer Étape 4)
+
+"""
+
+# =============================================================================
+# ÉTAPE 4 : VARIABLES D'ENVIRONNEMENT (OPTIONNEL)
+# =============================================================================
+
+"""
+Créer un fichier .env à la racine du projet :
+
+DEBUG=True
+SECRET_KEY=your-secret-key-here
+ALLOWED_HOSTS=localhost,127.0.0.1
+DATABASE_URL=sqlite:///db.sqlite3
+TIME_ZONE=Africa/Kinshasa
+
+Note : Pour le développement, les valeurs par défaut dans settings.py suffisent.
+"""
+
+# =============================================================================
+# ÉTAPE 5 : DÉPANNAGE
+# =============================================================================
+
+"""
+Erreurs courantes et solutions :
+
+1. ImportError: No module named 'core'
+   → Assurez-vous que 'core' est dans INSTALLED_APPS dans settings.py
+
+2. "No migrations to apply"
+   → Exécuter : python manage.py makemigrations core
+
+3. "column core_user.est_actif does not exist"
+   → Exécuter : python manage.py migrate
+
+4. "Database is locked"
+   → Supprimer db.sqlite3 et refaire les migrations
+
+5. Admin page is blank or errors 500
+   → Vérifier les logs en console (python manage.py runserver)
+   → Vérifier syntax dans admin.py
+
+6. Impossible de se connecter à l'admin
+   → Si vous n'avez pas exécuté init_data, créer un superuser :
+      python manage.py createsuperuser
+
+"""
+
+# =============================================================================
+# ÉTAPE 6 : POINTS DE CONTRÔLE
+# =============================================================================
+
+"""
+Checklist pour valider que tout fonctionne :
+
+☐ Base de données créée (db.sqlite3 existe)
+☐ Migrations appliquées sans erreur
+☐ 23 provinces créées
+☐ Compte admin créé
+☐ Accès à http://localhost:8000/admin/ possible
+☐ Modèles visibles dans l'interface admin
+☐ Tests unitaires passent (python manage.py test core)
+☐ Données de démo chargées (optionnel)
+
+Si tous les points sont cochés, l'Étape 1 est complète !
+
+"""
+
+# =============================================================================
+# ÉTAPE 7 : PROCHAINES ÉTAPES
+# =============================================================================
+
+"""
+Après la validation de l'Étape 1, vous pouvez passer à :
+
+Étape 2 - Vues et Formulaires :
+- Créer IncidentForm (formulaire de dénonciation)
+- Implémenter les vues pour créer/voir les incidents
+- Ajouter la logique d'anonymat
+- Créer les URLs correspondantes
+
+Étape 3 - Templates :
+- Formulaire public de dénonciation (HTML/CSS pur)
+- Page de succès avec options
+- Page de suivi par code
+
+Étape 4 - Dashboards :
+- Dashboard Agent (métrique, incidents de sa province)
+- Dashboard Admin (vue globale, gestion)
+- Interface détaillée des tickets
+
+"""

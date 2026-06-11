@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Suivi de dénonciation - MEPT-RDC{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+    <div class="search-section">
+        <div class="search-box">
+            <h1>Suivi de votre dénonciation</h1>
+            <p>Entrez votre code de suivi pour consulter l'état d'avancement</p>
+
+            <form method="post" class="search-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    {{ form.code_suivi.label_tag }}
+                    {{ form.code_suivi }}
+                    {% if form.code_suivi.errors %}
+                        <div class="error">{{ form.code_suivi.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Rechercher
+                </button>
+            </form>
+
+            {% if form.non_field_errors %}
+                <div class="error-box">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        {% if incident %}
+            <div class="incident-status">
+                <div class="status-header">
+                    <h2>Statut de votre dénonciation</h2>
+                    <div class="code-display">
+                        <code>{{ incident.code_suivi }}</code>
+                        <button type="button" class="btn-copy" onclick="DenunciationApp.copyToClipboard('{{ incident.code_suivi }}')">
+                            Copier
+                        </button>
+                    </div>
+                </div>
+
+                <div class="incident-details">
+                    <dl class="details-list">
+                        <dt>Type d'incident</dt>
+                        <dd>{{ incident.get_type_incident_display }}</dd>
+
+                        <dt>Employeur</dt>
+                        <dd>{{ incident.employeur.nom }}</dd>
+
+                        <dt>Lieu</dt>
+                        <dd>{{ incident.ville }}, {{ incident.province.nom }}</dd>
+
+                        <dt>Date de dénonciation</dt>
+                        <dd>{{ incident.date_creation|date:"d/m/Y H:i" }}</dd>
+
+                        <dt>Statut</dt>
+                        <dd>
+                            <span class="badge badge-{{ incident.statut }}">
+                                {{ incident.get_statut_display }}
+                            </span>
+                        </dd>
+
+                        {% if incident.date_resolution %}
+                            <dt>Date de résolution</dt>
+                            <dd>{{ incident.date_resolution|date:"d/m/Y" }}</dd>
+                        {% endif %}
+                    </dl>
+                </div>
+
+                <div class="timeline-section">
+                    <h3>Historique</h3>
+                    <div class="timeline">
+                        {% for log in incident.logs %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <p class="timeline-date">{{ log.date_creation|date:"d/m/Y H:i" }}</p>
+                                    <p class="timeline-text">{{ log.action }}</p>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p>Aucun historique disponible</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="comments-section">
+                    <h3>Commentaires publics</h3>
+                    {% if incident.commentaires_publics %}
+                        <div class="comments-list">
+                            {% for comment in incident.commentaires_publics %}
+                                <div class="comment-box">
+                                    <div class="comment-header">
+                                        <strong>{{ comment.get_auteur_display }}</strong>
+                                        <span class="comment-date">{{ comment.date_creation|date:"d/m/Y H:i" }}</span>
+                                    </div>
+                                    <div class="comment-body">
+                                        {{ comment.texte }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="no-comments">Aucun commentaire pour le moment</p>
+                    {% endif %}
+                </div>
+
+                <div class="next-steps">
+                    <h3>Prochaines étapes</h3>
+                    <ol>
+                        <li>Votre dénonciation a été enregistrée avec succès</li>
+                        <li>Notre équipe analysera votre dossier</li>
+                        <li>Nous vous tiendrons informé de l'avancement</li>
+                        <li>Une résolution sera proposée dans les délais impartis</li>
+                    </ol>
+                </div>
+
+                <div class="actions">
+                    <a href="{% url 'core:home' %}" class="btn btn-secondary">Retour à l'accueil</a>
+                    <a href="{% url 'core:incident_form' %}" class="btn btn-primary">Soumettre une autre dénonciation</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="info-box">
+                <p>
+                    💡 Entrez le code de suivi que vous avez reçu après avoir soumis votre dénonciation
+                    pour suivre l'avancement de votre dossier.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.py-5 {
+    padding: 3rem 0;
+}
+
+.search-section {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.search-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.search-box h1 {
+    color: #001F3F;
+    margin-bottom: 0.5rem;
+}
+
+.search-box p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.search-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.search-form .form-group {
+    margin-bottom: 0;
+}
+
+.search-form input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.incident-status {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.status-header {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-bottom: 1px solid #ddd;
+    border-radius: 8px 8px 0 0;
+}
+
+.status-header h2 {
+    color: #001F3F;
+    margin-bottom: 1rem;
+}
+
+.code-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.code-display code {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #001F3F;
+    font-family: 'Courier New', monospace;
+}
+
+.btn-copy {
+    background: #001F3F;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-copy:hover {
+    background: #003d6b;
+}
+
+.incident-details {
+    padding: 2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.details-list {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem 2rem;
+}
+
+.details-list dt {
+    font-weight: 600;
+    color: #333;
+}
+
+.details-list dd {
+    color: #666;
+    margin: 0;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-nouvelle {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-analyse {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.badge-attente {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.badge-resolue {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.badge-classee {
+    background: #f5f5f5;
+    color: #616161;
+}
+
+.timeline-section {
+    padding: 2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.timeline-section h3 {
+    color: #001F3F;
+    margin-bottom: 1.5rem;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ddd;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -2.5rem;
+    top: 0.25rem;
+    width: 12px;
+    height: 12px;
+    background: #001F3F;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.timeline-date {
+    font-size: 0.85rem;
+    color: #999;
+    margin: 0 0 0.5rem 0;
+}
+
+.timeline-text {
+    color: #333;
+    margin: 0;
+}
+
+.comments-section {
+    padding: 2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.comments-section h3 {
+    color: #001F3F;
+    margin-bottom: 1.5rem;
+}
+
+.comments-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.comment-box {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid #001F3F;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.comment-header strong {
+    color: #333;
+}
+
+.comment-date {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.comment-body {
+    color: #555;
+    line-height: 1.5;
+}
+
+.no-comments {
+    color: #999;
+    font-style: italic;
+}
+
+.next-steps {
+    padding: 2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.next-steps h3 {
+    color: #001F3F;
+    margin-bottom: 1rem;
+}
+
+.next-steps ol {
+    counter-reset: item;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.next-steps li {
+    counter-increment: item;
+    margin-bottom: 0.75rem;
+    padding-left: 2rem;
+    position: relative;
+}
+
+.next-steps li::before {
+    content: counter(item);
+    position: absolute;
+    left: 0;
+    top: -2px;
+    background: #001F3F;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.actions {
+    padding: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.actions a {
+    padding: 0.75rem 1.5rem;
+}
+
+.info-box {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 4px;
+    padding: 1.5rem;
+    color: #1565c0;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .search-form {
+        grid-template-columns: 1fr;
+    }
+
+    .details-list {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+
+    .actions a {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

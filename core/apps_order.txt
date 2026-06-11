@@ -1,0 +1,12 @@
+"""
+Fichier d'ordre personnalisé pour l'interface admin Django.
+"""
+
+# L'ordre des applications installées dans INSTALLED_APPS détermine l'ordre dans l'admin
+# Structure souhaitée:
+# 1. Authentification (User)
+# 2. Données de base (Province, Employeur)
+# 3. Dénonciations (Incident, Commentaire, PieceJointe)
+# 4. Audit (LogAudit)
+
+# Voir settings.py pour l'ordre dans INSTALLED_APPS

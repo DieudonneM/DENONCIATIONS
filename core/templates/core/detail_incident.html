@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dénonciation {{ incident.code_suivi }} - MEPT-RDC{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+    <div class="incident-detail-container">
+        
+        <!-- En-tête -->
+        <div class="detail-header">
+            <div class="header-left">
+                <h1>{{ incident.code_suivi }}</h1>
+                <p>{{ incident.get_type_incident_display }} • {{ incident.date_creation|date:"d/m/Y" }}</p>
+            </div>
+            <div class="header-right">
+                <span class="badge badge-{{ incident.statut }} badge-large">
+                    {{ incident.get_statut_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Informations principales -->
+        <div class="detail-section">
+            <h2>Informations</h2>
+            <dl class="details-grid">
+                <dt>Type d'incident</dt>
+                <dd>{{ incident.get_type_incident_display }}</dd>
+
+                <dt>Employeur</dt>
+                <dd>{{ incident.employeur.nom }}</dd>
+
+                <dt>Province</dt>
+                <dd>{{ incident.province.nom }}</dd>
+
+                <dt>Ville</dt>
+                <dd>{{ incident.ville }}</dd>
+
+                <dt>Date de dénonciation</dt>
+                <dd>{{ incident.date_creation|date:"d/m/Y H:i" }}</dd>
+
+                {% if incident.date_resolution %}
+                    <dt>Date de résolution</dt>
+                    <dd>{{ incident.date_resolution|date:"d/m/Y" }}</dd>
+                {% endif %}
+
+                <dt>Statut</dt>
+                <dd>
+                    <span class="badge badge-{{ incident.statut }}">
+                        {{ incident.get_statut_display }}
+                    </span>
+                </dd>
+            </dl>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-section">
+            <h2>Description</h2>
+            <div class="description-box">
+                {{ incident.description|linebreaks }}
+            </div>
+        </div>
+
+        <!-- Pièces jointes -->
+        {% if incident.pieces_jointes.all %}
+            <div class="detail-section">
+                <h2>Pièces jointes</h2>
+                <div class="attachments-list">
+                    {% for piece in incident.pieces_jointes.all %}
+                        <div class="attachment-item">
+                            <a href="{{ piece.fichier.url }}" download class="attachment-link">
+                                📎 {{ piece.fichier.name|slice:"-50:" }}
+                            </a>
+                            <span class="file-size">{{ piece.fichier.size|filesizeformat }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Formulaire de mise à jour du statut (Agent/Admin) -->
+        {% if user_can_edit %}
+            <div class="detail-section update-section">
+                <h2>Mise à jour du statut</h2>
+                <div class="status-note">
+                    Sélectionnez un statut dans la liste ci-dessous, puis cliquez sur <strong>Mettre à jour</strong> pour enregistrer la modification.
+                </div>
+                <form id="status-form" method="post" action="{% url 'core:update_status' incident.code_suivi %}" class="status-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="statut">Nouveau statut</label>
+                        <select name="statut" id="statut" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="nouvelle">Nouvelle</option>
+                            <option value="analyse">En analyse</option>
+                            <option value="attente">En attente</option>
+                            <option value="resolue">Résolue</option>
+                            <option value="classee">Classée</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- Formulaire d'assignation (Admin) -->
+        {% if user_is_admin %}
+            <div class="detail-section assign-section">
+                <h2>Assigner à un agent</h2>
+                <form method="post" action="{% url 'core:assign_incident' incident.code_suivi %}" class="assign-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="agent">Sélectionner un agent</label>
+                        <select name="agent" id="agent" required>
+                            <option value="">-- Sélectionner un agent --</option>
+                            {% for agent in available_agents %}
+                                <option value="{{ agent.id }}">{{ agent.get_full_name }} - {{ agent.provinces.all|join:", " }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Assigner</button>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- Commentaires -->
+        <div class="detail-section">
+            <h2>Commentaires</h2>
+
+            <!-- Ajouter un commentaire (Agent/Admin) -->
+            {% if user_can_comment %}
+                <div class="add-comment-box">
+                    <h3>Ajouter un commentaire</h3>
+                    <form method="post" class="comment-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ form.type_commentaire.label_tag }}
+                            {{ form.type_commentaire }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.texte.label_tag }}
+                            {{ form.texte }}
+                        </div>
+                        <button type="submit" name="action" value="add_comment" class="btn btn-primary">
+                            Ajouter le commentaire
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <!-- Liste des commentaires -->
+            {% if comments %}
+                <div class="comments-list">
+                    {% for comment in comments %}
+                        <div class="comment-item">
+                            <div class="comment-meta">
+                                <strong>{{ comment.get_auteur_display }}</strong>
+                                <span class="badge-small badge-{{ comment.type_commentaire }}">
+                                    {% if comment.type_commentaire == 'public' %}Public{% else %}Interne{% endif %}
+                                </span>
+                                <span class="comment-date">{{ comment.date_creation|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div class="comment-body">
+                                {{ comment.texte|linebreaks }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="no-comments">Aucun commentaire pour le moment</p>
+            {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="detail-actions">
+            <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">Retour au dashboard</a>
+            {% if user_is_admin %}
+                <a href="{% url 'core:incident_detail' incident.code_suivi %}#status-form" class="btn btn-secondary">
+                    Modifier le statut
+                </a>
+            {% endif %}
+        </div>
+
+    </div>
+</section>
+
+<style>
+.py-5 {
+    padding: 3rem 0;
+}
+
+.incident-detail-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.header-left h1 {
+    color: #001F3F;
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+}
+
+.header-left p {
+    color: #666;
+    margin: 0;
+}
+
+.badge-large {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+}
+
+.detail-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.detail-section h2 {
+    color: #001F3F;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem 2rem;
+}
+
+.details-grid dt {
+    font-weight: 600;
+    color: #333;
+}
+
+.details-grid dd {
+    color: #666;
+    margin: 0;
+}
+
+.description-box {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid #001F3F;
+    line-height: 1.6;
+    color: #333;
+}
+
+.attachments-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.attachment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.attachment-link {
+    color: #001F3F;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.attachment-link:hover {
+    text-decoration: underline;
+}
+
+.file-size {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.update-section,
+.assign-section {
+    border-left: 4px solid #ff9800;
+}
+
+.status-note {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: #eef6ff;
+    border: 1px solid #cfe3ff;
+    border-radius: 8px;
+    color: #1d3e6f;
+    line-height: 1.6;
+}
+
+.status-form,
+.assign-form,
+.comment-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.status-form select,
+.assign-form select {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.status-form button,
+.assign-form button {
+    white-space: nowrap;
+}
+
+.add-comment-box {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+}
+
+.add-comment-box h3 {
+    color: #001F3F;
+    margin-bottom: 1rem;
+}
+
+.add-comment-box .form-group {
+    margin-bottom: 1rem;
+}
+
+.add-comment-box label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.add-comment-box select,
+.add-comment-box textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-comment-box textarea {
+    min-height: 100px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.comments-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.comment-item {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid #001F3F;
+}
+
+.comment-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.comment-meta strong {
+    color: #333;
+}
+
+.badge-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.badge-public {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-interne {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+.comment-date {
+    font-size: 0.85rem;
+    color: #999;
+    margin-left: auto;
+}
+
+.comment-body {
+    color: #555;
+    line-height: 1.6;
+}
+
+.no-comments {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .status-form,
+    .assign-form,
+    .comment-form {
+        flex-direction: column;
+    }
+
+    .comment-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comment-date {
+        margin-left: 0;
+    }
+
+    .detail-actions {
+        flex-direction: column;
+    }
+
+    .detail-actions a {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

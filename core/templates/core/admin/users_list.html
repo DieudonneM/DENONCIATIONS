@@ -1,0 +1,114 @@
+{% extends 'core/admin/base.html' %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1>👥 Gestion des Utilisateurs</h1>
+    <div class="actions">
+        <a href="{% url 'core:admin_users_create' %}" class="btn-admin btn-admin-success">
+            ➕ Ajouter un Utilisateur
+        </a>
+    </div>
+</div>
+
+<!-- Recherche et filtrage -->
+<div class="search-box">
+    <form method="get">
+        <div class="form-group">
+            {{ search_form.search }}
+        </div>
+        <div class="form-group">
+            {{ search_form.role }}
+        </div>
+        <button type="submit" class="btn-admin">🔍 Rechercher</button>
+    </form>
+</div>
+
+<!-- Tableau des utilisateurs -->
+{% if users %}
+    <div class="admin-card">
+        <p style="color: #666; margin-top: 0;">Affichage de <strong>{{ users|length }}</strong> sur <strong>{{ total_count }}</strong> utilisateurs</p>
+        
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Nom Complet</th>
+                    <th>Rôle</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td><strong>{{ user.email }}</strong></td>
+                        <td>{{ user.get_full_name|default:"N/A" }}</td>
+                        <td>
+                            <span style="
+                                display: inline-block;
+                                padding: 0.3rem 0.8rem;
+                                border-radius: 16px;
+                                font-size: 0.8rem;
+                                font-weight: 600;
+                                {% if user.role == 'administrateur' %}
+                                    background: #f3e5f5;
+                                    color: #6a1b9a;
+                                {% elif user.role == 'agent' %}
+                                    background: #fff3e0;
+                                    color: #e65100;
+                                {% else %}
+                                    background: #e8f5e9;
+                                    color: #2e7d32;
+                                {% endif %}
+                            ">
+                                {{ user.get_role_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                                <span style="color: #4CAF50;">✅ Actif</span>
+                            {% else %}
+                                <span style="color: #f44336;">❌ Inactif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="{% url 'core:admin_users_edit' user.id %}" class="btn-admin btn-admin-sm">✏️ Modifier</a>
+                                {% if user.role == 'agent' %}
+                                    <a href="{% url 'core:admin_agents_provinces' user.id %}" class="btn-admin btn-admin-sm" style="background: #FF9800;">🗺️ Provinces</a>
+                                {% endif %}
+                                <form method="post" action="{% url 'core:admin_users_delete' user.id %}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">🗑️ Supprimer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if users.has_other_pages %}
+        <div class="pagination">
+            {% if users.has_previous %}
+                <a href="?page=1">« Première</a>
+                <a href="?page={{ users.previous_page_number }}">« Précédente</a>
+            {% endif %}
+            
+            <span class="current">Page {{ users.number }} / {{ users.paginator.num_pages }}</span>
+            
+            {% if users.has_next %}
+                <a href="?page={{ users.next_page_number }}">Suivante »</a>
+                <a href="?page={{ users.paginator.num_pages }}">Dernière »</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    <div class="admin-card empty-state">
+        <p>ℹ️ Aucun utilisateur trouvé</p>
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dénoncer un incident de travail - MEPT-RDC{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>Dénoncer un incident de travail</h1>
+        <p>Signalez de manière confidentielle et sécurisée tout incident lié à votre travail.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="incident-form">
+        {% csrf_token %}
+
+        <!-- Informations de base -->
+        <fieldset class="form-section">
+            <legend>Informations de base</legend>
+
+            <div class="form-group">
+                <label for="{{ form.type_incident.id_for_label }}">{{ form.type_incident.label }} *</label>
+                {{ form.type_incident }}
+                {% if form.type_incident.errors %}
+                    <div class="error">{{ form.type_incident.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.employeur.id_for_label }}">{{ form.employeur.label }} *</label>
+                {{ form.employeur }}
+                {% if form.employeur.errors %}
+                    <div class="error">{{ form.employeur.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.province.id_for_label }}">{{ form.province.label }} *</label>
+                {{ form.province }}
+                {% if form.province.errors %}
+                    <div class="error">{{ form.province.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.ville.id_for_label }}">{{ form.ville.label }} *</label>
+                {{ form.ville }}
+                {% if form.ville.errors %}
+                    <div class="error">{{ form.ville.errors }}</div>
+                {% endif %}
+            </div>
+        </fieldset>
+
+        <!-- Description -->
+        <fieldset class="form-section">
+            <legend>Description de l'incident</legend>
+
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">{{ form.description.label }} *</label>
+                {{ form.description }}
+                <p class="form-help">Décrivez précisément ce qui s'est passé, quand et où.</p>
+                {% if form.description.errors %}
+                    <div class="error">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+        </fieldset>
+
+        <!-- Pièces jointes -->
+        <fieldset class="form-section">
+            <legend>Pièces jointes (optionnel)</legend>
+
+            <div class="form-group">
+                <label for="{{ form.pieces_jointes.id_for_label }}">{{ form.pieces_jointes.label }}</label>
+                {{ form.pieces_jointes }}
+                <p class="form-help">{{ form.pieces_jointes.help_text }}</p>
+                {% if form.pieces_jointes.errors %}
+                    <div class="error">{{ form.pieces_jointes.errors }}</div>
+                {% endif %}
+            </div>
+        </fieldset>
+
+        <!-- Anonymat et Contact -->
+        <fieldset class="form-section">
+            <legend>Confidentialité et contact</legend>
+
+            <div class="form-group checkbox">
+                <label>
+                    {{ form.est_anonyme }}
+                    {{ form.est_anonyme.label }}
+                </label>
+                <p class="form-help">{{ form.est_anonyme.help_text }}</p>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.email_contact_anonyme.id_for_label }}">{{ form.email_contact_anonyme.label }}</label>
+                {{ form.email_contact_anonyme }}
+                <p class="form-help">Optionnel - Nous pourrons vous contacter pour plus de précisions</p>
+                {% if form.email_contact_anonyme.errors %}
+                    <div class="error">{{ form.email_contact_anonyme.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.telephone_contact_anonyme.id_for_label }}">{{ form.telephone_contact_anonyme.label }}</label>
+                {{ form.telephone_contact_anonyme }}
+                {% if form.telephone_contact_anonyme.errors %}
+                    <div class="error">{{ form.telephone_contact_anonyme.errors }}</div>
+                {% endif %}
+            </div>
+        </fieldset>
+
+        <!-- Erreurs globales -->
+        {% if form.non_field_errors %}
+            <div class="error-box">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Boutons d'action -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Soumettre ma dénonciation</button>
+            <a href="{% url 'core:home' %}" class="btn btn-secondary">Annuler</a>
+        </div>
+
+        <p class="form-note">
+            <strong>Note de confidentialité :</strong> 
+            Toutes les informations sont traitées de manière confidentielle selon les normes de sécurité les plus strictes.
+            Votre anonymat est garanti si vous choisissez cette option.
+        </p>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Gestion du formulaire d'anonymat
+    document.addEventListener('DOMContentLoaded', function() {
+        const anonCheckbox = document.getElementById('id_est_anonyme');
+        const emailField = document.querySelector('[name="email_contact_anonyme"]').parentElement;
+        const phoneField = document.querySelector('[name="telephone_contact_anonyme"]').parentElement;
+        
+        function updateFieldsVisibility() {
+            if (anonCheckbox.checked) {
+                emailField.style.display = 'none';
+                phoneField.style.display = 'none';
+            } else {
+                emailField.style.display = 'block';
+                phoneField.style.display = 'block';
+            }
+        }
+        
+        anonCheckbox.addEventListener('change', updateFieldsVisibility);
+        updateFieldsVisibility();
+    });
+</script>
+{% endblock %}

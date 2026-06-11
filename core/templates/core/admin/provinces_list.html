@@ -1,0 +1,80 @@
+{% extends 'core/admin/base.html' %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1>🗺️ Gestion des Provinces</h1>
+    <div class="actions">
+        <a href="{% url 'core:admin_provinces_create' %}" class="btn-admin btn-admin-success">
+            ➕ Ajouter une Province
+        </a>
+    </div>
+</div>
+
+<!-- Recherche -->
+<div class="search-box">
+    <form method="get">
+        <div class="form-group">
+            {{ search_form.search }}
+        </div>
+        <button type="submit" class="btn-admin">🔍 Rechercher</button>
+    </form>
+</div>
+
+<!-- Tableau des provinces -->
+{% if provinces %}
+    <div class="admin-card">
+        <p style="color: #666; margin-top: 0;">Affichage de <strong>{{ provinces|length }}</strong> sur <strong>{{ total_count }}</strong> provinces</p>
+        
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Code</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for province in provinces %}
+                    <tr>
+                        <td><strong>{{ province.nom }}</strong></td>
+                        <td><span style="background: #e3f2fd; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: 600;">{{ province.code }}</span></td>
+                        <td>{{ province.description|truncatewords:10 }}</td>
+                        <td>
+                            <div class="actions">
+                                <a href="{% url 'core:admin_provinces_edit' province.id %}" class="btn-admin btn-admin-sm">✏️ Modifier</a>
+                                <form method="post" action="{% url 'core:admin_provinces_delete' province.id %}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">🗑️ Supprimer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if provinces.has_other_pages %}
+        <div class="pagination">
+            {% if provinces.has_previous %}
+                <a href="?page=1">« Première</a>
+                <a href="?page={{ provinces.previous_page_number }}">« Précédente</a>
+            {% endif %}
+            
+            <span class="current">Page {{ provinces.number }} / {{ provinces.paginator.num_pages }}</span>
+            
+            {% if provinces.has_next %}
+                <a href="?page={{ provinces.next_page_number }}">Suivante »</a>
+                <a href="?page={{ provinces.paginator.num_pages }}">Dernière »</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    <div class="admin-card empty-state">
+        <p>ℹ️ Aucune province trouvée</p>
+    </div>
+{% endif %}
+
+{% endblock %}

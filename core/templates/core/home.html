@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accueil - Plateforme de Dénonciation - MEPT-RDC{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Héro Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Signalez les Incidents de Travail</h1>
+            <p>Une plateforme sécurisée pour dénoncer les violations des droits des travailleurs en RDC</p>
+            <div class="hero-buttons">
+                <a href="{% url 'core:incident_form' %}" class="btn btn-primary btn-large">
+                    Dénoncer un incident
+                </a>
+                <a href="{% url 'core:search_incident' %}" class="btn btn-secondary btn-large">
+                    Consulter ma dénonciation
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="section-title">
+            <h2>Pourquoi cette plateforme ?</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Confidentialité garantie</h3>
+                <p>Signalez en toute confiance. Votre anonymat est complètement protégé si vous le souhaitez.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Suivi transparent</h3>
+                <p>Suivez l'état de votre dénonciation en temps réel avec votre code de suivi unique.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚖️</div>
+                <h3>Justice pour tous</h3>
+                <p>Défendez vos droits. Nos agents enquêtent sur chaque incident signalé.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Protection légale</h3>
+                <p>Vous êtes protégé contre les représailles pour avoir dénoncé.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Types d'Incidents -->
+    <section class="incident-types">
+        <div class="section-title">
+            <h2>Types d'incidents couverts</h2>
+        </div>
+        <div class="incidents-grid">
+            <div class="incident-item">
+                <h4>💰 Non-paiement du salaire</h4>
+                <p>Salaires non versés ou retards répétés</p>
+            </div>
+            <div class="incident-item">
+                <h4>⏰ Horaires excessifs</h4>
+                <p>Travail au-delà des heures légales</p>
+            </div>
+            <div class="incident-item">
+                <h4>⚠️ Sécurité insuffisante</h4>
+                <p>Conditions de sécurité dangereuses</p>
+            </div>
+            <div class="incident-item">
+                <h4>🚫 Discrimination</h4>
+                <p>Traitement injuste basé sur la race, genre, etc.</p>
+            </div>
+            <div class="incident-item">
+                <h4>🤐 Harcèlement</h4>
+                <p>Harcèlement physique ou moral</p>
+            </div>
+            <div class="incident-item">
+                <h4>👶 Travail des enfants</h4>
+                <p>Emploi d'enfants en violation des lois</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="section-title">
+            <h2>Comment ça marche ?</h2>
+        </div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Remplissez le formulaire</h3>
+                <p>Décrivez précisément l'incident</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Recevez votre code</h3>
+                <p>Code unique pour suivre votre dénonciation</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Suivi de l'enquête</h3>
+                <p>Consultez l'état d'avancement</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Résolution</h3>
+                <p>Découvrez les actions prises</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="section-title">
+            <h2>Témoignages</h2>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial">
+                <p>"Cette plateforme m'a permis de signaler les mauvaises conditions sans crainte. Merci !"</p>
+                <span class="author">- Jean, Kinshasa</span>
+            </div>
+            <div class="testimonial">
+                <p>"J'apprécié pouvoir rester anonyme tout en ayant la possibilité de suivre mon dossier."</p>
+                <span class="author">- Marie, Lubumbashi</span>
+            </div>
+            <div class="testimonial">
+                <p>"Enfin une vraie solution pour les droits des travailleurs en RDC !"</p>
+                <span class="author">- Pierre, Goma</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta">
+        <h2>Vous avez un incident à signaler ?</h2>
+        <p>Ne restez pas seul. Faites entendre votre voix.</p>
+        <a href="{% url 'core:incident_form' %}" class="btn btn-primary btn-large">
+            Dénoncer maintenant
+        </a>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+        <div class="section-title">
+            <h2>Questions fréquemment posées</h2>
+        </div>
+        <div class="faq-items">
+            <details class="faq-item">
+                <summary>Q: Est-ce vraiment anonyme ?</summary>
+                <p>Oui, vous avez le choix. Si vous cochez "Rester anonyme", votre identité ne sera jamais révélée à l'employeur ou aux autres parties.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Q: Combien de temps prend l'investigation ?</summary>
+                <p>Cela dépend de la complexité du cas. La plupart des cas sont traités dans les 30 jours.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Q: Puis-je retirer ma dénonciation ?</summary>
+                <p>Oui, vous pouvez le faire jusqu'à ce qu'une investigation officiellement commence.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Q: Et si je me trompe ou je fournis de fausses informations ?</summary>
+                <p>Veuillez être précis dans votre description. Les fausses accusations peuvent être poursuivies légalement.</p>
+            </details>
+        </div>
+    </section>
+</div>
+{% endblock %}

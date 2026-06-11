@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dénonciation reçue - MEPT-RDC{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-box">
+        <div class="success-icon">✓</div>
+        <h1>Merci pour votre dénonciation</h1>
+        <p class="success-message">Votre signalement a été reçu avec succès et sera traité avec la plus grande attention.</p>
+
+        {% if incident %}
+            <div class="code-box">
+                <h3>Votre code de suivi</h3>
+                <div class="code-display">
+                    <code>{{ code_suivi }}</code>
+                    <button class="copy-btn" onclick="copyToClipboard('{{ code_suivi }}')">Copier</button>
+                </div>
+                <p class="code-info">
+                    Conservez ce code précieusement. Il vous permettra de consulter l'état de votre dénonciation 
+                    à tout moment de manière <strong>100% anonyme</strong>, sans connexion nécessaire.
+                </p>
+            </div>
+
+            <div class="incident-summary">
+                <h3>Résumé de votre dénonciation</h3>
+                <dl>
+                    <dt>Type d'incident :</dt>
+                    <dd>{{ incident.get_type_incident_display }}</dd>
+                    
+                    <dt>Employeur :</dt>
+                    <dd>{{ incident.employeur.nom }}</dd>
+                    
+                    <dt>Lieu :</dt>
+                    <dd>{{ incident.ville }}, {{ incident.province.nom }}</dd>
+                    
+                    <dt>Statut actuel :</dt>
+                    <dd><span class="badge badge-nouvelle">Nouvelle</span></dd>
+                    
+                    <dt>Date de réception :</dt>
+                    <dd>{{ incident.date_creation|date:"d/m/Y à H:i" }}</dd>
+                </dl>
+            </div>
+
+            <div class="next-steps">
+                <h3>Quelles sont les prochaines étapes ?</h3>
+                <ol>
+                    <li>Votre dénonciation a été enregistrée dans le système</li>
+                    <li>Un agent examinera votre cas dans les prochains jours</li>
+                    <li>Vous pourrez suivre sa progression en utilisant votre code</li>
+                    <li>Des commentaires de suivi vous seront communiqués</li>
+                </ol>
+            </div>
+
+            <div class="options">
+                <h3>Que souhaitez-vous faire maintenant ?</h3>
+                
+                <div class="option-buttons">
+                    <a href="{% url 'core:search_incident' %}" class="btn btn-primary">
+                        📋 Consulter mon dénonciation
+                    </a>
+                    
+                    <a href="{% url 'users:register' %}" class="btn btn-secondary">
+                        👤 Créer un compte pour le suivi
+                    </a>
+                    
+                    <a href="{% url 'core:incident_form' %}" class="btn btn-secondary">
+                        ➕ Soumettre une autre dénonciation
+                    </a>
+                    
+                    <a href="{% url 'core:home' %}" class="btn btn-secondary">
+                        🏠 Retourner à l'accueil
+                    </a>
+                </div>
+            </div>
+
+            <div class="confidentiality-note">
+                <h4>🔒 Votre confidentialité est protégée</h4>
+                <p>
+                    Vous avez soumis votre dénonciation <strong>de manière anonyme</strong>. 
+                    Votre identité ne sera jamais révélée à l'employeur ou à d'autres parties. 
+                    Vous pouvez consulter l'état de votre dossier en utilisant uniquement votre code de suivi.
+                </p>
+            </div>
+        {% else %}
+            <div class="error-box">
+                <p>Une erreur s'est produite. Veuillez contacter l'assistance.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Code copié dans le presse-papiers');
+    }, function(err) {
+        console.error('Erreur lors de la copie:', err);
+    });
+}
+</script>
+{% endblock %}

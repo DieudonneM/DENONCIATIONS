@@ -1,0 +1,99 @@
+{% extends 'core/admin/base.html' %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1>🏢 Gestion des Entreprises</h1>
+    <div class="actions">
+        <a href="{% url 'core:admin_employeurs_create' %}" class="btn-admin btn-admin-success">
+            ➕ Ajouter une Entreprise
+        </a>
+    </div>
+</div>
+
+<!-- Recherche et filtrage -->
+<div class="search-box">
+    <form method="get">
+        <div class="form-group">
+            {{ search_form.search }}
+        </div>
+        <div class="form-group">
+            {{ search_form.secteur }}
+        </div>
+        <button type="submit" class="btn-admin">🔍 Rechercher</button>
+    </form>
+</div>
+
+<!-- Tableau des entreprises -->
+{% if employeurs %}
+    <div class="admin-card">
+        <p style="color: #666; margin-top: 0;">Affichage de <strong>{{ employeurs|length }}</strong> sur <strong>{{ total_count }}</strong> entreprises</p>
+        
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Secteur</th>
+                    <th>Province</th>
+                    <th>Ville</th>
+                    <th>Contact</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employeur in employeurs %}
+                    <tr>
+                        <td><strong>{{ employeur.nom }}</strong></td>
+                        <td>
+                            <span style="
+                                background: #e3f2fd;
+                                padding: 0.3rem 0.8rem;
+                                border-radius: 4px;
+                                font-size: 0.85rem;
+                            ">
+                                {{ employeur.get_secteur_display|truncatewords:2 }}
+                            </span>
+                        </td>
+                        <td>{{ employeur.province.nom|default:"N/A" }}</td>
+                        <td>{{ employeur.ville }}</td>
+                        <td>
+                            <small style="display: block;">{{ employeur.email }}</small>
+                            <small style="display: block; color: #999;">{{ employeur.telephone }}</small>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="{% url 'core:admin_employeurs_edit' employeur.id %}" class="btn-admin btn-admin-sm">✏️ Modifier</a>
+                                <form method="post" action="{% url 'core:admin_employeurs_delete' employeur.id %}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">🗑️ Supprimer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if employeurs.has_other_pages %}
+        <div class="pagination">
+            {% if employeurs.has_previous %}
+                <a href="?page=1">« Première</a>
+                <a href="?page={{ employeurs.previous_page_number }}">« Précédente</a>
+            {% endif %}
+            
+            <span class="current">Page {{ employeurs.number }} / {{ employeurs.paginator.num_pages }}</span>
+            
+            {% if employeurs.has_next %}
+                <a href="?page={{ employeurs.next_page_number }}">Suivante »</a>
+                <a href="?page={{ employeurs.paginator.num_pages }}">Dernière »</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    <div class="admin-card empty-state">
+        <p>ℹ️ Aucune entreprise trouvée</p>
+    </div>
+{% endif %}
+
+{% endblock %}

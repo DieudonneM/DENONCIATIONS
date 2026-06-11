@@ -1,0 +1,42 @@
+{% extends 'core/admin/base.html' %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1>{{ title }}</h1>
+</div>
+
+<div class="form-container">
+    <form method="post">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                {% if field.label %}
+                    {{ field.label_tag }}
+                {% endif %}
+                {{ field }}
+                
+                {% if field.help_text %}
+                    <small style="color: #666; display: block; margin-top: 0.5rem;">
+                        {{ field.help_text|safe }}
+                    </small>
+                {% endif %}
+                
+                {% if field.errors %}
+                    <div style="color: #f44336; margin-top: 0.5rem;">
+                        {% for error in field.errors %}
+                            <small>❌ {{ error }}</small><br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-save">💾 Enregistrer</button>
+            <a href="{% url 'core:admin_employeurs_list' %}" class="btn-cancel">Annuler</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

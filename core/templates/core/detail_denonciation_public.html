@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dénonciation {{ incident.code_suivi }} - MEPT-RDC{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+    <div class="public-incident-detail">
+        <div class="detail-header">
+            <h1>{{ incident.code_suivi }}</h1>
+            <p>{{ incident.get_type_incident_display }} • {{ incident.date_creation|date:"d/m/Y H:i" }}</p>
+            <span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span>
+        </div>
+
+        <div class="detail-section">
+            <h2>Informations</h2>
+            <dl class="details-grid">
+                <dt>Employeur</dt>
+                <dd>{{ incident.employeur.nom }}</dd>
+
+                <dt>Province</dt>
+                <dd>{{ incident.province.nom }}</dd>
+
+                <dt>Ville</dt>
+                <dd>{{ incident.ville }}</dd>
+
+                <dt>Date de dénonciation</dt>
+                <dd>{{ incident.date_creation|date:"d/m/Y H:i" }}</dd>
+
+                <dt>Statut</dt>
+                <dd>{{ incident.get_statut_display }}</dd>
+            </dl>
+        </div>
+
+        <div class="detail-section">
+            <h2>Description</h2>
+            <div class="description-box">
+                {{ incident.description|linebreaks }}
+            </div>
+        </div>
+
+        {% if pieces_jointes %}
+            <div class="detail-section">
+                <h2>Pièces jointes</h2>
+                <div class="attachments-list">
+                    {% for piece in pieces_jointes %}
+                        <div class="attachment-item">
+                            <a href="{{ piece.fichier.url }}" download class="attachment-link">📎 {{ piece.nom_original }}</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="detail-section">
+            <h2>Commentaires publics</h2>
+            {% if commentaires_publics %}
+                <div class="comments-list">
+                    {% for comment in commentaires_publics %}
+                        <div class="comment-item">
+                            <div class="comment-meta">
+                                <strong>{{ comment.get_auteur_display }}</strong>
+                                <span class="comment-date">{{ comment.date_creation|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div class="comment-body">
+                                {{ comment.texte|linebreaks }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Aucun commentaire public pour le moment.</p>
+            {% endif %}
+        </div>
+
+        <div class="actions">
+            <a href="{% url 'core:search_incident' %}" class="btn btn-secondary">Retour au suivi</a>
+            <a href="{% url 'core:home' %}" class="btn btn-secondary">Retour à l'accueil</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

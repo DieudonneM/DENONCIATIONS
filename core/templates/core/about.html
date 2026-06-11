@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}À propos - MEPT-RDC{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <div class="container">
+        <h1>À propos de nous</h1>
+        <p>Notre mission et nos valeurs</p>
+    </div>
+</section>
+
+<section class="container py-5">
+    <div class="content-grid">
+        <div class="content-section">
+            <h2>Notre Mission</h2>
+            <p>
+                La plateforme MEPT-RDC a pour mission de faciliter la dénonciation sécurisée et confidentielle 
+                des incidents de travail en République Démocratique du Congo. Nous croyons que chaque travailleur 
+                a le droit de signaler les violations de ses droits dans un environnement sûr et protégé.
+            </p>
+        </div>
+
+        <div class="content-section">
+            <h2>Nos Valeurs</h2>
+            <ul class="values-list">
+                <li><strong>Confidentialité :</strong> Vos données sont protégées et sécurisées</li>
+                <li><strong>Justice :</strong> Chaque dénonciation reçoit une attention appropriée</li>
+                <li><strong>Transparence :</strong> Suivi en temps réel de votre dossier</li>
+                <li><strong>Protection :</strong> Aucune représaille contre les dénonciateurs</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Qui sommes-nous ?</h2>
+            <p>
+                Nous sommes le Ministère de l'Emploi et du Travail de la République Démocratique du Congo (MEPT-RDC),
+                responsable de la protection des droits des travailleurs et de l'application de la législation du travail.
+            </p>
+        </div>
+
+        <div class="content-section">
+            <h2>Notre Engagement</h2>
+            <p>
+                Nous nous engageons à :
+            </p>
+            <ul class="values-list">
+                <li>Recevoir et traiter chaque dénonciation avec sérieux</li>
+                <li>Garantir la confidentialité complète des dénonciateurs</li>
+                <li>Agir rapidement pour résoudre les violations</li>
+                <li>Fournir un retour régulier sur le statut des dénonciations</li>
+                <li>Protéger les dénonciateurs contre toute représaille</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<style>
+.page-hero {
+    background: linear-gradient(135deg, #001F3F 0%, #003d6b 100%);
+    color: white;
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.page-hero h1 {
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-hero p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.content-grid {
+    display: grid;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.content-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.content-section h2 {
+    color: #001F3F;
+    margin-bottom: 1rem;
+}
+
+.values-list {
+    list-style: none;
+    padding: 0;
+}
+
+.values-list li {
+    padding: 0.5rem 0;
+    padding-left: 2rem;
+    position: relative;
+}
+
+.values-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #001F3F;
+    font-weight: bold;
+}
+
+.py-5 {
+    padding: 3rem 0;
+}
+
+@media (max-width: 768px) {
+    .page-hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .content-section {
+        padding: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

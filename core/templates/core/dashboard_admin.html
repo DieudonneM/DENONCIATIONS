@@ -1,0 +1,678 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Admin - MEPT-RDC{% endblock %}
+
+{% block content %}
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.admin-dashboard {
+    background: #f5f7fa;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.dashboard-header {
+    margin-bottom: 3rem;
+}
+
+.dashboard-header h1 {
+    color: #001F3F;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.dashboard-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* Section Stats */
+.stats-section {
+    margin-bottom: 4rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: #001F3F;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    border-bottom: 3px solid #001F3F;
+    padding-bottom: 0.75rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 5px solid #001F3F;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.stat-nouvelle {
+    border-left-color: #2196F3;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.05), transparent);
+}
+
+.stat-card.stat-analyse {
+    border-left-color: #FF9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.05), transparent);
+}
+
+.stat-card.stat-attente {
+    border-left-color: #9C27B0;
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.05), transparent);
+}
+
+.stat-card.stat-resolue {
+    border-left-color: #4CAF50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.05), transparent);
+}
+
+.stat-card.stat-classee {
+    border-left-color: #757575;
+    background: linear-gradient(135deg, rgba(117, 117, 117, 0.05), transparent);
+}
+
+.stat-value {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #001F3F;
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Management Sections */
+.management-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.management-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.management-header {
+    background: linear-gradient(135deg, #001F3F, #003d66);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.management-header h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.management-header .count {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.management-body {
+    padding: 1.5rem;
+}
+
+.item-list {
+    list-style: none;
+}
+
+.item-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-list li:last-child {
+    border-bottom: none;
+}
+
+.item-name {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.item-meta {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.btn-manage {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background: #001F3F;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+
+.btn-manage:hover {
+    background: #003d66;
+    transform: translateX(2px);
+}
+
+.btn-manage.secondary {
+    background: #666;
+}
+
+.btn-manage.secondary:hover {
+    background: #555;
+}
+
+.management-footer {
+    padding: 1rem 1.5rem;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+.management-footer a {
+    color: #001F3F;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.management-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Incidents Table */
+.incidents-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.incidents-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.incidents-header h3 {
+    color: #001F3F;
+    font-size: 1.3rem;
+}
+
+.incident-list-table {
+    width: 100%;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    border: 1px solid #e6eff8;
+    background: white;
+    box-shadow: 0 16px 30px rgba(23, 56, 101, 0.06);
+}
+
+.incident-list-header,
+.incident-list-row {
+    display: grid;
+    grid-template-columns: 2fr 2fr 2fr 1.5fr 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.5rem;
+}
+
+.incident-list-header {
+    background: #f5f8ff;
+    font-weight: 700;
+    color: #1d3e6f;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.incident-list-row {
+    border-top: 1px solid #eef3fb;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.incident-list-row:hover {
+    background: #f7fbff;
+    transform: translateY(-1px);
+}
+
+.incident-list-row.unassigned {
+    background: #fff8e7;
+}
+
+.incident-list-cell {
+    color: #33475b;
+    font-size: 0.95rem;
+}
+
+.incident-list-cell.type {
+    font-weight: 600;
+    color: #1d3e6f;
+}
+
+.incident-code {
+    color: #134294;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.incident-code:hover {
+    text-decoration: underline;
+}
+
+.incident-status,
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.badge-nouvelle { background: #e3f2fd; color: #1976d2; }
+.badge-analyse { background: #fff3e0; color: #f57c00; }
+.badge-attente { background: #f3e5f5; color: #7b1fa2; }
+.badge-resolue { background: #e8f5e9; color: #388e3c; }
+.badge-classee { background: #eeeeee; color: #616161; }
+
+.incident-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.incident-actions .btn-manage {
+    margin: 0;
+}
+
+.code-link {
+    color: #001F3F;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.code-link:hover {
+    text-decoration: underline;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.badge-nouvelle {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-analyse {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.badge-attente {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.badge-resolue {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.badge-classee {
+    background: #eeeeee;
+    color: #616161;
+}
+
+.no-data {
+    padding: 3rem;
+    text-align: center;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem 1rem;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+    }
+    
+    .management-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .incidents-table {
+        font-size: 0.85rem;
+    }
+    
+    .incidents-table th,
+    .incidents-table td {
+        padding: 0.75rem;
+    }
+}
+</style>
+
+<div class="admin-dashboard">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>🎛️ Tableau de Bord Administrateur</h1>
+        <p>Gestion complète de la plateforme de dénonciation</p>
+    </div>
+
+    <!-- SECTION 1: STATISTIQUES PRINCIPALES -->
+    <div class="stats-section">
+        <div class="section-title">📊 Statistiques Principales</div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-value">{{ stats.total }}</div>
+                <div class="stat-label">Total Dénonciations</div>
+            </div>
+            
+            <div class="stat-card stat-nouvelle">
+                <div class="stat-icon">✨</div>
+                <div class="stat-value">{{ stats.nouvelle }}</div>
+                <div class="stat-label">Nouvelles</div>
+            </div>
+            
+            <div class="stat-card stat-analyse">
+                <div class="stat-icon">🔍</div>
+                <div class="stat-value">{{ stats.analyse }}</div>
+                <div class="stat-label">En Analyse</div>
+            </div>
+            
+            <div class="stat-card stat-attente">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-value">{{ stats.attente }}</div>
+                <div class="stat-label">En Attente</div>
+            </div>
+            
+            <div class="stat-card stat-resolue">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">{{ stats.resolue }}</div>
+                <div class="stat-label">Résolues</div>
+            </div>
+            
+            <div class="stat-card stat-classee">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value">{{ stats.classée }}</div>
+                <div class="stat-label">Classées</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">👤</div>
+                <div class="stat-value">{{ stats.anonyme }}</div>
+                <div class="stat-label">Anonymes</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🔴</div>
+                <div class="stat-value">{{ stats.non_lu }}</div>
+                <div class="stat-label">Non Lues</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: GESTION DES UTILISATEURS -->
+    <div class="stats-section">
+        <div class="section-title">👥 Gestion des Utilisateurs</div>
+        
+        <div class="management-grid">
+            <!-- Agents -->
+            <div class="management-card">
+                <div class="management-header">
+                    <div>
+                        <h3>🕵️ Agents</h3>
+                    </div>
+                    <div class="count">{{ total_agents }}</div>
+                </div>
+                <div class="management-body">
+                    {% if recent_agents %}
+                        <ul class="item-list">
+                            {% for agent in recent_agents %}
+                                <li>
+                                    <div>
+                                        <div class="item-name">{{ agent.get_full_name }}</div>
+                                        <div class="item-meta">{{ agent.email }}</div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-data">Aucun agent</p>
+                    {% endif %}
+                </div>
+                <div class="management-footer">
+                    <a href="{% url 'core:admin_users_list' %}?role=agent">Gérer les Agents →</a>
+                </div>
+            </div>
+
+            <!-- Travailleurs -->
+            <div class="management-card">
+                <div class="management-header">
+                    <div>
+                        <h3>💼 Travailleurs</h3>
+                    </div>
+                    <div class="count">{{ total_travailleurs }}</div>
+                </div>
+                <div class="management-body">
+                    <p style="color: #666; margin: 1rem 0;">Total des utilisateurs travailleurs enregistrés sur la plateforme.</p>
+                    <a href="{% url 'core:admin_users_list' %}?role=travailleur" class="btn-manage secondary">Gérer</a>
+                </div>
+                <div class="management-footer">
+                    <a href="{% url 'core:admin_users_list' %}?role=travailleur">Voir les Travailleurs →</a>
+                </div>
+            </div>
+
+            <!-- Statistiques Utilisateurs -->
+            <div class="management-card">
+                <div class="management-header">
+                    <div>
+                        <h3>📈 Statistiques</h3>
+                    </div>
+                    <div class="count">{{ total_users }}</div>
+                </div>
+                <div class="management-body">
+                    <ul class="item-list">
+                        <li>
+                            <span class="item-name">Total Utilisateurs</span>
+                            <strong>{{ total_users }}</strong>
+                        </li>
+                        <li>
+                            <span class="item-name">Agents</span>
+                            <strong>{{ total_agents }}</strong>
+                        </li>
+                        <li>
+                            <span class="item-name">Travailleurs</span>
+                            <strong>{{ total_travailleurs }}</strong>
+                        </li>
+                    </ul>
+                </div>
+                <div class="management-footer">
+                    <a href="{% url 'core:admin_users_list' %}">Tous les Utilisateurs →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: GESTION ADMINISTRATIVE -->
+    <div class="stats-section">
+        <div class="section-title">⚙️ Gestion Administrative</div>
+        
+        <div class="management-grid">
+            <!-- Provinces -->
+            <div class="management-card">
+                <div class="management-header">
+                    <div>
+                        <h3>🗺️ Provinces</h3>
+                    </div>
+                    <div class="count">{{ total_provinces }}</div>
+                </div>
+                <div class="management-body">
+                    {% if recent_provinces %}
+                        <ul class="item-list">
+                            {% for province in recent_provinces %}
+                                <li>
+                                    <span class="item-name">{{ province.nom }}</span>
+                                    <span class="item-meta">{{ province.code }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-data">Aucune province</p>
+                    {% endif %}
+                </div>
+                <div class="management-footer">
+                    <a href="{% url 'core:admin_provinces_list' %}">Gérer les Provinces →</a>
+                </div>
+            </div>
+
+            <!-- Entreprises -->
+            <div class="management-card">
+                <div class="management-header">
+                    <div>
+                        <h3>🏢 Entreprises</h3>
+                    </div>
+                    <div class="count">{{ total_employeurs }}</div>
+                </div>
+                <div class="management-body">
+                    {% if recent_employeurs %}
+                        <ul class="item-list">
+                            {% for employeur in recent_employeurs %}
+                                <li>
+                                    <div>
+                                        <div class="item-name">{{ employeur.nom }}</div>
+                                        <div class="item-meta">{{ employeur.get_secteur_display }}</div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-data">Aucune entreprise</p>
+                    {% endif %}
+                </div>
+                <div class="management-footer">
+                    <a href="{% url 'core:admin_employeurs_list' %}">Gérer les Entreprises →</a>
+                </div>
+            </div>
+
+            <!-- Actions Rapides -->
+            <div class="management-card">
+                <div class="management-header">
+                    <div>
+                        <h3>⚡ Actions Rapides</h3>
+                    </div>
+                </div>
+                <div class="management-body">
+                    <a href="{% url 'core:admin_users_create' %}" class="btn-manage">Ajouter un Agent</a>
+                    <br>
+                    <a href="{% url 'core:admin_provinces_create' %}" class="btn-manage">Ajouter une Province</a>
+                    <br>
+                    <a href="{% url 'core:admin_employeurs_create' %}" class="btn-manage">Ajouter une Entreprise</a>
+                </div>
+                <div class="management-footer">
+                    <a href="{% url 'core:admin_dashboard' %}">Accéder au Panel Admin →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4: DÉNONCIATIONS RÉCENTES -->
+    <div class="stats-section">
+        <div class="incidents-section">
+            <div class="incidents-header">
+                <h3>📝 Dénonciations Récentes</h3>
+            </div>
+                    <div class="incident-list-table">
+                <div class="incident-list-header">
+                    <div>Type</div>
+                    <div>Entreprise</div>
+                    <div>Ville / Province</div>
+                    <div>Status</div>
+                    <div>Action</div>
+                </div>
+                {% if recent_incidents %}
+                    {% for incident in recent_incidents %}
+                        <div class="incident-list-row {% if not incident.agent_assigné %}unassigned{% endif %}">
+                            <div class="incident-list-cell type">
+                                <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">{{ incident.get_type_incident_display }}</a>
+                            </div>
+                            <div class="incident-list-cell">{{ incident.employeur.nom }}</div>
+                            <div class="incident-list-cell">{{ incident.ville }}, {{ incident.province.nom }}</div>
+                            <div class="incident-list-cell"><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
+                            <div class="incident-list-cell incident-actions">
+                                <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-manage">Consulter</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-data">Aucune dénonciation</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
