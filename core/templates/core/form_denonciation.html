@@ -1,155 +1,122 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dénoncer un incident de travail - MEPT-RDC{% endblock %}
+{% block title %}Formulaire de Dépôt des Réclamations - MEPT-RDC{% endblock %}
 
 {% block content %}
-<div class="form-container">
-    <div class="form-header">
-        <h1>Dénoncer un incident de travail</h1>
-        <p>Signalez de manière confidentielle et sécurisée tout incident lié à votre travail.</p>
+
+<!-- Section Formulaire -->
+<section class="section-form" style="background-color: #F5F5F5; padding: 60px 20px;">
+    <div class="container" style="max-width: 900px;">
+        <h2 style="text-align: center; margin-bottom: 40px; font-size: 2rem; color: #134294;">DÉPOSER UNE DÉNONCIATION</h2>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Section DÉNONCIATION RAPIDE -->
+            <div style="background: white; padding: 30px; margin-bottom: 30px; border-radius: 8px;">
+                <h3 style="color: #134294; margin-bottom: 20px; border-bottom: 3px solid #FFD700; padding-bottom: 10px;">VOS INFORMATIONS</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Nom de l'entreprise *</label>
+                        {{ form.employeur }}
+                        {% if form.employeur.errors %}
+                            <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.employeur.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Type de dénonciation *</label>
+                        {{ form.type_incident }}
+                        {% if form.type_incident.errors %}
+                            <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.type_incident.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Province *</label>
+                        {{ form.province }}
+                        {% if form.province.errors %}
+                            <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.province.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Ville/Localité *</label>
+                        {{ form.ville }}
+                        {% if form.ville.errors %}
+                            <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.ville.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section DÉTAILS -->
+            <div style="background: white; padding: 30px; margin-bottom: 30px; border-radius: 8px;">
+                <h3 style="color: #134294; margin-bottom: 20px; border-bottom: 3px solid #FFD700; padding-bottom: 10px;">DÉTAILS DE LA DÉNONCIATION</h3>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Description *</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.description.errors }}</div>
+                    {% endif %}
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 8px;">Décrivez en détail l'incident ou la violation...</p>
+                </div>
+                
+                {% if form.pieces_jointes %}
+                <div style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Documents (Optionnel)</label>
+                    {{ form.pieces_jointes }}
+                    {% if form.pieces_jointes.errors %}
+                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.pieces_jointes.errors }}</div>
+                    {% endif %}
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 8px;">Fichiers autorisés : PDF, DOCX, Images, Vidéos, Audios (max 50 MB par fichier)</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Section CONTACT ET ANONYMAT -->
+            <div style="background: white; padding: 30px; margin-bottom: 30px; border-radius: 8px;">
+                <h3 style="color: #134294; margin-bottom: 20px; border-bottom: 3px solid #FFD700; padding-bottom: 10px;">CONFIDENTIALITÉ</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Email (Optionnel)</label>
+                    {{ form.email_contact_anonyme }}
+                    {% if form.email_contact_anonyme.errors %}
+                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.email_contact_anonyme.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Téléphone (Optionnel)</label>
+                    {{ form.telephone_contact_anonyme }}
+                    {% if form.telephone_contact_anonyme.errors %}
+                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.telephone_contact_anonyme.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <div style="display: flex; align-items: center;">
+                        {{ form.est_anonyme }}
+                        <label for="{{ form.est_anonyme.id_for_label }}" style="cursor: pointer; font-weight: bold; color: #333; margin: 0 0 0 10px;">{{ form.est_anonyme.label }}</label>
+                    </div>
+                    {% if form.est_anonyme.errors %}
+                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.est_anonyme.errors }}</div>
+                    {% endif %}
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 8px;">En cochant cette case, votre identité sera protégée</p>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 30px;">
+                <button type="submit" style="padding: 12px 40px; background-color: #134294; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;">SOUMETTRE MA DÉNONCIATION</button>
+                <button type="reset" style="padding: 12px 40px; background-color: #F5F5F5; color: #333; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;">RÉINITIALISER</button>
+            </div>
+        </form>
     </div>
+</section>
 
-    <form method="post" enctype="multipart/form-data" class="incident-form">
-        {% csrf_token %}
-
-        <!-- Informations de base -->
-        <fieldset class="form-section">
-            <legend>Informations de base</legend>
-
-            <div class="form-group">
-                <label for="{{ form.type_incident.id_for_label }}">{{ form.type_incident.label }} *</label>
-                {{ form.type_incident }}
-                {% if form.type_incident.errors %}
-                    <div class="error">{{ form.type_incident.errors }}</div>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.employeur.id_for_label }}">{{ form.employeur.label }} *</label>
-                {{ form.employeur }}
-                {% if form.employeur.errors %}
-                    <div class="error">{{ form.employeur.errors }}</div>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.province.id_for_label }}">{{ form.province.label }} *</label>
-                {{ form.province }}
-                {% if form.province.errors %}
-                    <div class="error">{{ form.province.errors }}</div>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.ville.id_for_label }}">{{ form.ville.label }} *</label>
-                {{ form.ville }}
-                {% if form.ville.errors %}
-                    <div class="error">{{ form.ville.errors }}</div>
-                {% endif %}
-            </div>
-        </fieldset>
-
-        <!-- Description -->
-        <fieldset class="form-section">
-            <legend>Description de l'incident</legend>
-
-            <div class="form-group">
-                <label for="{{ form.description.id_for_label }}">{{ form.description.label }} *</label>
-                {{ form.description }}
-                <p class="form-help">Décrivez précisément ce qui s'est passé, quand et où.</p>
-                {% if form.description.errors %}
-                    <div class="error">{{ form.description.errors }}</div>
-                {% endif %}
-            </div>
-        </fieldset>
-
-        <!-- Pièces jointes -->
-        <fieldset class="form-section">
-            <legend>Pièces jointes (optionnel)</legend>
-
-            <div class="form-group">
-                <label for="{{ form.pieces_jointes.id_for_label }}">{{ form.pieces_jointes.label }}</label>
-                {{ form.pieces_jointes }}
-                <p class="form-help">{{ form.pieces_jointes.help_text }}</p>
-                {% if form.pieces_jointes.errors %}
-                    <div class="error">{{ form.pieces_jointes.errors }}</div>
-                {% endif %}
-            </div>
-        </fieldset>
-
-        <!-- Anonymat et Contact -->
-        <fieldset class="form-section">
-            <legend>Confidentialité et contact</legend>
-
-            <div class="form-group checkbox">
-                <label>
-                    {{ form.est_anonyme }}
-                    {{ form.est_anonyme.label }}
-                </label>
-                <p class="form-help">{{ form.est_anonyme.help_text }}</p>
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.email_contact_anonyme.id_for_label }}">{{ form.email_contact_anonyme.label }}</label>
-                {{ form.email_contact_anonyme }}
-                <p class="form-help">Optionnel - Nous pourrons vous contacter pour plus de précisions</p>
-                {% if form.email_contact_anonyme.errors %}
-                    <div class="error">{{ form.email_contact_anonyme.errors }}</div>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.telephone_contact_anonyme.id_for_label }}">{{ form.telephone_contact_anonyme.label }}</label>
-                {{ form.telephone_contact_anonyme }}
-                {% if form.telephone_contact_anonyme.errors %}
-                    <div class="error">{{ form.telephone_contact_anonyme.errors }}</div>
-                {% endif %}
-            </div>
-        </fieldset>
-
-        <!-- Erreurs globales -->
-        {% if form.non_field_errors %}
-            <div class="error-box">
-                {{ form.non_field_errors }}
-            </div>
-        {% endif %}
-
-        <!-- Boutons d'action -->
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Soumettre ma dénonciation</button>
-            <a href="{% url 'core:home' %}" class="btn btn-secondary">Annuler</a>
-        </div>
-
-        <p class="form-note">
-            <strong>Note de confidentialité :</strong> 
-            Toutes les informations sont traitées de manière confidentielle selon les normes de sécurité les plus strictes.
-            Votre anonymat est garanti si vous choisissez cette option.
-        </p>
-    </form>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Gestion du formulaire d'anonymat
-    document.addEventListener('DOMContentLoaded', function() {
-        const anonCheckbox = document.getElementById('id_est_anonyme');
-        const emailField = document.querySelector('[name="email_contact_anonyme"]').parentElement;
-        const phoneField = document.querySelector('[name="telephone_contact_anonyme"]').parentElement;
-        
-        function updateFieldsVisibility() {
-            if (anonCheckbox.checked) {
-                emailField.style.display = 'none';
-                phoneField.style.display = 'none';
-            } else {
-                emailField.style.display = 'block';
-                phoneField.style.display = 'block';
-            }
-        }
-        
-        anonCheckbox.addEventListener('change', updateFieldsVisibility);
-        updateFieldsVisibility();
-    });
+    // Script placeholder for any future enhancements
 </script>
 {% endblock %}

@@ -1,57 +1,99 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}À propos - MEPT-RDC{% endblock %}
+{% block title %}À propos - Gestion des Réclamations - MEPT-RDC{% endblock %}
 
 {% block content %}
-<section class="page-hero">
-    <div class="container">
-        <h1>À propos de nous</h1>
-        <p>Notre mission et nos valeurs</p>
+
+<!-- Section Hero -->
+<section class="hero" style="margin-top: -3rem; margin-left: -20px; margin-right: -20px;">
+    <div class="hero-container" style="grid-template-columns: 1fr;">
+        <div class="hero-content">
+            <h1>À PROPOS DE NOUS</h1>
+            <p>Découvrez notre mission et nos valeurs pour protéger les droits des travailleurs en RDC.</p>
+        </div>
     </div>
 </section>
 
-<section class="container py-5">
-    <div class="content-grid">
-        <div class="content-section">
-            <h2>Notre Mission</h2>
-            <p>
-                La plateforme MEPT-RDC a pour mission de faciliter la dénonciation sécurisée et confidentielle 
-                des incidents de travail en République Démocratique du Congo. Nous croyons que chaque travailleur 
-                a le droit de signaler les violations de ses droits dans un environnement sûr et protégé.
-            </p>
-        </div>
+<!-- Section Contenu -->
+<section style="background: white; padding: 60px 20px;">
+    <div class="container">
+        <div style="max-width: 900px; margin: 0 auto;">
+            
+            <!-- Notre Mission -->
+            <div style="margin-bottom: 50px;">
+                <h2 style="text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #FFD700;">Notre Mission</h2>
+                <p style="font-size: 1.1rem; line-height: 1.8; color: #2C3E50;">
+                    La plateforme de Gestion des Réclamations a pour mission de faciliter le dépôt sécurisé et confidentiel 
+                    des réclamations relatives aux droits du travail en République Démocratique du Congo. Nous croyons que chaque 
+                    travailleur et demandeur d'emploi a le droit de signaler les violations de ses droits dans un environnement 
+                    sûr, protégé et confidentiel.
+                </p>
+            </div>
 
-        <div class="content-section">
-            <h2>Nos Valeurs</h2>
-            <ul class="values-list">
-                <li><strong>Confidentialité :</strong> Vos données sont protégées et sécurisées</li>
-                <li><strong>Justice :</strong> Chaque dénonciation reçoit une attention appropriée</li>
-                <li><strong>Transparence :</strong> Suivi en temps réel de votre dossier</li>
-                <li><strong>Protection :</strong> Aucune représaille contre les dénonciateurs</li>
-            </ul>
-        </div>
+            <!-- Nos Valeurs -->
+            <div style="margin-bottom: 50px;">
+                <h2 style="text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #FFD700;">Nos Valeurs</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px;">
+                    <div style="background: #F5F5F5; padding: 20px; border-radius: 8px;">
+                        <h3 style="color: #134294; margin-bottom: 10px;">🔒 Confidentialité</h3>
+                        <p>Vos données sont protégées et sécurisées. Le secret professionnel est respecté à tout moment.</p>
+                    </div>
+                    <div style="background: #F5F5F5; padding: 20px; border-radius: 8px;">
+                        <h3 style="color: #134294; margin-bottom: 10px;">⚖️ Justice</h3>
+                        <p>Chaque réclamation reçoit une attention appropriée et est traitée avec équité.</p>
+                    </div>
+                    <div style="background: #F5F5F5; padding: 20px; border-radius: 8px;">
+                        <h3 style="color: #134294; margin-bottom: 10px;">📊 Transparence</h3>
+                        <p>Suivi en temps réel de votre dossier avec des mises à jour régulières.</p>
+                    </div>
+                    <div style="background: #F5F5F5; padding: 20px; border-radius: 8px;">
+                        <h3 style="color: #134294; margin-bottom: 10px;">🛡️ Protection</h3>
+                        <p>Aucune représaille contre les personnes qui déposent une réclamation.</p>
+                    </div>
+                </div>
+            </div>
 
-        <div class="content-section">
-            <h2>Qui sommes-nous ?</h2>
-            <p>
-                Nous sommes le Ministère de l'Emploi et du Travail de la République Démocratique du Congo (MEPT-RDC),
-                responsable de la protection des droits des travailleurs et de l'application de la législation du travail.
-            </p>
-        </div>
+            <!-- Qui sommes-nous -->
+            <div style="margin-bottom: 50px;">
+                <h2 style="text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #FFD700;">Qui sommes-nous ?</h2>
+                <p style="font-size: 1.1rem; line-height: 1.8; color: #2C3E50;">
+                    Nous sommes le Ministère de l'Emploi et du Travail de la République Démocratique du Congo, 
+                    responsable de la protection des droits des travailleurs et de l'application de la législation du travail. 
+                    Cette plateforme représente notre engagement à offrir aux citoyens un moyen efficace et accessible 
+                    de signaler les violations de leurs droits.
+                </p>
+            </div>
 
-        <div class="content-section">
-            <h2>Notre Engagement</h2>
-            <p>
-                Nous nous engageons à :
-            </p>
-            <ul class="values-list">
-                <li>Recevoir et traiter chaque dénonciation avec sérieux</li>
-                <li>Garantir la confidentialité complète des dénonciateurs</li>
-                <li>Agir rapidement pour résoudre les violations</li>
-                <li>Fournir un retour régulier sur le statut des dénonciations</li>
-                <li>Protéger les dénonciateurs contre toute représaille</li>
-            </ul>
+            <!-- Notre Engagement -->
+            <div style="margin-bottom: 50px;">
+                <h2 style="text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #FFD700;">Notre Engagement</h2>
+                <div style="background: linear-gradient(135deg, #134294 0%, #1e5bb8 100%); color: white; padding: 40px; border-radius: 8px;">
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+                            <span style="position: absolute; left: 0; font-size: 1.5rem;">✓</span>
+                            Recevoir et traiter chaque réclamation avec sérieux et diligence
+                        </li>
+                        <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+                            <span style="position: absolute; left: 0; font-size: 1.5rem;">✓</span>
+                            Garantir la confidentialité complète des réclamants
+                        </li>
+                        <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+                            <span style="position: absolute; left: 0; font-size: 1.5rem;">✓</span>
+                            Enquêter sur chaque dossier avec impartialité
+                        </li>
+                        <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+                            <span style="position: absolute; left: 0; font-size: 1.5rem;">✓</span>
+                            Mettre en œuvre des mesures correctives appropriées
+                        </li>
+                        <li style="padding-left: 30px; position: relative;">
+                            <span style="position: absolute; left: 0; font-size: 1.5rem;">✓</span>
+                            Fournir un suivi transparent du traitement des réclamations
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
