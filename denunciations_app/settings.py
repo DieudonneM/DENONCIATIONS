@@ -10,16 +10,17 @@ from decouple import Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY: Generate a strong SECRET_KEY for production
+# Environment detection
+ENVIRONMENT = config('ENVIRONMENT', default='local').lower()
+IS_PRODUCTION = ENVIRONMENT == 'production'
+
+# Security & Keys
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-rdc-ministry-work-incidents-reporting-platform')
 
-# DEBUG must be False in production
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=not IS_PRODUCTION, cast=bool)
 
-# Configure ALLOWED_HOSTS for both local and production
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
 
-# Use SQLite for local development, PostgreSQL for production
 USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
 
 # Application definition
@@ -73,6 +74,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'denunciations_app.wsgi.application'
 
 # Database
+USE_SQLITE = config('USE_SQLITE', default=not IS_PRODUCTION, cast=bool)
+
 if USE_SQLITE:
     DATABASES = {
         'default': {
@@ -83,7 +86,7 @@ if USE_SQLITE:
 else:
     DATABASES = {
         'default': {
-            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+            'ENGINE': 'django.db.backends.postgresql',
             'NAME': config('DB_NAME', default='denunciations_app'),
             'USER': config('DB_USER', default='postgres'),
             'PASSWORD': config('DB_PASSWORD', default=''),
@@ -91,6 +94,19 @@ else:
             'PORT': config('DB_PORT', default='5432'),
         }
     }
+
+# Security settings for production
+if IS_PRODUCTION:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_SECURITY_POLICY = {
+        'default-src': ("'self'",),
+    }
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -149,30 +165,6 @@ LOGIN_REDIRECT_URL = 'core:dashboard'
 LOGOUT_REDIRECT_URL = 'core:home'
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB
-
-# =============================================================================
-# PRODUCTION SECURITY SETTINGS
-# =============================================================================
-
-# HTTPS and Security (Production)
-if not DEBUG:
-    # Force HTTPS in production
-    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
-    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
-    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
-    
-    # HSTS (HTTP Strict Transport Security)
-    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
-    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
-    
-    # X-Frame-Options
-    X_FRAME_OPTIONS = 'DENY'
-    
-    # Additional security headers
-    SECURE_CONTENT_SECURITY_POLICY = {
-        'default-src': ("'self'",),
-    }
 
 # Logging configuration
 LOGGING = {

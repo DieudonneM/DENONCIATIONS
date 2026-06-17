@@ -1,122 +1,529 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Formulaire de Dépôt des Réclamations - MEPT-RDC{% endblock %}
+{% block title %}Dénoncer - Plateforme de Réclamations MEPT-RDC{% endblock %}
 
 {% block content %}
-
-<!-- Section Formulaire -->
-<section class="section-form" style="background-color: #F5F5F5; padding: 60px 20px;">
-    <div class="container" style="max-width: 900px;">
-        <h2 style="text-align: center; margin-bottom: 40px; font-size: 2rem; color: #134294;">DÉPOSER UNE DÉNONCIATION</h2>
+<style>
+    .form-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 50px;
+        padding-bottom: 30px;
+        border-bottom: 3px solid #FFD700;
+    }
+    
+    .form-header h1 {
+        color: #134294;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    
+    .form-header p {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    
+    .form-section {
+        background: white;
+        padding: 30px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        color: #134294;
+        font-size: 1.3rem;
+        margin-bottom: 25px;
+        padding-bottom: 12px;
+        border-bottom: 3px solid #FFD700;
+        font-weight: bold;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .form-row.full {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .form-group label .required {
+        color: #e74c3c;
+        margin-left: 3px;
+    }
+    
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group select,
+    .form-group textarea {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #134294;
+        box-shadow: 0 0 0 3px rgba(19, 66, 148, 0.1);
+        background-color: #f9fafb;
+    }
+    
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+    
+    .form-group .help-text {
+        font-size: 0.85rem;
+        color: #888;
+        margin-top: 6px;
+        font-style: italic;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin: 15px 0;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        margin-top: 3px;
+        accent-color: #134294;
+    }
+    
+    .checkbox-group label {
+        cursor: pointer;
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    .file-upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .file-upload-area:hover,
+    .file-upload-area.dragover {
+        border-color: #134294;
+        background-color: #f0f5ff;
+    }
+    
+    .file-upload-area input[type="file"] {
+        display: none;
+    }
+    
+    .file-upload-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .file-list {
+        margin-top: 20px;
+    }
+    
+    .file-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .error-message {
+        color: #e74c3c;
+        font-size: 0.85rem;
+        margin-top: 6px;
+        padding: 8px 12px;
+        background-color: #fadbd8;
+        border-left: 3px solid #e74c3c;
+        border-radius: 4px;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 13px 35px;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-submit {
+        background-color: #134294;
+        color: white;
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .btn-submit:hover {
+        background-color: #0f2e5c;
+        box-shadow: 0 4px 12px rgba(19, 66, 148, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .btn-reset {
+        background-color: #f0f0f0;
+        color: #333;
+        flex: 1;
+        min-width: 200px;
+        border: 1px solid #ddd;
+    }
+    
+    .btn-reset:hover {
+        background-color: #e8e8e8;
+    }
+    
+    .info-box {
+        background-color: #e7f3ff;
+        border-left: 4px solid #134294;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        color: #004085;
+        font-size: 0.95rem;
+    }
+    
+    @media (max-width: 768px) {
+        .form-header h1 {
+            font-size: 1.8rem;
+        }
         
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+        .form-section {
+            padding: 20px;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            min-width: 150px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-submit, .btn-reset {
+            width: 100%;
+            flex: none;
+        }
+    }
+</style>
+
+<!-- Header Section -->
+<div class="form-container">
+    <div class="form-header">
+        <h1>Déposer une Dénonciation</h1>
+        <p>Plateforme sécurisée et confidentielle pour signaler des violations des droits du travail</p>
+    </div>
+</div>
+
+<!-- Main Form -->
+<div class="form-container">
+    <form method="POST" enctype="multipart/form-data" id="denounceForm">
+        {% csrf_token %}
+        
+        <div class="info-box">
+            <strong>🔒 Vos informations sont protégées</strong><br>
+            Vous pouvez choisir de rester anonyme. Vos données seront traitées conformément à nos normes de confidentialité.
+        </div>
+        
+        <!-- SECTION 1: INFORMATIONS DE BASE -->
+        <div class="form-section">
+            <h2 class="section-title">Informations de Base</h2>
             
-            <!-- Section DÉNONCIATION RAPIDE -->
-            <div style="background: white; padding: 30px; margin-bottom: 30px; border-radius: 8px;">
-                <h3 style="color: #134294; margin-bottom: 20px; border-bottom: 3px solid #FFD700; padding-bottom: 10px;">VOS INFORMATIONS</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Nom de l'entreprise *</label>
-                        {{ form.employeur }}
-                        {% if form.employeur.errors %}
-                            <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.employeur.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Type de dénonciation *</label>
-                        {{ form.type_incident }}
-                        {% if form.type_incident.errors %}
-                            <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.type_incident.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Province *</label>
-                        {{ form.province }}
-                        {% if form.province.errors %}
-                            <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.province.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Ville/Localité *</label>
-                        {{ form.ville }}
-                        {% if form.ville.errors %}
-                            <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.ville.errors }}</div>
-                        {% endif %}
-                    </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.employeur.id_for_label }}">
+                        {{ form.employeur.label }} <span class="required">*</span>
+                    </label>
+                    {{ form.employeur }}
+                    {% if form.employeur.errors %}
+                        {% for error in form.employeur.errors %}
+                            <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="help-text">Sélectionnez l'employeur ou l'entreprise concernée</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.type_incident.id_for_label }}">
+                        {{ form.type_incident.label }} <span class="required">*</span>
+                    </label>
+                    {{ form.type_incident }}
+                    {% if form.type_incident.errors %}
+                        {% for error in form.type_incident.errors %}
+                            <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
             </div>
-
-            <!-- Section DÉTAILS -->
-            <div style="background: white; padding: 30px; margin-bottom: 30px; border-radius: 8px;">
-                <h3 style="color: #134294; margin-bottom: 20px; border-bottom: 3px solid #FFD700; padding-bottom: 10px;">DÉTAILS DE LA DÉNONCIATION</h3>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Description *</label>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.province.id_for_label }}">
+                        {{ form.province.label }} <span class="required">*</span>
+                    </label>
+                    {{ form.province }}
+                    {% if form.province.errors %}
+                        {% for error in form.province.errors %}
+                            <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.ville.id_for_label }}">
+                        {{ form.ville.label }} <span class="required">*</span>
+                    </label>
+                    {{ form.ville }}
+                    {% if form.ville.errors %}
+                        {% for error in form.ville.errors %}
+                            <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 2: DÉTAILS DE L'INCIDENT -->
+        <div class="form-section">
+            <h2 class="section-title">Détails de l'Incident</h2>
+            
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">
+                        {{ form.description.label }} <span class="required">*</span>
+                    </label>
                     {{ form.description }}
                     {% if form.description.errors %}
-                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.description.errors }}</div>
+                        {% for error in form.description.errors %}
+                            <div class="error-message">{{ error }}</div>
+                        {% endfor %}
                     {% endif %}
-                    <p style="color: #666; font-size: 0.9rem; margin-top: 8px;">Décrivez en détail l'incident ou la violation...</p>
+                    <div class="help-text">Décrivez précisément les faits, dates, témoins et preuves disponibles</div>
                 </div>
-                
-                {% if form.pieces_jointes %}
-                <div style="margin-top: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Documents (Optionnel)</label>
-                    {{ form.pieces_jointes }}
-                    {% if form.pieces_jointes.errors %}
-                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.pieces_jointes.errors }}</div>
-                    {% endif %}
-                    <p style="color: #666; font-size: 0.9rem; margin-top: 8px;">Fichiers autorisés : PDF, DOCX, Images, Vidéos, Audios (max 50 MB par fichier)</p>
-                </div>
-                {% endif %}
             </div>
-
-            <!-- Section CONTACT ET ANONYMAT -->
-            <div style="background: white; padding: 30px; margin-bottom: 30px; border-radius: 8px;">
-                <h3 style="color: #134294; margin-bottom: 20px; border-bottom: 3px solid #FFD700; padding-bottom: 10px;">CONFIDENTIALITÉ</h3>
-                
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Email (Optionnel)</label>
-                    {{ form.email_contact_anonyme }}
-                    {% if form.email_contact_anonyme.errors %}
-                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.email_contact_anonyme.errors }}</div>
-                    {% endif %}
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Téléphone (Optionnel)</label>
-                    {{ form.telephone_contact_anonyme }}
-                    {% if form.telephone_contact_anonyme.errors %}
-                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.telephone_contact_anonyme.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                    <div style="display: flex; align-items: center;">
-                        {{ form.est_anonyme }}
-                        <label for="{{ form.est_anonyme.id_for_label }}" style="cursor: pointer; font-weight: bold; color: #333; margin: 0 0 0 10px;">{{ form.est_anonyme.label }}</label>
+            
+            <!-- PIÈCES JOINTES -->
+            {% if form.pieces_jointes %}
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="{{ form.pieces_jointes.id_for_label }}">
+                        Pièces Jointes
+                    </label>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="file-upload-icon">📎</div>
+                        <div style="color: #333; font-weight: 500;">
+                            Cliquez pour sélectionner ou glissez-déposez vos fichiers
+                        </div>
+                        <div style="color: #999; font-size: 0.85rem; margin-top: 5px;">
+                            PDF, DOCX, Images, Vidéos, Audios (max 50 MB par fichier)
+                        </div>
+                        {{ form.pieces_jointes }}
                     </div>
-                    {% if form.est_anonyme.errors %}
-                        <div style="color: #d32f2f; margin-top: 5px; font-size: 0.9rem;">{{ form.est_anonyme.errors }}</div>
+                    <div id="fileList" class="file-list"></div>
+                    {% if form.pieces_jointes.errors %}
+                        {% for error in form.pieces_jointes.errors %}
+                            <div class="error-message">{{ error }}</div>
+                        {% endfor %}
                     {% endif %}
-                    <p style="color: #666; font-size: 0.9rem; margin-top: 8px;">En cochant cette case, votre identité sera protégée</p>
                 </div>
             </div>
-
-            <!-- Boutons d'action -->
-            <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 30px;">
-                <button type="submit" style="padding: 12px 40px; background-color: #134294; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;">SOUMETTRE MA DÉNONCIATION</button>
-                <button type="reset" style="padding: 12px 40px; background-color: #F5F5F5; color: #333; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;">RÉINITIALISER</button>
+            {% endif %}
+        </div>
+        
+        <!-- SECTION 3: ANONYMAT ET CONTACT -->
+        <div class="form-section">
+            <h2 class="section-title">Confidentialité et Contact</h2>
+            
+            <!-- Checkbox Anonymat -->
+            <div class="checkbox-group">
+                {{ form.est_anonyme }}
+                <label for="{{ form.est_anonyme.id_for_label }}">
+                    <strong>Rester anonyme</strong><br>
+                    <span style="color: #666; font-size: 0.9rem;">Votre identité sera complètement protégée et jamais révélée aux agents</span>
+                </label>
             </div>
-        </form>
-    </div>
-</section>
+            
+            <!-- Contact Conditionnel -->
+            <div id="contactSection" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <p style="color: #666; font-weight: 500; margin-bottom: 15px;">
+                    ℹ️ Nous pouvons vous contacter via les informations ci-dessous pour des clarifications (optionnel)
+                </p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.email_contact_anonyme.id_for_label }}">
+                            {{ form.email_contact_anonyme.label }}
+                        </label>
+                        {{ form.email_contact_anonyme }}
+                        {% if form.email_contact_anonyme.errors %}
+                            {% for error in form.email_contact_anonyme.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        <div class="help-text">Nous vous contacterons uniquement pour des questions essentielles</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.telephone_contact_anonyme.id_for_label }}">
+                            {{ form.telephone_contact_anonyme.label }}
+                        </label>
+                        {{ form.telephone_contact_anonyme }}
+                        {% if form.telephone_contact_anonyme.errors %}
+                            {% for error in form.telephone_contact_anonyme.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Acceptation confidentialité -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="confirmAnonymous" name="confirm_anonymous" required>
+                    <label for="confirmAnonymous">
+                        J'accepte que mes données personnelles soient traitées conformément à la politique de confidentialité
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- BOUTONS D'ACTION -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-submit">
+                ✓ SOUMETTRE MA DÉNONCIATION
+            </button>
+            <button type="reset" class="btn btn-reset">
+                ↻ RÉINITIALISER LE FORMULAIRE
+            </button>
+        </div>
+    </form>
+</div>
 
-{% endblock %}
-
-{% block extra_js %}
+<!-- JavaScript pour gestion des fichiers -->
 <script>
-    // Script placeholder for any future enhancements
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        if (fileUploadArea) {
+            const fileInput = document.querySelector('input[name="pieces_jointes"]');
+            const fileList = document.getElementById('fileList');
+            
+            // Click to select files
+            fileUploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            // Drag and drop
+            fileUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                fileUploadArea.classList.add('dragover');
+            });
+            
+            fileUploadArea.addEventListener('dragleave', function() {
+                fileUploadArea.classList.remove('dragover');
+            });
+            
+            fileUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+                fileInput.files = e.dataTransfer.files;
+                updateFileList();
+            });
+            
+            // File input change
+            fileInput.addEventListener('change', updateFileList);
+            
+            function updateFileList() {
+                fileList.innerHTML = '';
+                if (fileInput.files && fileInput.files.length > 0) {
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        const file = fileInput.files[i];
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                        fileItem.innerHTML = `
+                            <span>📄 ${file.name}</span>
+                            <span style="color: #999; font-size: 0.85rem;">${sizeMB} MB</span>
+                        `;
+                        fileList.appendChild(fileItem);
+                    }
+                }
+            }
+        }
+        
+        // Gestion de l'anonymat
+        const anonymousCheckbox = document.querySelector('input[name="est_anonyme"]');
+        const contactSection = document.getElementById('contactSection');
+        
+        function toggleContactSection() {
+            if (anonymousCheckbox.checked) {
+                contactSection.style.opacity = '0.6';
+                contactSection.style.pointerEvents = 'none';
+            } else {
+                contactSection.style.opacity = '1';
+                contactSection.style.pointerEvents = 'auto';
+            }
+        }
+        
+        anonymousCheckbox.addEventListener('change', toggleContactSection);
+        toggleContactSection();
+    });
 </script>
+
 {% endblock %}
