@@ -1,0 +1,59 @@
+services:
+  - type: web
+    name: denunciations-app
+    env: python
+    region: oregon
+    plan: free
+    
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    
+    startCommand: |
+      python manage.py migrate
+      gunicorn denunciations_app.wsgi
+    
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: USE_SQLITE
+        value: false
+      - key: SECURE_SSL_REDIRECT
+        value: true
+      - key: SESSION_COOKIE_SECURE
+        value: true
+      - key: CSRF_COOKIE_SECURE
+        value: true
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: denunciations-app.onrender.com
+      - key: DB_ENGINE
+        value: django.db.backends.postgresql
+      - key: DB_HOST
+        fromDatabase:
+          name: denunciations-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: denunciations-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: denunciations-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: denunciations-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: denunciations-db
+          property: password
+
+  - type: pserv
+    name: denunciations-db
+    env: postgres
+    plan: free
+    ipAllowList: []
+    postgreSQLVersion: 15
