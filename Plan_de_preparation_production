@@ -74,6 +74,8 @@ SECURE_BROWSER_XSS_FILTER=True
 SECURE_CONTENT_TYPE_NOSNIFF=True
 Pourquoi :
 
+
+_____________________________________
 Ce sont les réglages de sécurité essentiels
 On peut tester localement avec un environnement de staging
 
