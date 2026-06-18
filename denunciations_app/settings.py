@@ -74,10 +74,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'denunciations_app.wsgi.application'
 
-# Database
+# Database Configuration
 USE_SQLITE = config('USE_SQLITE', default=not IS_PRODUCTION, cast=bool)
 
-if USE_SQLITE:
+# 1. Si on est sur Render avec une base PostgreSQL configurée
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+# 2. Sinon, on utilise la configuration locale (SQLite ou Postgres local)
+elif USE_SQLITE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
