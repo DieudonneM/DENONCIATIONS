@@ -7,6 +7,7 @@
     <meta name="description" content="Plateforme Nationale de Dépôt et Suivi des Réclamations pour les Travailleurs - RDC">
     <title>{% block title %}Gestion des Réclamations - Plateforme Nationale{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -15,7 +16,7 @@
         <div class="navbar-container">
             <div class="navbar-brand">
                 <a href="{% url 'core:home' %}" class="navbar-brand-link">
-                    Gestion des Réclamations
+                    <img src="{% static 'img/Logo_min.png' %}" alt="Logo Min Emploi rDC" class="navbar-brand-img">
                 </a>
             </div>
             <button class="menu-toggle" id="menuToggle">☰</button>
