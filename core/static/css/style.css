@@ -272,7 +272,7 @@ a:hover {
 
 .btn-primary {
     background-color: var(--accent-yellow);
-    color: var(--primary-blue);
+    color: var(--white);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-size: var(--font-size-sm);
