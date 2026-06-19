@@ -196,3 +196,8 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+
+WHITENOISE_MANIFEST_STRICT = False
+
+
