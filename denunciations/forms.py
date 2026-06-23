@@ -4,7 +4,7 @@ Formulaires pour l'application denunciations.
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Incident, Commentaire, PieceJointe
+from .models import Incident, Commentaire, PieceJointe, Employeur
 
 
 class MultipleFileInput(forms.FileInput):
@@ -38,20 +38,16 @@ class IncidentForm(forms.ModelForm):
         model = Incident
         fields = [
             'type_incident',
-            'employeur',
             'ville',
             'province',
             'description',
             'email_contact_anonyme',
             'telephone_contact_anonyme',
-            'est_anonyme'
+            'est_anonyme',
+            'le_fautif'
         ]
         widgets = {
             'type_incident': forms.Select(attrs={
-                'class': 'form-control',
-                'required': True
-            }),
-            'employeur': forms.Select(attrs={
                 'class': 'form-control',
                 'required': True
             }),
@@ -83,13 +79,44 @@ class IncidentForm(forms.ModelForm):
         }
         labels = {
             'type_incident': 'Type d\'incident *',
-            'employeur': 'Employeur *',
+            'ville': 'Ville *',
+            'province': 'Province *',
             'ville': 'Ville *',
             'province': 'Province *',
             'description': 'Description détaillée *',
             'email_contact_anonyme': 'Email (optionnel)',
             'telephone_contact_anonyme': 'Téléphone (optionnel)',
         }
+
+    # Remplacer le champ employeur (FK) par un champ texte libre
+    employeur = forms.CharField(
+        required=True,
+        label='Employeur *',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nom de l\'employeur ou entreprise',
+        })
+    )
+
+    # Champ pour préciser le type si 'autre' est choisi
+    autre_type_incident = forms.CharField(
+        required=False,
+        label='Précisez (si Autre)',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Précisez le type d\'incident',
+        })
+    )
+
+    # Champ 'le fautif'
+    le_fautif = forms.CharField(
+        required=False,
+        label='Le fautif (nom ou description)',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nom ou description du fautif (optionnel)'
+        })
+    )
     
     def clean_email_contact_anonyme(self):
         """Valider l'email si fourni."""
@@ -110,20 +137,45 @@ class IncidentForm(forms.ModelForm):
         # Au moins un type d'incident
         if not cleaned_data.get('type_incident'):
             raise ValidationError('Sélectionnez un type d\'incident.')
-        
-        # Au moins un employeur
-        if not cleaned_data.get('employeur'):
-            raise ValidationError('Sélectionnez un employeur.')
-        
+
+        # Au moins un employeur (texte libre)
+        if not cleaned_data.get('employeur') or not cleaned_data.get('employeur').strip():
+            raise ValidationError('Indiquez le nom de l\'employeur.')
+
+        # Si type == 'autre', alors préciser
+        if cleaned_data.get('type_incident') == 'autre' and not cleaned_data.get('autre_type_incident'):
+            raise ValidationError('Précisez le type d\'incident lorsque vous sélectionnez Autre.')
+
         # Au moins une province
         if not cleaned_data.get('province'):
             raise ValidationError('Sélectionnez une province.')
-        
+
         # Description requise
         if not cleaned_data.get('description') or len(cleaned_data.get('description', '').strip()) < 10:
             raise ValidationError('La description doit contenir au moins 10 caractères.')
         
         return cleaned_data
+
+    def save(self, commit=True):
+        # On gère le mapping du nom d'employeur vers l'objet Employeur
+        employeur_nom = self.cleaned_data.get('employeur')
+        autre = self.cleaned_data.get('autre_type_incident', '')
+        fautif = self.cleaned_data.get('le_fautif', '')
+
+        incident = super().save(commit=False)
+
+        if employeur_nom:
+            emp, created = Employeur.objects.get_or_create(nom=employeur_nom)
+            incident.employeur = emp
+
+        if incident.type_incident == 'autre' and autre:
+            incident.type_incident_autre = autre
+
+        incident.le_fautif = fautif or ''
+
+        if commit:
+            incident.save()
+        return incident
 
 
 class CommentaireForm(forms.ModelForm):

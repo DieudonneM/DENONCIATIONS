@@ -14,6 +14,9 @@ from .models import Incident, Commentaire, Province, Employeur, PieceJointe
 from .forms import IncidentForm, CommentaireForm, SearchIncidentForm, FilterIncidentForm
 from users.models import User
 from users.auth_backends import user_is_agent, user_is_admin
+import openpyxl
+from openpyxl.utils import get_column_letter
+from django.http import HttpResponse
 
 
 # ============================================================================
@@ -179,6 +182,9 @@ class IncidentDetailView(LoginRequiredMixin, View):
             'commentaires': commentaires,
             'pieces_jointes': incident.pieces_jointes.all(),
             'form': CommentaireForm() if user_is_agent(request.user) else None,
+            'user_is_agent': user_is_agent(request.user),
+            'user_is_admin': user_is_admin(request.user),
+            'user_can_comment': user_is_agent(request.user),
             'page_title': f'Détails - {incident.code_suivi}',
         }
         
@@ -198,6 +204,9 @@ class IncidentDetailView(LoginRequiredMixin, View):
             commentaire = form.save(commit=False)
             commentaire.incident = incident
             commentaire.auteur = request.user
+            # Rendre visible automatiquement les commentaires publiés par un agent
+            if user_is_agent(request.user):
+                commentaire.type_commentaire = 'public'
             commentaire.save()
             
             messages.success(request, 'Commentaire ajouté avec succès.')
@@ -209,6 +218,127 @@ class IncidentDetailView(LoginRequiredMixin, View):
         }
         
         return render(request, self.template_name, context)
+
+
+class ToggleCommentVisibility(LoginRequiredMixin, View):
+    """Basculer la visibilité d'un commentaire (public <-> interne)."""
+    login_url = 'users:login'
+
+    def post(self, request, comment_id):
+        try:
+            commentaire = Commentaire.objects.get(id=comment_id)
+        except Commentaire.DoesNotExist:
+            return JsonResponse({'error': 'Commentaire introuvable'}, status=404)
+
+        # Autorisation : agents et admins seulement
+        if not (user_is_agent(request.user) or user_is_admin(request.user)):
+            return JsonResponse({'error': 'Permission refusée'}, status=403)
+
+        commentaire.type_commentaire = 'public' if commentaire.type_commentaire == 'interne' else 'interne'
+        commentaire.save()
+
+        messages.success(request, 'Visibilité du commentaire modifiée.')
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+class ExportIncidentsExcel(LoginRequiredMixin, View):
+    """Exporter une liste d'incidents (filtrée) au format Excel."""
+    login_url = 'users:login'
+
+    def get(self, request):
+        # Filtrer selon paramètres GET simples
+        qs = Incident.objects.all().select_related('employeur', 'province')
+        statut = request.GET.get('statut')
+        ttype = request.GET.get('type_incident')
+        search = request.GET.get('search')
+        if statut:
+            qs = qs.filter(statut=statut)
+        if ttype:
+            qs = qs.filter(type_incident=ttype)
+        if search:
+            qs = qs.filter(
+                Q(code_suivi__icontains=search) |
+                Q(employeur__nom__icontains=search) |
+                Q(ville__icontains=search)
+            )
+
+        # Créer workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'Incidents'
+
+        headers = ['Code', 'Type', 'Employeur', 'Ville', 'Province', 'Statut', 'Date création', 'Description', 'Le fautif']
+        ws.append(headers)
+
+        for inc in qs.order_by('-date_creation'):
+            ws.append([
+                inc.code_suivi,
+                inc.get_type_incident_display(),
+                inc.employeur.nom if inc.employeur else '',
+                inc.ville,
+                inc.province.nom if inc.province else '',
+                inc.get_statut_display(),
+                inc.date_creation.strftime('%Y-%m-%d %H:%M'),
+                inc.description,
+                getattr(inc, 'le_fautif', '') or ''
+            ])
+
+        # Ajuster largeur colonnes
+        for i, col in enumerate(ws.columns, 1):
+            max_length = 0
+            for cell in col:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            ws.column_dimensions[get_column_letter(i)].width = min(50, max_length + 2)
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=incidents_export.xlsx'
+        wb.save(response)
+        return response
+
+
+class ExportIncidentExcel(LoginRequiredMixin, View):
+    """Exporter un incident unique (détails + commentaires) en Excel."""
+    login_url = 'users:login'
+
+    def get(self, request, code):
+        incident = get_object_or_404(Incident, code_suivi=code)
+
+        # Vérifier permission de visualiser
+        if not IncidentDetailView._can_view_incident(request.user, incident):
+            return render(request, 'core/error_403.html', status=403)
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'Incident'
+
+        # Détails incident
+        rows = [
+            ('Code', incident.code_suivi),
+            ('Type', incident.get_type_incident_display()),
+            ('Employeur', incident.employeur.nom if incident.employeur else ''),
+            ('Ville', incident.ville),
+            ('Province', incident.province.nom if incident.province else ''),
+            ('Statut', incident.get_statut_display()),
+            ('Date création', incident.date_creation.strftime('%Y-%m-%d %H:%M')),
+            ('Description', incident.description),
+            ('Le fautif', getattr(incident, 'le_fautif', '') or ''),
+            ('Pièces jointes', ', '.join([p.fichier.name for p in incident.pieces_jointes.all()])),
+        ]
+
+        for key, val in rows:
+            ws.append([key, val])
+
+        # Comments sheet
+        ws2 = wb.create_sheet(title='Commentaires')
+        ws2.append(['Auteur', 'Type', 'Date', 'Texte'])
+        for c in incident.commentaires.all().order_by('date_creation'):
+            ws2.append([str(c.auteur) if c.auteur else 'Anonyme', c.type_commentaire, c.date_creation.strftime('%Y-%m-%d %H:%M'), c.texte])
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename=incident_{incident.code_suivi}.xlsx'
+        wb.save(response)
+        return response
     
     @staticmethod
     def _can_view_incident(user, incident):

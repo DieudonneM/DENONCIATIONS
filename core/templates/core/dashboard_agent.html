@@ -388,9 +388,26 @@
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">Appliquer</button>
                 </div>
+                <div class="form-group">
+                    <button type="button" id="exportListBtn" class="btn btn-secondary" style="margin-top: 1.5rem;">Exporter (Excel)</button>
+                </div>
             </div>
         </form>
     </div>
+
+    <script>
+        document.getElementById('exportListBtn').addEventListener('click', function() {
+            const params = new URLSearchParams();
+            const statut = document.querySelector('[name="statut"]').value;
+            const type_incident = document.querySelector('[name="type_incident"]').value;
+            const search = document.querySelector('[name="search"]').value;
+            if (statut) params.append('statut', statut);
+            if (type_incident) params.append('type_incident', type_incident);
+            if (search) params.append('search', search);
+            const url = '{% url "denunciations:export_incidents_xlsx" %}?' + params.toString();
+            window.location.href = url;
+        });
+    </script>
 
     <div class="incidents-section">
         <div class="incidents-header">
