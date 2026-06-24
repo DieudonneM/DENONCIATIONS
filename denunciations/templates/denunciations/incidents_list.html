@@ -4,13 +4,13 @@
 {% block title %}Liste des Dénonciations{% endblock %}
 
 {% block content %}
-<div class="container" style="padding:2rem 0;">
+<div class="container section-padded">
   <h1>Liste des Dénonciations</h1>
 
-  <form method="get" class="filter-form" style="margin:1rem 0; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
-    <div style="min-width:180px;">{{ filter_form.statut }}</div>
-    <div style="min-width:180px;">{{ filter_form.type_incident }}</div>
-    <div style="flex:1;">{{ filter_form.search }}</div>
+  <form method="get" class="filter-form inline-form mb-4">
+    <div class="min-w-180">{{ filter_form.statut }}</div>
+    <div class="min-w-180">{{ filter_form.type_incident }}</div>
+    <div class="flex-1">{{ filter_form.search }}</div>
     <div>
       <button type="submit" class="btn btn-primary">Filtrer</button>
     </div>

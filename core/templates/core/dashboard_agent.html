@@ -5,12 +5,6 @@
 
 {% block content %}
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 .dashboard-page {
     background: #f4f7fb;
     min-height: 100vh;
@@ -294,27 +288,27 @@
     </div>
 
     <div class="dashboard-grid">
-        <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card" style="text-decoration:none;color:inherit;">
+        <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card">
             <div class="stat-value">{{ stats.total }}</div>
             <div class="stat-label">Total</div>
         </a>
-        <a href="{% url 'denunciations:incidents_list' %}?statut=nouvelle" class="stat-card stat-nouvelle" style="text-decoration:none;color:inherit;">
+        <a href="{% url 'denunciations:incidents_list' %}?statut=nouvelle" class="stat-card stat-nouvelle">
             <div class="stat-value">{{ stats.nouvelle }}</div>
             <div class="stat-label">Nouvelle</div>
         </a>
-        <a href="{% url 'denunciations:incidents_list' %}?statut=analyse" class="stat-card stat-analyse" style="text-decoration:none;color:inherit;">
+        <a href="{% url 'denunciations:incidents_list' %}?statut=analyse" class="stat-card stat-analyse">
             <div class="stat-value">{{ stats.analyse }}</div>
             <div class="stat-label">En analyse</div>
         </a>
-        <a href="{% url 'denunciations:incidents_list' %}?statut=attente" class="stat-card stat-attente" style="text-decoration:none;color:inherit;">
+        <a href="{% url 'denunciations:incidents_list' %}?statut=attente" class="stat-card stat-attente">
             <div class="stat-value">{{ stats.attente }}</div>
             <div class="stat-label">En attente</div>
         </a>
-        <a href="{% url 'denunciations:incidents_list' %}?statut=resolue" class="stat-card stat-resolue" style="text-decoration:none;color:inherit;">
+        <a href="{% url 'denunciations:incidents_list' %}?statut=resolue" class="stat-card stat-resolue">
             <div class="stat-value">{{ stats.resolue }}</div>
             <div class="stat-label">Résolues</div>
         </a>
-        <a href="{% url 'denunciations:incidents_list' %}?statut=classée" class="stat-card stat-classee" style="text-decoration:none;color:inherit;">
+        <a href="{% url 'denunciations:incidents_list' %}?statut=classée" class="stat-card stat-classee">
             <div class="stat-value">{{ stats.classée }}</div>
             <div class="stat-label">Classées</div>
         </a>
@@ -322,7 +316,7 @@
                 {% else %}
                     <p class="no-data">Aucune province assignée</p>
                 {% endif %}
-                <p style="margin-top: 1rem;"><strong>Entreprises concernées :</strong> {{ total_employeurs }}</p>
+                <p class="mt-3"><strong>Entreprises concernées :</strong> {{ total_employeurs }}</p>
                 {% if recent_employeurs %}
                     <ul class="item-list">
                         {% for employeur in recent_employeurs %}
@@ -386,10 +380,10 @@
                     {{ filter_form.search }}
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">Appliquer</button>
+                    <button type="submit" class="btn btn-primary mt-4">Appliquer</button>
                 </div>
                 <div class="form-group">
-                    <button type="button" id="exportListBtn" class="btn btn-secondary" style="margin-top: 1.5rem;">Exporter (Excel)</button>
+                    <button type="button" id="exportListBtn" class="btn btn-secondary mt-4">Exporter (Excel)</button>
                 </div>
             </div>
         </form>
