@@ -158,6 +158,12 @@
                                 <span class="badge-small badge-{{ comment.type_commentaire }}">
                                     {% if comment.type_commentaire == 'public' %}Public{% else %}Interne{% endif %}
                                 </span>
+                                    {% if user_is_agent or user_is_admin %}
+                                        <form method="post" action="{% url 'denunciations:toggle_comment_visibility' comment.id %}" style="display:inline; margin-left:8px;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn" style="font-size:0.8rem; padding:6px 10px;">Basculer visibilité</button>
+                                        </form>
+                                    {% endif %}
                                 <span class="comment-date">{{ comment.date_creation|date:"d/m/Y H:i" }}</span>
                             </div>
                             <div class="comment-body">
@@ -179,6 +185,7 @@
                     Modifier le statut
                 </a>
             {% endif %}
+            <a href="{% url 'denunciations:export_incident_xlsx' incident.code_suivi %}" class="btn btn-primary">Exporter cette publication (Excel)</a>
         </div>
 
     </div>

@@ -24,7 +24,7 @@
             <ul class="navbar-menu" id="navMenu">
                 <li><a href="{% url 'core:home' %}">Accueil</a></li>
                 <li><a href="{% url 'core:incident_form' %}">Dénoncer</a></li>
-                <li><a href="{% url 'core:search_incident' %}">Consulter</a></li>
+                <li><a href="{% url 'core:search_incident' %}">Suivi</a></li>
                 <li><a href="{% url 'core:about' %}">À propos</a></li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'core:dashboard' %}">Tableau de bord</a></li>
