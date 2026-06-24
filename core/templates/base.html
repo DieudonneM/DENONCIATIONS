@@ -26,6 +26,16 @@
                 <li><a href="{% url 'core:incident_form' %}">Dénoncer</a></li>
                 <li><a href="{% url 'core:search_incident' %}">Suivi</a></li>
                 <li><a href="{% url 'core:about' %}">À propos</a></li>
+                <li class="nav-dropdown">
+                    <a href="{% url 'core:textes_legaux' %}">Textes Légaux ▾</a>
+                    <ul class="dropdown">
+                        <li><a href="{% url 'core:legal_page' slug='code-du-travail' %}">Code du travail</a></li>
+                        <li><a href="{% url 'core:legal_page' slug='contrat-de-travail' %}">Contrat de travail</a></li>
+                        <li><a href="{% url 'core:legal_page' slug='visa-onem' %}">Visa de l'ONEM</a></li>
+                        <li><a href="{% url 'core:legal_page' slug='reglement-entreprise' %}">Règlement d'entreprise</a></li>
+                        <li><a href="{% url 'core:legal_page' slug='bulletin-de-paie' %}">Bulletin de paie</a></li>
+                    </ul>
+                </li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'core:dashboard' %}">Tableau de bord</a></li>
                     <li><a href="{% url 'users:logout' %}">Déconnexion</a></li>

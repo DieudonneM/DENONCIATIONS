@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mot Du Ministre{% endblock %}
+
+{% block content %}
+
+<section class="section-mot-ministre">
+  <div class="container">
+    <h2 class="titre-section">Mot Du Ministre</h2>
+
+    <div class="conteneur-bas">
+      <aside class="container-profil" aria-label="Profil du ministre">
+        <img src="{% static 'img/Min_MASS_PROFILE.png' %}" alt="Photo de profil" class="photo-profil">
+        <h3 class="nom-profil">SEM Férdinand MASAMBA WA MASAMBA</h3>
+        <p class="statut-profil">Ministre de l'Emploi et Travail</p>
+      </aside>
+
+      <article class="container-texte">
+        <p>Chers travailleurs, employeurs et partenaires sociaux,</p>
+
+        <p>La République Démocratique du Congo s’est engagée résolument sur la voie de la promotion du travail décent, du respect des droits des travailleurs et du renforcement de la justice sociale.</p>
+
+        <p>Aucun développement durable ne peut être envisagé dans un environnement où les abus, les discriminations, le harcèlement, l’exploitation ou les violations de la législation du travail demeurent impunis. C’est pourquoi le Ministère de l’Emploi et Travail met à votre disposition cette plateforme numérique de signalement, conçue pour permettre à chaque citoyen de faire entendre sa voix en toute sécurité et en toute confidentialité.</p>
+
+        <p>Cette initiative traduit notre volonté de rapprocher davantage l’administration du travail des citoyens, de renforcer la transparence dans le traitement des plaintes et de lutter efficacement contre toutes les formes d’abus en milieu professionnel.</p>
+
+        <p>J’invite chaque travailleur, chaque employeur responsable et chaque acteur du monde du travail à faire un usage responsable de cet outil. Les informations transmises contribueront à renforcer le contrôle du respect de la législation sociale et à promouvoir un climat professionnel fondé sur le respect de la dignité humaine, l’équité et la justice.</p>
+
+        <p>Le Gouvernement de la République demeure déterminé à protéger les droits des travailleurs tout en garantissant un environnement propice à l’investissement et à la création d’emplois.</p>
+
+        <p><strong>Les abus au travail ont désormais une adresse. Votre voix compte. Les droits seront protégés.</strong></p>
+
+        <p style="margin-top:1rem;">
+          <strong>Ferdinand MASSAMBA WA MASSAMBA</strong><br>
+          Ministre de l’Emploi et Travail<br>
+          République Démocratique du Congo
+        </p>
+
+        <p style="margin-top:1.25rem;">
+          <a href="{% url 'core:home' %}" class="btn btn-secondary">Retour</a>
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

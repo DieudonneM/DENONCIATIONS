@@ -208,6 +208,25 @@ a:hover {
     align-items: center;
 }
 
+/* Dropdown menu for legal texts */
+.nav-dropdown { position: relative; }
+.nav-dropdown .dropdown {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background: var(--white);
+    box-shadow: var(--shadow);
+    border-radius: 6px;
+    padding: 10px 0;
+    min-width: 220px;
+    z-index: 300;
+}
+.nav-dropdown .dropdown li { list-style: none; }
+.nav-dropdown .dropdown li a { display: block; padding: 8px 18px; color: var(--primary-blue); }
+.nav-dropdown .dropdown li a:hover { background: #F5F8FF; }
+.nav-dropdown:hover .dropdown { display: block; }
+
 .navbar-menu a {
     color: var(--white);
     font-size: var(--font-size-sm);
@@ -396,6 +415,163 @@ a:hover {
         padding: var(--spacing-xl) var(--spacing-md);
     }
 }
+
+/* ============================================================================
+     SECTION MOT DU MINISTRE (améliorée, responsive)
+     - Fournit des alias de classes pour compatibilité avec templates
+     - Design moderne : carte blanche, ombre douce, image profil mise en valeur
+     ============================================================================ */
+
+.section-mot-ministre {
+        background-color: #FAFBFD;
+        padding: calc(var(--spacing-2xl) / 1.2) var(--spacing-md);
+        margin: 30px auto;
+}
+
+.titre-section {
+        text-align: center;
+        margin-bottom: var(--spacing-lg);
+        font-size: 1.5rem;
+        color: var(--primary-blue);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        position: relative;
+}
+
+.titre-section::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-yellow), var(--primary-blue));
+        margin: 12px auto 0;
+        border-radius: 2px;
+}
+
+/* Conteneur principal : grille flexible */
+.conteneur-bas,
+.container-bas { /* alias */
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: var(--spacing-lg);
+        max-width: 1100px;
+        margin: 0 auto;
+        align-items: start;
+        padding: 0 var(--spacing-md);
+}
+
+/* Compatibilité avec variantes de noms dans les templates */
+.container-profil, .partie-profil {
+        background: var(--white);
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        text-align: center;
+}
+
+.photo-profil {
+        width: 100%;
+        max-width: 280px;
+        height: 360px;
+        object-fit: cover;
+        border-radius: 6px;
+        display: block;
+        margin: 0 auto var(--spacing-md);
+}
+
+.nom-profil {
+        margin: 8px 0 4px;
+        font-size: 1.15rem;
+        color: var(--primary-blue);
+        font-weight: 700;
+}
+
+.statut-profil {
+        margin: 0;
+        color: var(--gray);
+        font-size: 0.95rem;
+}
+
+.container-texte, .partie-texte {
+        background: transparent;
+}
+
+.container-texte p, .partie-texte p {
+        color: #333;
+        line-height: 1.8;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+}
+
+.bouton-lire-suite, .btn-lire-suite { /* alias pour compatibilité */
+        display: inline-block;
+        padding: 12px 24px;
+        background: linear-gradient(90deg, var(--accent-yellow), var(--primary-blue));
+        color: var(--white);
+        border-radius: 8px;
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 6px 20px rgba(19, 66, 148, 0.12);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.bouton-lire-suite:hover, .btn-lire-suite:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(19, 66, 148, 0.18);
+}
+
+/* Mobile responsive: empiler et recentrer */
+@media (max-width: 900px) {
+        .conteneur-bas, .container-bas {
+                grid-template-columns: 1fr;
+                padding: 0 var(--spacing-sm);
+        }
+
+        .photo-profil {
+                max-width: 360px;
+                height: auto;
+        }
+
+        .titre-section {
+                font-size: 1.25rem;
+        }
+}
+
+@media (max-width: 480px) {
+        .photo-profil {
+                max-width: 100%;
+                height: auto;
+        }
+
+        .container-texte p, .partie-texte p {
+                font-size: 0.95rem;
+        }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ============================================================================
    SECTION ÉTAPES
