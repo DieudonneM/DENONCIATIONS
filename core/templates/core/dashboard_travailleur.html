@@ -12,30 +12,30 @@
 
     <!-- Statistiques personnelles -->
     <div class="stats-grid">
-        <div class="stat-card">
+        <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card" style="text-decoration:none;color:inherit;">
             <div class="stat-value">{{ total_incidents }}</div>
             <div class="stat-label">Total</div>
-        </div>
-        <div class="stat-card stat-nouvelle">
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=nouvelle" class="stat-card stat-nouvelle" style="text-decoration:none;color:inherit;">
             <div class="stat-value">{{ incidents_nouvelle }}</div>
             <div class="stat-label">Nouvelle</div>
-        </div>
-        <div class="stat-card stat-analyse">
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=analyse" class="stat-card stat-analyse" style="text-decoration:none;color:inherit;">
             <div class="stat-value">{{ incidents_analyse }}</div>
             <div class="stat-label">En analyse</div>
-        </div>
-        <div class="stat-card stat-attente">
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=attente" class="stat-card stat-attente" style="text-decoration:none;color:inherit;">
             <div class="stat-value">{{ incidents_attente }}</div>
             <div class="stat-label">En attente</div>
-        </div>
-        <div class="stat-card stat-resolue">
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=resolue" class="stat-card stat-resolue" style="text-decoration:none;color:inherit;">
             <div class="stat-value">{{ incidents_resolue }}</div>
             <div class="stat-label">Résolues</div>
-        </div>
-        <div class="stat-card stat-classee">
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=classée" class="stat-card stat-classee" style="text-decoration:none;color:inherit;">
             <div class="stat-value">{{ incidents_classee }}</div>
             <div class="stat-label">Classées</div>
-        </div>
+        </a>
     </div>
 
     <!-- Filtrage -->

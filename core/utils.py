@@ -72,8 +72,8 @@ def check_user_can_view_incident(user, incident):
         return True
     
     if user.role == 'agent':
-        if incident.province in user.provinces.all():
-            return True
+        # Agents can now view all incidents
+        return True
     
     if user.role == 'travailleur':
         if incident.travailleur == user:
@@ -92,7 +92,8 @@ def get_incidents_by_user_role(user):
         return Incident.objects.all()
     
     if user.role == 'agent':
-        return Incident.objects.filter(province__in=user.provinces.all())
+        # Agents can now see all incidents
+        return Incident.objects.all()
     
     if user.role == 'travailleur':
         return Incident.objects.filter(travailleur=user)

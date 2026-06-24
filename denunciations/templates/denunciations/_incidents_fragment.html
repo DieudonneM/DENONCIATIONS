@@ -1,0 +1,35 @@
+{# Partial fragment: table rows + pagination #}
+<div class="incidents-table" style="margin-top:1rem;">
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr 200px 120px; gap:10px; font-weight:700; padding:12px; background:#f5f8ff; border-radius:6px;">
+    <div>Code</div>
+    <div>Entreprise</div>
+    <div>Lieu</div>
+    <div>Statut</div>
+    <div>Action</div>
+  </div>
+
+  {% for incident in incidents_page %}
+    <div class="incident-row" style="display:grid; grid-template-columns:1fr 1fr 1fr 200px 120px; gap:10px; padding:12px; border-bottom:1px solid #eee; align-items:center;">
+      <div><a href="{% url 'denunciations:incident_detail' incident.code_suivi %}">{{ incident.code_suivi }}</a></div>
+      <div>{{ incident.employeur.nom }}</div>
+      <div>{{ incident.ville }}, {{ incident.province.nom }}</div>
+      <div><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
+      <div><a href="{% url 'denunciations:incident_detail' incident.code_suivi %}" class="btn btn-manage">Voir</a></div>
+    </div>
+  {% empty %}
+    <div style="padding:1rem;">Aucune dénonciation trouvée.</div>
+  {% endfor %}
+
+  <div class="incidents-pagination" style="margin-top:1rem; display:flex; justify-content:center; gap:8px; align-items:center;">
+    {% if incidents_page.has_previous %}
+      <a data-page="{{ incidents_page.previous_page_number }}" class="btn btn-secondary ajax-page">← Précédent</a>
+    {% endif %}
+
+    <span>Page {{ incidents_page.number }} / {{ incidents_page.paginator.num_pages }}</span>
+
+    {% if incidents_page.has_next %}
+      <a data-page="{{ incidents_page.next_page_number }}" class="btn btn-secondary ajax-page">Suivant →</a>
+    {% endif %}
+  </div>
+
+</div>
