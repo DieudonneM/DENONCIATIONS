@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liste des Dénonciations{% endblock %}
+
+{% block content %}
+<div class="container" style="padding:2rem 0;">
+  <h1>Liste des Dénonciations</h1>
+
+  <form method="get" class="filter-form" style="margin:1rem 0; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+    <div style="min-width:180px;">{{ filter_form.statut }}</div>
+    <div style="min-width:180px;">{{ filter_form.type_incident }}</div>
+    <div style="flex:1;">{{ filter_form.search }}</div>
+    <div>
+      <button type="submit" class="btn btn-primary">Filtrer</button>
+    </div>
+    <div>
+      <a class="btn btn-secondary export-xlsx" href="{% url 'denunciations:export_incidents_xlsx' %}?{{ request.GET.urlencode }}">Exporter XLSX</a>
+    </div>
+  </form>
+
+  <div id="incidents-fragment">
+    {% include 'denunciations/_incidents_fragment.html' %}
+  </div>
+
+  <script>
+    (function(){
+      const form = document.querySelector('.filter-form');
+      const fragment = document.getElementById('incidents-fragment');
+      const debounce = (fn, delay=300) => {
+        let t; return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), delay); };
+      };
+
+      function buildQuery(params){
+        return new URLSearchParams(params).toString();
+      }
+
+        function fetchFragment(params){
+          const url = window.location.pathname + '?' + buildQuery(params) + '&ajax=1';
+          fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+              fragment.innerHTML = data.html;
+              attachPaginationListeners();
+              // update browser URL without reloading
+              const newUrl = window.location.pathname + '?' + buildQuery(params);
+              window.history.replaceState({}, '', newUrl);
+              // update export link if present
+              const exportBtn = document.querySelector('.export-xlsx');
+              if(exportBtn){
+                exportBtn.href = '{% url "denunciations:export_incidents_xlsx" %}?' + buildQuery(params);
+              }
+            })
+            .catch(err => console.error('Erreur AJAX:', err));
+        }
+
+      function getFormParams(){
+        const fd = new FormData(form);
+        const params = {};
+        for(const [k,v] of fd.entries()){
+          if(v) params[k]=v;
+        }
+        return params;
+      }
+
+      const debouncedFetch = debounce(()=> fetchFragment(getFormParams()), 350);
+
+      // listen inputs
+      form.addEventListener('input', debouncedFetch);
+      form.addEventListener('change', debouncedFetch);
+
+      function attachPaginationListeners(){
+        document.querySelectorAll('.ajax-page').forEach(btn=>{
+          btn.addEventListener('click', (e)=>{
+            e.preventDefault();
+            const page = btn.getAttribute('data-page');
+            const params = getFormParams(); params.page = page;
+            fetchFragment(params);
+          });
+        });
+      }
+
+      // attach on load
+      attachPaginationListeners();
+    })();
+  </script>
+</div>
+{% endblock %}

@@ -294,30 +294,30 @@
     </div>
 
     <div class="dashboard-grid">
-        <div class="management-card">
-            <div class="management-header">
-                <h3>👤 Informations Agent</h3>
-                <span class="count">Profil</span>
-            </div>
-            <div class="management-body dashboard-info">
-                <p><strong>Agent :</strong> {{ user.get_full_name }}</p>
-                <p><strong>Provinces :</strong> {% if provinces %}{{ provinces|join:", " }}{% else %}<em>Aucune province assignée</em>{% endif %}</p>
-                <p><strong>Entreprises suivies :</strong> {{ total_employeurs }}</p>
-            </div>
-        </div>
-
-        <div class="management-card">
-            <div class="management-header">
-                <h3>⚡ Gestion de votre zone</h3>
-                <span class="count">{{ provinces_count }}</span>
-            </div>
-            <div class="management-body">
-                <p><strong>Provinces assignées :</strong></p>
-                {% if assigned_provinces %}
-                    <ul class="item-list">
-                        {% for province in assigned_provinces %}
-                            <li><span class="item-name">{{ province.nom }}</span> <span class="item-meta">{{ province.code }}</span></li>
-                        {% endfor %}
+        <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card" style="text-decoration:none;color:inherit;">
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-label">Total</div>
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=nouvelle" class="stat-card stat-nouvelle" style="text-decoration:none;color:inherit;">
+            <div class="stat-value">{{ stats.nouvelle }}</div>
+            <div class="stat-label">Nouvelle</div>
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=analyse" class="stat-card stat-analyse" style="text-decoration:none;color:inherit;">
+            <div class="stat-value">{{ stats.analyse }}</div>
+            <div class="stat-label">En analyse</div>
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=attente" class="stat-card stat-attente" style="text-decoration:none;color:inherit;">
+            <div class="stat-value">{{ stats.attente }}</div>
+            <div class="stat-label">En attente</div>
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=resolue" class="stat-card stat-resolue" style="text-decoration:none;color:inherit;">
+            <div class="stat-value">{{ stats.resolue }}</div>
+            <div class="stat-label">Résolues</div>
+        </a>
+        <a href="{% url 'denunciations:incidents_list' %}?statut=classée" class="stat-card stat-classee" style="text-decoration:none;color:inherit;">
+            <div class="stat-value">{{ stats.classée }}</div>
+            <div class="stat-label">Classées</div>
+        </a>
                     </ul>
                 {% else %}
                     <p class="no-data">Aucune province assignée</p>

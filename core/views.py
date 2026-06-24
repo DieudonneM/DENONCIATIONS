@@ -282,10 +282,10 @@ class DashboardAgentView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Incidents de la province de l'agent
+        # Incidents visibles par l'agent (maintenant tous les incidents)
         provinces = self.request.user.provinces.all()
-        incidents = Incident.objects.filter(province__in=provinces)
-        
+        incidents = get_incidents_by_user_role(self.request.user)
+
         context['provinces'] = provinces
         context['stats'] = {
             'total': incidents.count(),
