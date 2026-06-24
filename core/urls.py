@@ -21,6 +21,9 @@ urlpatterns = [
     path('', views.home_view, name='home'),
     path('about/', views.about_view, name='about'),
     path('contact/', views.contact_view, name='contact'),
+    path('mot_ministre/', views.mot_ministre, name='mot_ministre'),
+    path('textes_legaux/', views.textes_legaux, name='textes_legaux'),
+    path('textes_legaux/<slug:slug>/', views.legal_page, name='legal_page'),
     
     # Formulaire de dénonciation (public)
     path('denoncier/', views.IncidentPublicFormView.as_view(), name='incident_form'),
