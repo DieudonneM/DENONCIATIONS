@@ -1691,3 +1691,7 @@ table {
 .province-card:hover { border-color: #2196F3; background: #f5f5f5; }
 .checkbox-large { cursor: pointer; width: 20px; height: 20px; }
 .muted { color: #999; }
+.muted ul {
+    margin-left: 2.3rem;
+    color: #999;
+}
