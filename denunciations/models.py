@@ -142,6 +142,10 @@ class Incident(models.Model):
         max_length=50,
         choices=TYPE_INCIDENT_CHOICES
     )
+    # Si l'utilisateur choisit 'autre', on conserve le texte précisé ici
+    type_incident_autre = models.CharField(max_length=255, blank=True)
+    # Champ libre pour indiquer le fautif (nom ou description)
+    le_fautif = models.CharField(max_length=255, blank=True)
     description = models.TextField()
     
     # Statut et gestion
@@ -216,6 +220,13 @@ class Incident(models.Model):
 
     def __str__(self):
         return f'{self.code_suivi} - {self.get_type_incident_display()}'
+
+    def get_type_incident_display(self):
+        """Retourne l'affichage lisible du type d'incident, en gérant le cas 'autre'."""
+        if self.type_incident == 'autre' and self.type_incident_autre:
+            return f'Autre - {self.type_incident_autre}'
+        mapping = dict(self.TYPE_INCIDENT_CHOICES)
+        return mapping.get(self.type_incident, self.type_incident)
 
 
 class PieceJointe(models.Model):
