@@ -6,92 +6,86 @@
 {% block content %}
 
 <!-- Hero Section -->
-<section style="background: linear-gradient(135deg, #134294 0%, #1e5bb8 100%); color: white; padding: 60px 20px; text-align: center;">
-    <div class="container">
-        <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px;">
-            <a href="{% url 'core:home' %}" style="color: #FFD700; text-decoration: none;">Accueil</a> 
-            <span style="margin: 0 10px;">–</span> 
-            <span>Contact</span>
-        </p>
-        <h1 style="font-size: 3rem; margin-bottom: 20px; font-weight: bold;">Nous Contacter</h1>
-        <p style="font-size: 1.1rem; opacity: 0.95;">Vous avez des questions ou besoin d'assistance?</p>
+<section class="section-cta">
+    <div class="container text-center">
+        <p class="small mb-4"><a href="{% url 'core:home' %}" class="link-accent">Accueil</a> <span class="mx-2">–</span> <span>Contact</span></p>
+        <h1>Nous Contacter</h1>
+        <p class="small muted">Vous avez des questions ou besoin d'assistance?</p>
     </div>
 </section>
 
 <!-- Contact Section -->
-<section style="padding: 80px 20px; background-color: #F5F5F5;">
+<section class="section-padded section-muted">
     <div class="container">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: start;">
+        <div class="grid-responsive grid-two-col">
             
             <!-- Informations de Contact -->
             <div>
-                <h2 style="color: #134294; font-size: 2rem; margin-bottom: 40px; padding-bottom: 15px; border-bottom: 3px solid #FFD700;">Informations de Contact</h2>
+                <h2 class="section-title">Informations de Contact</h2>
                 
-                <div style="margin-bottom: 35px;">
-                    <h3 style="color: #134294; font-size: 1.2rem; margin-bottom: 12px;">📍 Adresse</h3>
-                    <p style="color: #555; line-height: 1.8; font-size: 1rem;">
+                <div class="mb-4">
+                    <h3>📍 Adresse</h3>
+                    <p>
                         Ministère de l'Emploi et du Travail<br>
                         Cabinet du Ministre<br>
                         Kinshasa, République Démocratique du Congo
                     </p>
                 </div>
 
-                <div style="margin-bottom: 35px;">
-                    <h3 style="color: #134294; font-size: 1.2rem; margin-bottom: 12px;">📞 Téléphone</h3>
-                    <p style="color: #555; line-height: 1.8; font-size: 1rem;">
-                        <a href="tel:+243816719709" style="color: #134294; text-decoration: none; font-weight: bold;">+243 816 719 709</a>
+                <div class="mb-4">
+                    <h3>📞 Téléphone</h3>
+                    <p>
+                        <a href="tel:+243816719709" class="link-strong">+243 816 719 709</a>
                     </p>
                 </div>
 
-                <div style="margin-bottom: 35px;">
-                    <h3 style="color: #134294; font-size: 1.2rem; margin-bottom: 12px;">✉️ Email</h3>
-                    <p style="color: #555; line-height: 1.8; font-size: 1rem;">
-                        <a href="mailto:contact@denonciation-abus-rdc.net" style="color: #134294; text-decoration: none; font-weight: bold;">contact@denonciation-abus-rdc.net</a>
+                <div class="mb-4">
+                    <h3>✉️ Email</h3>
+                    <p>
+                        <a href="mailto:contact@denonciation-abus-rdc.net" class="link-strong">contact@denonciation-abus-rdc.net</a>
                     </p>
                 </div>
 
-                <div style="margin-bottom: 35px;">
-                    <h3 style="color: #134294; font-size: 1.2rem; margin-bottom: 12px;">🕐 Heures d'ouverture</h3>
-                    <p style="color: #555; line-height: 1.8; font-size: 1rem;">
+                <div class="mb-4">
+                    <h3>🕐 Heures d'ouverture</h3>
+                    <p>
                         <strong>Lundi - Vendredi:</strong> 8h00 - 17h00<br>
                         <strong>Samedi - Dimanche:</strong> Fermé
                     </p>
                 </div>
 
                 <!-- Info Cards -->
-                <div style="background: white; padding: 25px; border-radius: 8px; margin-top: 30px; border-left: 4px solid #FFD700;">
-                    <h4 style="color: #134294; margin-bottom: 10px;">ℹ️ Informations Supplémentaires</h4>
-                    <p style="color: #555; font-size: 0.95rem; line-height: 1.6;">
-                        Pour les demandes urgentes ou en cas de besoin immédiat, contactez notre ligne d'urgence disponible 24/7.
-                    </p>
+                <div class="card card-highlight mt-4">
+                    <h4>ℹ️ Informations Supplémentaires</h4>
+                    <p>Pour les demandes urgentes ou en cas de besoin immédiat, contactez notre ligne d'urgence disponible 24/7.</p>
                 </div>
             </div>
 
             <!-- Formulaire de Contact -->
-            <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <h2 style="color: #134294; font-size: 2rem; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #FFD700;">Envoyez-nous un Message</h2>
+            <div class="card">
+                <h2 class="section-title">Envoyez-nous un Message</h2>
                 
-                <form method="post" style="display: flex; flex-direction: column; gap: 20px;">
+                <form method="post" class="flex-column flex-gap">
                     {% csrf_token %}
                     
                     <div>
-                        <label style="display: block; font-weight: bold; color: #134294; margin-bottom: 8px; font-size: 0.95rem;">Votre nom *</label>
-                        <input type="text" name="name" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; transition: border-color 0.3s;">
+                        <label class="form-label">Votre nom *</label>
+                        <input type="text" name="name" required class="form-preview-input">
                     </div>
 
                     <div>
-                        <label style="display: block; font-weight: bold; color: #134294; margin-bottom: 8px; font-size: 0.95rem;">Votre email *</label>
-                        <input type="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                        <label class="form-label">Votre email *</label>
+                        <input type="email" name="email" required class="form-preview-input">
                     </div>
 
                     <div>
-                        <label style="display: block; font-weight: bold; color: #134294; margin-bottom: 8px; font-size: 0.95rem;">Sujet *</label>
-                        <input type="text" name="subject" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                        <label class="form-label">Sujet *</label>
+                        <input type="text" name="subject" required class="form-preview-input">
                     </div>
 
                     <div>
-                        <label style="display: block; font-weight: bold; color: #134294; margin-bottom: 8px; font-size: 0.95rem;">Type de demande *</label>
-                        <select name="type" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                        <label class="form-label">Type de demande *</label>
+                        <select name="type" required class="form-preview-input">
                             <option value="">-- Sélectionner --</option>
                             <option value="information">Information générale</option>
                             <option value="support">Support technique</option>
@@ -102,20 +96,16 @@
                     </div>
 
                     <div>
-                        <label style="display: block; font-weight: bold; color: #134294; margin-bottom: 8px; font-size: 0.95rem;">Message *</label>
-                        <textarea name="message" rows="6" required placeholder="Entrez votre message ici..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: Arial, sans-serif; resize: vertical;"></textarea>
+                        <label class="form-label">Message *</label>
+                        <textarea name="message" rows="6" required placeholder="Entrez votre message ici..." class="form-preview-input"></textarea>
                     </div>
 
-                    <div style="display: flex; gap: 12px;">
-                        <button type="submit" style="flex: 1; padding: 14px 30px; background-color: #134294; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background-color 0.3s;">
-                            Envoyer le Message
-                        </button>
-                        <button type="reset" style="flex: 1; padding: 14px 30px; background-color: #F5F5F5; color: #333; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;">
-                            Réinitialiser
-                        </button>
+                    <div class="flex flex-gap">
+                        <button type="submit" class="btn btn-primary btn-block">Envoyer le Message</button>
+                        <button type="reset" class="btn btn-secondary btn-block">Réinitialiser</button>
                     </div>
 
-                    <p style="font-size: 0.85rem; color: #999; text-align: center; margin-top: 10px;">
+                    <p class="small muted text-center mt-3">
                         Nous vous répondrons dans les 24 heures
                     </p>
                 </form>
@@ -125,21 +115,21 @@
 </section>
 
 <!-- Carte Section (Optionnelle) -->
-<section style="padding: 60px 20px; background: white;">
+<section class="section-padded section-white">
     <div class="container">
-        <h2 style="text-align: center; color: #134294; font-size: 2rem; margin-bottom: 40px;">Localisation</h2>
-        <div style="width: 100%; height: 400px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3975.0427887370206!2d15.312939076478236!3d-4.325789396587239!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1a6a2e3c1c3c3c3d%3A0x1c2c2c2c2c2c2c2c!2sMinistry%20of%20Labour%20and%20Employment!5e0!3m2!1sen!2scd!4v1234567890" width="100%" height="100%" style="border: none;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade;"></iframe>
+        <h2 class="section-title text-center">Localisation</h2>
+        <div class="map-wrapper">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3975.0427887370206!2d15.312939076478236!3d-4.325789396587239!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1a6a2e3c1c3c3c3d%3A0x1c2c2c2c2c2c2c2c!2sMinistry%20of%20Labour%20and%20Employment!5e0!3m2!1sen!2scd!4v1234567890" width="100%" height="100%" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
     </div>
 </section>
 
 <!-- CTA Section -->
-<section style="background: linear-gradient(135deg, #134294 0%, #1e5bb8 100%); color: white; padding: 60px 20px; text-align: center;">
-    <div class="container">
-        <h2 style="color: #FFD700; font-size: 2.5rem; margin-bottom: 20px;">Questions fréquemment posées?</h2>
-        <p style="font-size: 1.1rem; margin-bottom: 30px; opacity: 0.95;">Consultez notre section FAQ pour trouver des réponses rapides</p>
-        <a href="{% url 'core:about' %}" style="display: inline-block; padding: 15px 40px; background-color: #FFD700; color: #134294; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 1rem;">EN SAVOIR PLUS</a>
+<section class="section-cta">
+    <div class="container text-center">
+        <h2 class="section-subtitle">Questions fréquemment posées?</h2>
+        <p class="small mb-4">Consultez notre section FAQ pour trouver des réponses rapides</p>
+        <a href="{% url 'core:about' %}" class="btn btn-cta">EN SAVOIR PLUS</a>
     </div>
 </section>
 

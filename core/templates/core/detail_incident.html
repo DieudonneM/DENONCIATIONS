@@ -159,9 +159,9 @@
                                     {% if comment.type_commentaire == 'public' %}Public{% else %}Interne{% endif %}
                                 </span>
                                     {% if user_is_agent or user_is_admin %}
-                                        <form method="post" action="{% url 'denunciations:toggle_comment_visibility' comment.id %}" style="display:inline; margin-left:8px;">
+                                        <form method="post" action="{% url 'denunciations:toggle_comment_visibility' comment.id %}" class="inline-form ml-2">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn" style="font-size:0.8rem; padding:6px 10px;">Basculer visibilité</button>
+                                            <button type="submit" class="btn btn-small">Basculer visibilité</button>
                                         </form>
                                     {% endif %}
                                 <span class="comment-date">{{ comment.date_creation|date:"d/m/Y H:i" }}</span>

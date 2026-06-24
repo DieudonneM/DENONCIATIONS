@@ -17,13 +17,11 @@
                 {{ field }}
                 
                 {% if field.help_text %}
-                    <small style="color: #666; display: block; margin-top: 0.5rem;">
-                        {{ field.help_text|safe }}
-                    </small>
+                    <small class="help-text">{{ field.help_text|safe }}</small>
                 {% endif %}
-                
+
                 {% if field.errors %}
-                    <div style="color: #f44336; margin-top: 0.5rem;">
+                    <div class="error-text">
                         {% for error in field.errors %}
                             <small>❌ {{ error }}</small><br>
                         {% endfor %}
