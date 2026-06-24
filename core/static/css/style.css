@@ -82,7 +82,7 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
     font-size: var(--font-size-4xl);
-    color: var(--accent-yellow);
+    /*color: var(--accent-yellow);*/
 }
 
 h2 {
@@ -360,7 +360,7 @@ a:hover {
 
 .hero-content h1 {
     font-size: var(--font-size-4xl);
-    color: var(--accent-yellow);
+    color: var(--accent-red);
     margin-bottom: var(--spacing-md);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
