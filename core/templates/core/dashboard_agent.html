@@ -312,6 +312,22 @@
             <div class="stat-value">{{ stats.classée }}</div>
             <div class="stat-label">Classées</div>
         </a>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="management-card">
+            <div class="management-header">
+                <h3>🗺️ Provinces assignées</h3>
+            </div>
+            <div class="management-body">
+                {% if assigned_provinces %}
+                    <ul class="item-list">
+                        {% for province in assigned_provinces %}
+                            <li>
+                                <span class="item-name">{{ province.nom }}</span>
+                                <span class="item-meta">{{ province.code|default:'' }}</span>
+                            </li>
+                        {% endfor %}
                     </ul>
                 {% else %}
                     <p class="no-data">Aucune province assignée</p>
