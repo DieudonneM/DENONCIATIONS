@@ -297,7 +297,7 @@
                         {% endfor %}
                     {% endif %}
                     <div class="help-text">Indiquez le nom de l'employeur ou de l'entreprise (texte libre)</div>
-                    <div style="margin-top:8px;">
+                    <div class="mt-2">
                         <label for="{{ form.le_fautif.id_for_label }}">{{ form.le_fautif.label }}</label>
                         {{ form.le_fautif }}
                         {% if form.le_fautif.errors %}
@@ -319,7 +319,7 @@
                         {% endfor %}
                     {% endif %}
 
-                    <div id="autreTypeWrapper" style="display:none; margin-top:10px;">
+                    <div id="autreTypeWrapper" class="hidden mt-2">
                         <label for="{{ form.autre_type_incident.id_for_label }}">{{ form.autre_type_incident.label }}</label>
                         {{ form.autre_type_incident }}
                         {% if form.autre_type_incident.errors %}
@@ -386,12 +386,8 @@
                     </label>
                     <div class="file-upload-area" id="fileUploadArea">
                         <div class="file-upload-icon">📎</div>
-                        <div style="color: #333; font-weight: 500;">
-                            Cliquez pour sélectionner ou glissez-déposez vos fichiers
-                        </div>
-                        <div style="color: #999; font-size: 0.85rem; margin-top: 5px;">
-                            PDF, DOCX, Images, Vidéos, Audios (max 50 MB par fichier)
-                        </div>
+                        <div class="text-strong">Cliquez pour sélectionner ou glissez-déposez vos fichiers</div>
+                        <div class="file-size mt-2">PDF, DOCX, Images, Vidéos, Audios (max 50 MB par fichier)</div>
                         {{ form.pieces_jointes }}
                     </div>
                     <div id="fileList" class="file-list"></div>
@@ -406,7 +402,7 @@
         </div>
         
         <!-- SECTION 3: ANONYMAT ET CONTACT -->
-        <div class="form-section">
+            <div class="form-section">
             <h2 class="section-title">Confidentialité et Contact</h2>
             
             <!-- Checkbox Anonymat -->
@@ -414,13 +410,13 @@
                 {{ form.est_anonyme }}
                 <label for="{{ form.est_anonyme.id_for_label }}">
                     <strong>Rester anonyme</strong><br>
-                    <span style="color: #666; font-size: 0.9rem;">Votre identité sera complètement protégée et jamais révélée aux agents</span>
+                    <span class="muted small">Votre identité sera complètement protégée et jamais révélée aux agents</span>
                 </label>
             </div>
             
             <!-- Contact Conditionnel -->
-            <div id="contactSection" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                <p style="color: #666; font-weight: 500; margin-bottom: 15px;">
+            <div id="contactSection" class="mt-2 hr-top">
+                <p class="muted text-strong mb-4">
                     ℹ️ Nous pouvons vous contacter via les informations ci-dessous pour des clarifications (optionnel)
                 </p>
                 
@@ -453,7 +449,7 @@
             </div>
             
             <!-- Acceptation confidentialité -->
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+            <div class="mt-2 hr-top">
                 <div class="checkbox-group">
                     <input type="checkbox" id="confirmAnonymous" name="confirm_anonymous" required>
                     <label for="confirmAnonymous">
@@ -518,7 +514,7 @@
                         const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
                         fileItem.innerHTML = `
                             <span>📄 ${file.name}</span>
-                            <span style="color: #999; font-size: 0.85rem;">${sizeMB} MB</span>
+                            <span class="file-size">${sizeMB} MB</span>
                         `;
                         fileList.appendChild(fileItem);
                     }

@@ -16,7 +16,9 @@ from users.models import User
 from users.auth_backends import user_is_agent, user_is_admin
 import openpyxl
 from openpyxl.utils import get_column_letter
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from core.utils import get_incidents_by_user_role
 
 
 # ============================================================================
@@ -297,6 +299,63 @@ class ExportIncidentsExcel(LoginRequiredMixin, View):
         return response
 
 
+class IncidentsListView(LoginRequiredMixin, View):
+    """Liste paginée et filtrable des incidents (exportable)."""
+    login_url = 'users:login'
+
+    def get(self, request):
+        user = request.user
+        qs = get_incidents_by_user_role(user).select_related('employeur', 'province')
+
+        # Appliquer filtres
+        form = FilterIncidentForm(request.GET or None)
+        if form.is_valid():
+            statut = form.cleaned_data.get('statut')
+            ttype = form.cleaned_data.get('type_incident')
+            search = form.cleaned_data.get('search')
+
+            if statut:
+                qs = qs.filter(statut=statut)
+            if ttype:
+                qs = qs.filter(type_incident=ttype)
+            if search:
+                qs = qs.filter(
+                    Q(code_suivi__icontains=search) |
+                    Q(employeur__nom__icontains=search) |
+                    Q(ville__icontains=search)
+                )
+
+        # Tri par date
+        qs = qs.order_by('-date_creation')
+
+        # Pagination (15 par page)
+        paginator = Paginator(qs, 15)
+        page = request.GET.get('page', 1)
+        try:
+            incidents_page = paginator.page(page)
+        except PageNotAnInteger:
+            incidents_page = paginator.page(1)
+        except EmptyPage:
+            incidents_page = paginator.page(paginator.num_pages)
+
+        # URL d'export (conserver les paramètres de filtre)
+        export_url = f"{request.build_absolute_uri(request.path)}"
+        # Prepare context
+        context = {
+            'page_title': 'Liste des Dénonciations',
+            'filter_form': form,
+            'incidents_page': incidents_page,
+            'paginator': paginator,
+            'export_endpoint': f"{request.scheme}://{request.get_host()}{request.path.replace('incidents/', 'export/xlsx/')}",
+        }
+        # If AJAX request, return only the fragment HTML
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax'):
+            html = render(request, 'denunciations/_incidents_fragment.html', context).content.decode('utf-8')
+            return JsonResponse({'html': html})
+
+        return render(request, 'denunciations/incidents_list.html', context)
+
+
 class ExportIncidentExcel(LoginRequiredMixin, View):
     """Exporter un incident unique (détails + commentaires) en Excel."""
     login_url = 'users:login'
@@ -347,7 +406,8 @@ class ExportIncidentExcel(LoginRequiredMixin, View):
             return True
         
         if user_is_agent(user):
-            return incident.province in user.provinces.all()
+            # Agents can view all incidents
+            return True
         
         if user.role == 'travailleur':
             return incident.travailleur == user

@@ -12,6 +12,7 @@ urlpatterns = [
     path('denonciation/', views.IncidentPublicFormView.as_view(), name='incident_form'),
     path('denonciation/succes/<str:code>/', views.IncidentSuccessView.as_view(), name='incident_success'),
     path('rechercher/', views.SearchIncidentView.as_view(), name='search_incident'),
+    path('incidents/', views.IncidentsListView.as_view(), name='incidents_list'),
     
     # Détails (nécessite authentification)
     path('detail/<str:code>/', views.IncidentDetailView.as_view(), name='incident_detail'),

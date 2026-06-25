@@ -4,81 +4,52 @@
 <div class="admin-header">
     <div>
         <h1>🎛️ Tableau de Bord Admin</h1>
-        <p style="margin: 0; color: #666;">Bienvenue dans l'interface de gestion personnalisée</p>
+        <p class="muted">Bienvenue dans l'interface de gestion personnalisée</p>
     </div>
 </div>
 
 <div class="admin-card">
-    <div style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-    ">
+    <div class="admin-metrics-grid">
         <!-- Total Utilisateurs -->
-        <div style="
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #2196F3;
-        ">
-            <div style="font-size: 0.8rem; color: #1565c0; text-transform: uppercase; font-weight: 600;">👥 Total</div>
-            <div style="font-size: 2.2rem; font-weight: 700; color: #001F3F; margin: 0.5rem 0;">{{ total_users }}</div>
-            <div style="font-size: 0.85rem; color: #666;">Utilisateurs</div>
+        <div class="admin-metric users">
+            <div class="metric-label">👥 Total</div>
+            <div class="metric-value">{{ total_users }}</div>
+            <div class="metric-sub">Utilisateurs</div>
         </div>
         
         <!-- Agents -->
-        <div style="
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #FF9800;
-        ">
-            <div style="font-size: 0.8rem; color: #e65100; text-transform: uppercase; font-weight: 600;">🕵️ Agents</div>
-            <div style="font-size: 2.2rem; font-weight: 700; color: #001F3F; margin: 0.5rem 0;">{{ total_agents }}</div>
-            <div style="font-size: 0.85rem; color: #666;">Agents assignés</div>
+        <div class="admin-metric agents">
+            <div class="metric-label">🕵️ Agents</div>
+            <div class="metric-value">{{ total_agents }}</div>
+            <div class="metric-sub">Agents assignés</div>
         </div>
         
         <!-- Travailleurs -->
-        <div style="
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #4CAF50;
-        ">
-            <div style="font-size: 0.8rem; color: #2e7d32; text-transform: uppercase; font-weight: 600;">💼 Travailleurs</div>
-            <div style="font-size: 2.2rem; font-weight: 700; color: #001F3F; margin: 0.5rem 0;">{{ total_travailleurs }}</div>
-            <div style="font-size: 0.85rem; color: #666;">Travailleurs inscrits</div>
+        <div class="admin-metric travailleurs">
+            <div class="metric-label">💼 Travailleurs</div>
+            <div class="metric-value">{{ total_travailleurs }}</div>
+            <div class="metric-sub">Travailleurs inscrits</div>
         </div>
         
         <!-- Provinces -->
-        <div style="
-            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #9C27B0;
-        ">
-            <div style="font-size: 0.8rem; color: #6a1b9a; text-transform: uppercase; font-weight: 600;">🗺️ Provinces</div>
-            <div style="font-size: 2.2rem; font-weight: 700; color: #001F3F; margin: 0.5rem 0;">{{ total_provinces }}</div>
-            <div style="font-size: 0.85rem; color: #666;">Provinces</div>
+        <div class="admin-metric provinces">
+            <div class="metric-label">🗺️ Provinces</div>
+            <div class="metric-value">{{ total_provinces }}</div>
+            <div class="metric-sub">Provinces</div>
         </div>
         
         <!-- Entreprises -->
-        <div style="
-            background: linear-gradient(135deg, #ede7f6, #d1c4e9);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #673AB7;
-        ">
-            <div style="font-size: 0.8rem; color: #512da8; text-transform: uppercase; font-weight: 600;">🏢 Entreprises</div>
-            <div style="font-size: 2.2rem; font-weight: 700; color: #001F3F; margin: 0.5rem 0;">{{ total_employeurs }}</div>
-            <div style="font-size: 0.85rem; color: #666;">Entreprises</div>
+        <div class="admin-metric employeurs">
+            <div class="metric-label">🏢 Entreprises</div>
+            <div class="metric-value">{{ total_employeurs }}</div>
+            <div class="metric-sub">Entreprises</div>
         </div>
     </div>
 </div>
 
 <!-- Utilisateurs récents -->
 <div class="admin-card">
-    <h2 style="color: #001F3F; margin-top: 0;">📋 Utilisateurs Récemment Inscrits</h2>
+    <h2 class="section-title">📋 Utilisateurs Récemment Inscrits</h2>
     
     {% if recent_users %}
         <table class="admin-table">
@@ -96,25 +67,13 @@
                         <td><strong>{{ user.email }}</strong></td>
                         <td>{{ user.get_full_name }}</td>
                         <td>
-                            <span style="
-                                display: inline-block;
-                                padding: 0.3rem 0.8rem;
-                                border-radius: 16px;
-                                font-size: 0.8rem;
-                                font-weight: 600;
-                                {% if user.role == 'administrateur' %}
-                                    background: #f3e5f5;
-                                    color: #6a1b9a;
-                                {% elif user.role == 'agent' %}
-                                    background: #fff3e0;
-                                    color: #e65100;
-                                {% else %}
-                                    background: #e8f5e9;
-                                    color: #2e7d32;
-                                {% endif %}
-                            ">
-                                {{ user.get_role_display }}
-                            </span>
+                            {% if user.role == 'administrateur' %}
+                                <span class="role-badge role-admin">{{ user.get_role_display }}</span>
+                            {% elif user.role == 'agent' %}
+                                <span class="role-badge role-agent">{{ user.get_role_display }}</span>
+                            {% else %}
+                                <span class="role-badge role-other">{{ user.get_role_display }}</span>
+                            {% endif %}
                         </td>
                         <td>{{ user.date_joined|date:"d/m/Y" }}</td>
                     </tr>
@@ -130,13 +89,9 @@
 
 <!-- Actions rapides -->
 <div class="admin-card">
-    <h2 style="color: #001F3F; margin-top: 0;">⚡ Actions Rapides</h2>
+    <h2 class="section-subtitle">⚡ Actions Rapides</h2>
     
-    <div style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-    ">
+    <div class="admin-actions-grid">
         <a href="{% url 'core:admin_users_create' %}" class="btn-admin btn-admin-success">
             ➕ Ajouter un Utilisateur
         </a>

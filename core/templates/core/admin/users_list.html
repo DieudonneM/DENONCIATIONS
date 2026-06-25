@@ -26,7 +26,7 @@
 <!-- Tableau des utilisateurs -->
 {% if users %}
     <div class="admin-card">
-        <p style="color: #666; margin-top: 0;">Affichage de <strong>{{ users|length }}</strong> sur <strong>{{ total_count }}</strong> utilisateurs</p>
+        <p class="muted">Affichage de <strong>{{ users|length }}</strong> sur <strong>{{ total_count }}</strong> utilisateurs</p>
         
         <table class="admin-table">
             <thead>
@@ -44,40 +44,28 @@
                         <td><strong>{{ user.email }}</strong></td>
                         <td>{{ user.get_full_name|default:"N/A" }}</td>
                         <td>
-                            <span style="
-                                display: inline-block;
-                                padding: 0.3rem 0.8rem;
-                                border-radius: 16px;
-                                font-size: 0.8rem;
-                                font-weight: 600;
-                                {% if user.role == 'administrateur' %}
-                                    background: #f3e5f5;
-                                    color: #6a1b9a;
-                                {% elif user.role == 'agent' %}
-                                    background: #fff3e0;
-                                    color: #e65100;
-                                {% else %}
-                                    background: #e8f5e9;
-                                    color: #2e7d32;
-                                {% endif %}
-                            ">
-                                {{ user.get_role_display }}
-                            </span>
+                            {% if user.role == 'administrateur' %}
+                                <span class="role-badge role-admin">{{ user.get_role_display }}</span>
+                            {% elif user.role == 'agent' %}
+                                <span class="role-badge role-agent">{{ user.get_role_display }}</span>
+                            {% else %}
+                                <span class="role-badge role-other">{{ user.get_role_display }}</span>
+                            {% endif %}
                         </td>
                         <td>
                             {% if user.is_active %}
-                                <span style="color: #4CAF50;">✅ Actif</span>
+                                <span class="status-active">✅ Actif</span>
                             {% else %}
-                                <span style="color: #f44336;">❌ Inactif</span>
+                                <span class="status-inactive">❌ Inactif</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="actions">
                                 <a href="{% url 'core:admin_users_edit' user.id %}" class="btn-admin btn-admin-sm">✏️ Modifier</a>
                                 {% if user.role == 'agent' %}
-                                    <a href="{% url 'core:admin_agents_provinces' user.id %}" class="btn-admin btn-admin-sm" style="background: #FF9800;">🗺️ Provinces</a>
+                                    <a href="{% url 'core:admin_agents_provinces' user.id %}" class="btn-admin btn-admin-sm btn-admin-provinces">🗺️ Provinces</a>
                                 {% endif %}
-                                <form method="post" action="{% url 'core:admin_users_delete' user.id %}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                <form method="post" action="{% url 'core:admin_users_delete' user.id %}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr ?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">🗑️ Supprimer</button>
                                 </form>

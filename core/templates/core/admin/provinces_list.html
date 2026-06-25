@@ -23,7 +23,7 @@
 <!-- Tableau des provinces -->
 {% if provinces %}
     <div class="admin-card">
-        <p style="color: #666; margin-top: 0;">Affichage de <strong>{{ provinces|length }}</strong> sur <strong>{{ total_count }}</strong> provinces</p>
+        <p class="muted">Affichage de <strong>{{ provinces|length }}</strong> sur <strong>{{ total_count }}</strong> provinces</p>
         
         <table class="admin-table">
             <thead>
@@ -38,12 +38,12 @@
                 {% for province in provinces %}
                     <tr>
                         <td><strong>{{ province.nom }}</strong></td>
-                        <td><span style="background: #e3f2fd; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: 600;">{{ province.code }}</span></td>
+                        <td><span class="code-pill">{{ province.code }}</span></td>
                         <td>{{ province.description|truncatewords:10 }}</td>
                         <td>
                             <div class="actions">
                                 <a href="{% url 'core:admin_provinces_edit' province.id %}" class="btn-admin btn-admin-sm">✏️ Modifier</a>
-                                <form method="post" action="{% url 'core:admin_provinces_delete' province.id %}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                <form method="post" action="{% url 'core:admin_provinces_delete' province.id %}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr ?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">🗑️ Supprimer</button>
                                 </form>
