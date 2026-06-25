@@ -6,7 +6,7 @@
 </div>
 
 <div class="form-container">
-    <div style="background: #f5f5f5; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+    <div class="panel-muted">
         <strong>Agent:</strong> {{ user.get_full_name }}<br>
         <strong>Email:</strong> {{ user.email }}
     </div>
@@ -17,34 +17,14 @@
         <div class="form-group">
             <label>🗺️ Sélectionner les provinces assignées:</label>
             
-            <div style="
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 1rem;
-                margin-top: 1rem;
-            ">
+            <div class="grid-provinces">
                 {% for province in form.provinces.field.queryset %}
-                    <label style="
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                        cursor: pointer;
-                        padding: 0.75rem;
-                        background: white;
-                        border: 2px solid #ddd;
-                        border-radius: 6px;
-                        transition: all 0.3s ease;
-                    "
-                    onmouseover="this.style.borderColor='#2196F3'; this.style.background='#f5f5f5';"
-                    onmouseout="this.style.borderColor='#ddd'; this.style.background='white';">
-                        <input 
-                            type="checkbox" 
-                            name="provinces" 
-                            value="{{ province.id }}"
-                            {% if province in form.provinces.initial %}checked{% endif %}
-                            style="cursor: pointer; width: 20px; height: 20px;">
-                        <strong>{{ province.nom }}</strong><br>
-                        <span style="font-size: 0.8rem; color: #999;">{{ province.code }}</span>
+                    <label class="province-card">
+                        <input type="checkbox" name="provinces" value="{{ province.id }}" {% if province in form.provinces.initial %}checked{% endif %} class="checkbox-large">
+                        <div>
+                            <strong>{{ province.nom }}</strong><br>
+                            <span class="muted small-muted">{{ province.code }}</span>
+                        </div>
                     </label>
                 {% endfor %}
             </div>

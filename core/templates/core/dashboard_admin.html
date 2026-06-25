@@ -426,53 +426,53 @@
         <div class="section-title">📊 Statistiques Principales</div>
         
         <div class="stats-grid">
-            <div class="stat-card">
+            <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card">
                 <div class="stat-icon">📋</div>
                 <div class="stat-value">{{ stats.total }}</div>
                 <div class="stat-label">Total Dénonciations</div>
-            </div>
+            </a>
             
-            <div class="stat-card stat-nouvelle">
+            <a href="{% url 'denunciations:incidents_list' %}?statut=nouvelle" class="stat-card stat-nouvelle">
                 <div class="stat-icon">✨</div>
                 <div class="stat-value">{{ stats.nouvelle }}</div>
                 <div class="stat-label">Nouvelles</div>
-            </div>
+            </a>
             
-            <div class="stat-card stat-analyse">
+            <a href="{% url 'denunciations:incidents_list' %}?statut=analyse" class="stat-card stat-analyse">
                 <div class="stat-icon">🔍</div>
                 <div class="stat-value">{{ stats.analyse }}</div>
                 <div class="stat-label">En Analyse</div>
-            </div>
+            </a>
             
-            <div class="stat-card stat-attente">
+            <a href="{% url 'denunciations:incidents_list' %}?statut=attente" class="stat-card stat-attente">
                 <div class="stat-icon">⏳</div>
                 <div class="stat-value">{{ stats.attente }}</div>
                 <div class="stat-label">En Attente</div>
-            </div>
+            </a>
             
-            <div class="stat-card stat-resolue">
+            <a href="{% url 'denunciations:incidents_list' %}?statut=resolue" class="stat-card stat-resolue">
                 <div class="stat-icon">✅</div>
                 <div class="stat-value">{{ stats.resolue }}</div>
                 <div class="stat-label">Résolues</div>
-            </div>
+            </a>
             
-            <div class="stat-card stat-classee">
+            <a href="{% url 'denunciations:incidents_list' %}?statut=classée" class="stat-card stat-classee">
                 <div class="stat-icon">📦</div>
                 <div class="stat-value">{{ stats.classée }}</div>
                 <div class="stat-label">Classées</div>
-            </div>
+            </a>
             
-            <div class="stat-card">
+            <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card">
                 <div class="stat-icon">👤</div>
                 <div class="stat-value">{{ stats.anonyme }}</div>
                 <div class="stat-label">Anonymes</div>
-            </div>
+            </a>
             
-            <div class="stat-card">
+            <a href="{% url 'denunciations:incidents_list' %}?statut=nouvelle&search=" class="stat-card">
                 <div class="stat-icon">🔴</div>
                 <div class="stat-value">{{ stats.non_lu }}</div>
                 <div class="stat-label">Non Lues</div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -519,7 +519,7 @@
                     <div class="count">{{ total_travailleurs }}</div>
                 </div>
                 <div class="management-body">
-                    <p style="color: #666; margin: 1rem 0;">Total des utilisateurs travailleurs enregistrés sur la plateforme.</p>
+                    <p class="muted mt-4">Total des utilisateurs travailleurs enregistrés sur la plateforme.</p>
                     <a href="{% url 'core:admin_users_list' %}?role=travailleur" class="btn-manage secondary">Gérer</a>
                 </div>
                 <div class="management-footer">

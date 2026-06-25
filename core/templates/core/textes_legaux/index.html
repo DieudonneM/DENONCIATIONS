@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Textes Légaux{% endblock %}
+
+{% block content %}
+<section class="section-mot-ministre">
+  <div class="container">
+    <h2 class="titre-section">Textes Légaux</h2>
+
+    <div class="conteneur-bas">
+      <div class="container-profil">
+        <h3>Ressources</h3>
+        <p>Choisissez un document ci-dessous pour l'afficher.</p>
+      </div>
+
+      <div class="container-texte">
+        <ul>
+          {% for slug, label in legal_items %}
+            <li><a href="{% url 'core:legal_page' slug=slug %}">{{ label }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,35 @@
+{# Partial fragment: table rows + pagination #}
+<div class="incidents-table table-fragment">
+  <div class="incidents-header">
+    <div>Code</div>
+    <div>Entreprise</div>
+    <div>Lieu</div>
+    <div>Statut</div>
+    <div>Action</div>
+  </div>
+
+  {% for incident in incidents_page %}
+    <div class="incident-row">
+      <div><a href="{% url 'denunciations:incident_detail' incident.code_suivi %}">{{ incident.code_suivi }}</a></div>
+      <div>{{ incident.employeur.nom }}</div>
+      <div>{{ incident.ville }}, {{ incident.province.nom }}</div>
+      <div><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
+      <div><a href="{% url 'denunciations:incident_detail' incident.code_suivi %}" class="btn btn-manage">Voir</a></div>
+    </div>
+  {% empty %}
+    <div class="no-data">Aucune dénonciation trouvée.</div>
+  {% endfor %}
+
+  <div class="incidents-pagination pagination-row">
+    {% if incidents_page.has_previous %}
+      <a data-page="{{ incidents_page.previous_page_number }}" class="btn btn-secondary ajax-page">← Précédent</a>
+    {% endif %}
+
+    <span>Page {{ incidents_page.number }} / {{ incidents_page.paginator.num_pages }}</span>
+
+    {% if incidents_page.has_next %}
+      <a data-page="{{ incidents_page.next_page_number }}" class="btn btn-secondary ajax-page">Suivant →</a>
+    {% endif %}
+  </div>
+
+</div>

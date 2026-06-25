@@ -282,10 +282,10 @@ class DashboardAgentView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Incidents de la province de l'agent
+        # Incidents visibles par l'agent (maintenant tous les incidents)
         provinces = self.request.user.provinces.all()
-        incidents = Incident.objects.filter(province__in=provinces)
-        
+        incidents = get_incidents_by_user_role(self.request.user)
+
         context['provinces'] = provinces
         context['stats'] = {
             'total': incidents.count(),
@@ -609,3 +609,48 @@ def contact_view(request):
         'page_title': 'Contact',
     }
     return render(request, 'core/contact.html', context)
+
+def mot_ministre(request):
+    """Page Mot du Ministre."""
+    context = {
+        'page_title': 'Mot Du Ministre',
+    }
+    return render(request, 'core/mot_ministre.html', context)
+
+
+def textes_legaux(request):
+    """Index des textes légaux (liste de sous-pages)."""
+    context = {
+        'page_title': 'Textes Légaux',
+        'legal_items': [
+            ('code-du-travail', "Code du travail"),
+            ('contrat-de-travail', "Contrat de travail"),
+            ('visa-onem', "Visa de l'ONEM"),
+            ('reglement-entreprise', "Règlement d'entreprise"),
+            ('bulletin-de-paie', "Bulletin de paie"),
+        ]
+    }
+    return render(request, 'core/textes_legaux/index.html', context)
+
+
+def legal_page(request, slug):
+    """Afficher une page légale par slug (placeholder pour l'instant)."""
+    allowed = {
+        'code-du-travail': 'Code du travail',
+        'contrat-de-travail': 'Contrat de travail',
+        'visa-onem': "Visa de l'ONEM",
+        'reglement-entreprise': "Règlement d'entreprise",
+        'bulletin-de-paie': 'Bulletin de paie',
+    }
+
+    if slug not in allowed:
+        return render(request, 'core/error_404.html', status=404)
+
+    context = {
+        'page_title': allowed[slug],
+        'slug': slug,
+        'title': allowed[slug],
+    }
+
+    template_path = f'core/textes_legaux/{slug}.html'
+    return render(request, template_path, context)
