@@ -364,6 +364,78 @@ class DashboardTravailleurView(LoginRequiredMixin, TemplateView):
 # VUES DÉTAIL DES INCIDENTS
 # ============================================================================
 
+class EditIncidentView(LoginRequiredMixin, View):
+    """Vue pour permettre au dénonciateur de modifier sa publication."""
+
+    template_name = 'core/edit_incident.html'
+    login_url = 'users:login'
+
+    def get(self, request, code):
+        incident = get_object_or_404(Incident, code_suivi=code)
+
+        if incident.travailleur != request.user:
+            return render(request, 'core/error_403.html', status=403)
+
+        form = IncidentForm(
+            instance=incident,
+            initial={
+                'employeur': incident.employeur.nom if incident.employeur else '',
+                'autre_type_incident': incident.type_incident_autre,
+                'le_fautif': incident.le_fautif,
+                'est_anonyme': incident.est_anonyme,
+                'email_contact_anonyme': incident.email_contact_anonyme,
+                'telephone_contact_anonyme': incident.telephone_contact_anonyme,
+            }
+        )
+
+        context = {
+            'incident': incident,
+            'form': form,
+            'page_title': 'Modifier votre publication',
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, code):
+        incident = get_object_or_404(Incident, code_suivi=code)
+
+        if incident.travailleur != request.user:
+            return render(request, 'core/error_403.html', status=403)
+
+        form = IncidentForm(request.POST, request.FILES, instance=incident, initial={
+            'employeur': incident.employeur.nom if incident.employeur else '',
+            'autre_type_incident': incident.type_incident_autre,
+            'le_fautif': incident.le_fautif,
+            'est_anonyme': incident.est_anonyme,
+            'email_contact_anonyme': incident.email_contact_anonyme,
+            'telephone_contact_anonyme': incident.telephone_contact_anonyme,
+        })
+
+        if form.is_valid():
+            incident = form.save(commit=False)
+            incident.travailleur = request.user
+            incident.est_anonyme = form.cleaned_data.get('est_anonyme', False)
+            incident.save()
+
+            for uploaded_file in request.FILES.getlist('pieces_jointes'):
+                PieceJointe.objects.create(
+                    incident=incident,
+                    fichier=uploaded_file,
+                    nom_original=uploaded_file.name,
+                    type_fichier=uploaded_file.content_type,
+                    taille_fichier=uploaded_file.size,
+                )
+
+            messages.success(request, 'Votre publication a été mise à jour avec succès.')
+            return redirect('core:incident_detail', code=code)
+
+        context = {
+            'incident': incident,
+            'form': form,
+            'page_title': 'Modifier votre publication',
+        }
+        return render(request, self.template_name, context)
+
+
 class IncidentDetailView(LoginRequiredMixin, View):
     """Vue détaillée d'un incident."""
     
@@ -383,11 +455,8 @@ class IncidentDetailView(LoginRequiredMixin, View):
             incident.est_lu = True
             incident.save()
         
-        # Récupérer les commentaires (publics pour travailleur, tous pour agent/admin)
-        if request.user.role == 'travailleur':
-            commentaires = incident.commentaires.filter(type_commentaire='public')
-        else:
-            commentaires = incident.commentaires.all()
+        # Les commentaires sont visibles pour tous les utilisateurs autorisés.
+        commentaires = incident.commentaires.all()
         
         available_agents = []
         if user_is_admin(request.user) and incident.province:
@@ -405,6 +474,7 @@ class IncidentDetailView(LoginRequiredMixin, View):
             'available_agents': available_agents,
             'user_can_edit': user_is_agent(request.user) or user_is_admin(request.user),
             'user_is_admin': user_is_admin(request.user),
+            'user_is_owner': getattr(incident.travailleur, 'id', None) == getattr(request.user, 'id', None),
             'user_can_comment': user_is_agent(request.user) or user_is_admin(request.user),
         }
         
@@ -439,10 +509,13 @@ class IncidentDetailView(LoginRequiredMixin, View):
 
         context = {
             'incident': incident,
+            'commentaires': incident.commentaires.all(),
+            'pieces_jointes': incident.pieces_jointes.all(),
             'form': form,
             'available_agents': available_agents,
             'user_can_edit': user_is_agent(request.user) or user_is_admin(request.user),
             'user_is_admin': user_is_admin(request.user),
+            'user_is_owner': getattr(incident.travailleur, 'id', None) == getattr(request.user, 'id', None),
             'user_can_comment': user_is_agent(request.user) or user_is_admin(request.user),
         }
         

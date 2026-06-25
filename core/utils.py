@@ -70,6 +70,9 @@ def check_user_can_view_incident(user, incident):
     """
     if user.role == 'administrateur':
         return True
+
+    if getattr(user, 'is_authenticated', False) and getattr(incident, 'travailleur_id', None) == getattr(user, 'id', None):
+        return True
     
     if user.role == 'agent':
         if incident.province in user.provinces.all():

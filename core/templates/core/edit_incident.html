@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier votre publication - MEPT-RDC{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Modifier votre publication</h1>
+            <p>Mettez à jour les informations de votre dénonciation et ajoutez éventuellement de nouveaux fichiers.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="form-section">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.employeur.id_for_label }}">{{ form.employeur.label }}</label>
+                    {{ form.employeur }}
+                    {% if form.employeur.errors %}<div class="error-message">{{ form.employeur.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.le_fautif.id_for_label }}">{{ form.le_fautif.label }}</label>
+                    {{ form.le_fautif }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.type_incident.id_for_label }}">{{ form.type_incident.label }}</label>
+                    {{ form.type_incident }}
+                    {% if form.type_incident.errors %}<div class="error-message">{{ form.type_incident.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.autre_type_incident.id_for_label }}">{{ form.autre_type_incident.label }}</label>
+                    {{ form.autre_type_incident }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.province.id_for_label }}">{{ form.province.label }}</label>
+                    {{ form.province }}
+                    {% if form.province.errors %}<div class="error-message">{{ form.province.errors|striptags }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.ville.id_for_label }}">{{ form.ville.label }}</label>
+                    {{ form.ville }}
+                    {% if form.ville.errors %}<div class="error-message">{{ form.ville.errors|striptags }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<div class="error-message">{{ form.description.errors|striptags }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-row full">
+                <div class="form-group">
+                    <label for="{{ form.pieces_jointes.id_for_label }}">{{ form.pieces_jointes.label }}</label>
+                    {{ form.pieces_jointes }}
+                    <div class="help-text">{{ form.pieces_jointes.help_text }}</div>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                {{ form.est_anonyme }}
+                <label for="{{ form.est_anonyme.id_for_label }}">{{ form.est_anonyme.label }}</label>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.email_contact_anonyme.id_for_label }}">{{ form.email_contact_anonyme.label }}</label>
+                    {{ form.email_contact_anonyme }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.telephone_contact_anonyme.id_for_label }}">{{ form.telephone_contact_anonyme.label }}</label>
+                    {{ form.telephone_contact_anonyme }}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+<style>
+    .form-container { max-width: 900px; margin: 0 auto; }
+    .form-header { text-align: center; margin-bottom: 2rem; }
+    .form-header h1 { color: #001F3F; margin-bottom: 0.5rem; }
+    .form-section { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-weight: 600; color: #333; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; }
+    .checkbox-group { display: flex; align-items: center; gap: 0.6rem; margin: 1rem 0; }
+    .help-text { color: #666; font-size: 0.9rem; }
+    .error-message { color: #b91c1c; font-size: 0.9rem; }
+    .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; flex-wrap: wrap; }
+    .btn { padding: 0.75rem 1.2rem; border: none; border-radius: 6px; text-decoration: none; cursor: pointer; }
+    .btn-primary { background: #001F3F; color: white; }
+    .btn-secondary { background: #f0f0f0; color: #333; }
+    @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .form-actions { justify-content: center; } }
+</style>
+{% endblock %}

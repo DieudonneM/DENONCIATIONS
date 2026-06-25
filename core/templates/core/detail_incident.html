@@ -62,11 +62,11 @@
         </div>
 
         <!-- Pièces jointes -->
-        {% if incident.pieces_jointes.all %}
+        {% if pieces_jointes %}
             <div class="detail-section">
                 <h2>Pièces jointes</h2>
                 <div class="attachments-list">
-                    {% for piece in incident.pieces_jointes.all %}
+                    {% for piece in pieces_jointes %}
                         <div class="attachment-item">
                             <a href="{{ piece.fichier.url }}" download class="attachment-link">
                                 📎 {{ piece.fichier.name|slice:"-50:" }}
@@ -149,21 +149,15 @@
             {% endif %}
 
             <!-- Liste des commentaires -->
-            {% if comments %}
+            {% if commentaires %}
                 <div class="comments-list">
-                    {% for comment in comments %}
+                    {% for comment in commentaires %}
                         <div class="comment-item">
                             <div class="comment-meta">
                                 <strong>{{ comment.get_auteur_display }}</strong>
                                 <span class="badge-small badge-{{ comment.type_commentaire }}">
                                     {% if comment.type_commentaire == 'public' %}Public{% else %}Interne{% endif %}
                                 </span>
-                                    {% if user_is_agent or user_is_admin %}
-                                        <form method="post" action="{% url 'denunciations:toggle_comment_visibility' comment.id %}" style="display:inline; margin-left:8px;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn" style="font-size:0.8rem; padding:6px 10px;">Basculer visibilité</button>
-                                        </form>
-                                    {% endif %}
                                 <span class="comment-date">{{ comment.date_creation|date:"d/m/Y H:i" }}</span>
                             </div>
                             <div class="comment-body">
@@ -180,6 +174,9 @@
         <!-- Actions -->
         <div class="detail-actions">
             <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">Retour au dashboard</a>
+            {% if user_is_owner %}
+                <a href="{% url 'core:incident_edit' incident.code_suivi %}" class="btn btn-secondary">Modifier ma publication</a>
+            {% endif %}
             {% if user_is_admin %}
                 <a href="{% url 'core:incident_detail' incident.code_suivi %}#status-form" class="btn btn-secondary">
                     Modifier le statut

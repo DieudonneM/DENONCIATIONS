@@ -37,6 +37,7 @@ urlpatterns = [
     
     # Détail incidents
     path('incident/<str:code>/', views.IncidentDetailView.as_view(), name='incident_detail'),
+    path('incident/<str:code>/modifier/', views.EditIncidentView.as_view(), name='incident_edit'),
     path('incident/<str:code>/statut/', views.UpdateIncidentStatusView.as_view(), name='update_status'),
     path('incident/<str:code>/assigner/', views.AssignIncidentView.as_view(), name='assign_incident'),
     

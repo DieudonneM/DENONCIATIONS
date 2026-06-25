@@ -258,3 +258,100 @@ class CommentaireModelTest(TestCase):
             type_commentaire='public'
         )
         self.assertEqual(commentaire.type_commentaire, 'public')
+
+
+class IncidentDetailPermissionsTest(TestCase):
+    """Tests de permissions et d'affichage des détails d'un incident."""
+
+    def setUp(self):
+        self.province = Province.objects.create(nom='Test Province', code='TST')
+        self.employeur = Employeur.objects.create(
+            nom='Entreprise Test',
+            secteur='industrie',
+            province=self.province,
+            ville='Kinshasa'
+        )
+        self.travailleur = User.objects.create_user(
+            username='travailleur_edit',
+            email='travailleur_edit@test.cd',
+            password='password123',
+            role='travailleur'
+        )
+        self.agent = User.objects.create_user(
+            username='agent_comment_view',
+            email='agent_comment_view@test.cd',
+            password='password123',
+            role='agent'
+        )
+        self.agent.provinces.add(self.province)
+
+    def test_travailleur_can_edit_own_incident(self):
+        """Le dénonciateur doit pouvoir modifier sa propre publication."""
+        incident = Incident.objects.create(
+            travailleur=self.travailleur,
+            employeur=self.employeur,
+            province=self.province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Description initiale',
+            est_anonyme=False
+        )
+
+        self.client.force_login(self.travailleur)
+        response = self.client.get(reverse('core:incident_edit', kwargs={'code': incident.code_suivi}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Description initiale')
+
+        response = self.client.post(
+            reverse('core:incident_edit', kwargs={'code': incident.code_suivi}),
+            {
+                'type_incident': 'salaire',
+                'ville': 'Lubumbashi',
+                'province': self.province.id,
+                'description': 'Description modifiée',
+                'employeur': 'Entreprise Test',
+                'email_contact_anonyme': '',
+                'telephone_contact_anonyme': '',
+                'est_anonyme': 'on',
+                'le_fautif': '',
+            },
+            follow=True
+        )
+
+        incident.refresh_from_db()
+        self.assertEqual(incident.description, 'Description modifiée')
+        self.assertEqual(incident.ville, 'Lubumbashi')
+        self.assertTrue(incident.est_anonyme)
+        self.assertRedirects(response, reverse('core:incident_detail', kwargs={'code': incident.code_suivi}))
+
+    def test_detail_view_shows_all_comments_to_travailleur(self):
+        """Le dénonciateur doit voir tous les commentaires, y compris internes."""
+        incident = Incident.objects.create(
+            travailleur=self.travailleur,
+            employeur=self.employeur,
+            province=self.province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Incident test',
+            est_anonyme=False
+        )
+        Commentaire.objects.create(
+            incident=incident,
+            auteur=self.agent,
+            texte='Commentaire interne',
+            type_commentaire='interne'
+        )
+        Commentaire.objects.create(
+            incident=incident,
+            auteur=self.agent,
+            texte='Commentaire public',
+            type_commentaire='public'
+        )
+
+        self.client.force_login(self.travailleur)
+        response = self.client.get(reverse('core:incident_detail', kwargs={'code': incident.code_suivi}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Commentaire interne')
+        self.assertContains(response, 'Commentaire public')
