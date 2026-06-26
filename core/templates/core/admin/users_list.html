@@ -65,6 +65,14 @@
                                 {% if user.role == 'agent' %}
                                     <a href="{% url 'core:admin_agents_provinces' user.id %}" class="btn-admin btn-admin-sm btn-admin-provinces">🗺️ Provinces</a>
                                 {% endif %}
+                                <form method="post" action="{% url 'core:admin_users_reset_password' user.id %}" class="d-inline" onsubmit="return confirm('Réinitialiser le mot de passe de cet utilisateur ?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-admin btn-admin-sm">🔐 Réinitialiser</button>
+                                </form>
+                                <form method="post" action="{% url 'core:admin_users_refresh_password' user.id %}" class="d-inline" onsubmit="return confirm('Générer un nouveau mot de passe aléatoire ?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-admin btn-admin-sm">♻️ Rafraîchir</button>
+                                </form>
                                 <form method="post" action="{% url 'core:admin_users_delete' user.id %}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr ?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">🗑️ Supprimer</button>

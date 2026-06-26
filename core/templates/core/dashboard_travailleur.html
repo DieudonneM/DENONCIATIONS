@@ -81,85 +81,9 @@
     <!-- Mes dénonciations -->
     <div class="section">
         <h2>Mes dénonciations</h2>
-        {% if incidents %}
-            <div class="incidents-list">
-                {% for incident in incidents %}
-                    <div class="incident-card">
-                        <div class="incident-header">
-                            <div>
-                                <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">
-                                    {{ incident.code_suivi }}
-                                </a>
-                                <p class="incident-type">{{ incident.get_type_incident_display }}</p>
-                            </div>
-                            <div class="header-right">
-                                <span class="badge badge-{{ incident.statut }}">
-                                    {{ incident.get_statut_display }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="incident-info">
-                            <dl class="info-grid">
-                                <dt>Employeur</dt>
-                                <dd>{{ incident.employeur.nom }}</dd>
-
-                                <dt>Lieu</dt>
-                                <dd>{{ incident.ville }}, {{ incident.province.nom }}</dd>
-
-                                <dt>Date</dt>
-                                <dd>{{ incident.date_creation|date:"d/m/Y H:i" }}</dd>
-
-                                {% if incident.date_resolution %}
-                                    <dt>Résolu le</dt>
-                                    <dd>{{ incident.date_resolution|date:"d/m/Y" }}</dd>
-                                {% endif %}
-
-                                <dt>Pièces jointes</dt>
-                                <dd>
-                                    {% if incident.pieces_jointes.all %}
-                                        {{ incident.pieces_jointes.count }} fichier(s)
-                                    {% else %}
-                                        Aucune
-                                    {% endif %}
-                                </dd>
-
-                                <dt>Commentaires</dt>
-                                <dd>
-                                    {{ incident.commentaires_publics.count }} commentaire(s)
-                                </dd>
-                            </dl>
-                        </div>
-
-                        <div class="incident-description">
-                            <p>{{ incident.description|truncatewords:30 }}</p>
-                        </div>
-
-                        <div class="incident-footer">
-                            <div class="status-indicator">
-                                {% if incident.statut == 'resolue' %}
-                                    <span class="indicator-text">✅ Votre dénonciation a été résolue</span>
-                                {% elif incident.statut == 'classee' %}
-                                    <span class="indicator-text">📋 Classée</span>
-                                {% elif incident.statut == 'nouvelle' %}
-                                    <span class="indicator-text">⏳ En attente de traitement</span>
-                                {% else %}
-                                    <span class="indicator-text">🔄 En cours de traitement</span>
-                                {% endif %}
-                            </div>
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn btn-primary btn-small">
-                                Voir détails
-                            </a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-incidents">
-                <p>Vous n'avez pas encore soumis de dénonciation</p>
-                <a href="{% url 'core:incident_form' %}" class="btn btn-primary">Soumettre une dénonciation</a>
-            </div>
-        {% endif %}
+        <div class="no-incidents">
+            <p>Cliquez sur une statistique pour ouvrir la page des publications filtrées.</p>
+        </div>
     </div>
 
     <!-- Informations utiles -->
@@ -184,6 +108,7 @@
         </div>
     </div>
 </section>
+
 
 <style>
 .dashboard-container {

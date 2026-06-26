@@ -186,7 +186,7 @@ class CommentaireForm(forms.ModelForm):
     
     class Meta:
         model = Commentaire
-        fields = ['texte', 'type_commentaire']
+        fields = ['texte']
         widgets = {
             'texte': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -194,14 +194,9 @@ class CommentaireForm(forms.ModelForm):
                 'placeholder': 'Ajoutez un commentaire...',
                 'required': True
             }),
-            'type_commentaire': forms.RadioSelect(choices=[
-                ('public', '🔓 Public (visible au travailleur)'),
-                ('interne', '🔒 Interne (agents seulement)'),
-            ]),
         }
         labels = {
             'texte': 'Commentaire *',
-            'type_commentaire': 'Visibilité du commentaire *',
         }
     
     def clean_texte(self):

@@ -28,7 +28,7 @@ from core.utils import get_incidents_by_user_role
 class IncidentPublicFormView(View):
     """Vue pour créer une dénonciation publiquement (sans connexion)."""
     
-    template_name = 'denunciations/form_denonciation.html'
+    template_name = 'core/form_denonciation.html'
     form_class = IncidentForm
     
     def get(self, request):
@@ -70,7 +70,7 @@ class IncidentPublicFormView(View):
                 )
             
             # Rediriger vers la page de succès
-            return redirect('denunciations:incident_success', code=incident.code_suivi)
+            return redirect('core:incident_success', code=incident.code_suivi)
         
         context = {
             'form': form,
@@ -84,7 +84,7 @@ class IncidentPublicFormView(View):
 class IncidentSuccessView(TemplateView):
     """Page de succès après création d'une dénonciation."""
     
-    template_name = 'denunciations/page_succes.html'
+    template_name = 'core/page_succes.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -105,7 +105,7 @@ class IncidentSuccessView(TemplateView):
 class SearchIncidentView(View):
     """Vue pour rechercher et consulter un incident par code de suivi (anonyme)."""
     
-    template_name = 'denunciations/search_denonciation.html'
+    template_name = 'core/search_denonciation.html'
     
     def get(self, request):
         """Afficher le formulaire de recherche."""
@@ -137,7 +137,7 @@ class SearchIncidentView(View):
                     'commentaires_publics': incident.commentaires.filter(type_commentaire='public'),
                     'pieces_jointes': incident.pieces_jointes.all(),
                 }
-                return render(request, 'denunciations/detail_denonciation_public.html', context)
+                return render(request, 'core/detail_denonciation_public.html', context)
             
             except Incident.DoesNotExist:
                 form.add_error(None, 'Code de suivi introuvable.')
@@ -156,8 +156,22 @@ class SearchIncidentView(View):
 class IncidentDetailView(LoginRequiredMixin, View):
     """Vue détaillée d'un incident."""
     
-    template_name = 'denunciations/detail_incident.html'
+    template_name = 'core/detail_incident.html'
     login_url = 'users:login'
+
+    @staticmethod
+    def _can_view_incident(user, incident):
+        """Vérifier si l'utilisateur peut voir l'incident."""
+        if user_is_admin(user):
+            return True
+
+        if user_is_agent(user):
+            return True
+
+        if getattr(user, 'role', None) == 'travailleur':
+            return incident.travailleur == user
+
+        return False
     
     def get(self, request, code):
         """Afficher les détails d'un incident."""
@@ -178,26 +192,37 @@ class IncidentDetailView(LoginRequiredMixin, View):
             commentaires = incident.commentaires.filter(type_commentaire='public')
         else:
             commentaires = incident.commentaires.all()
+
+        available_agents = []
+        if user_is_admin(request.user) and incident.province:
+            available_agents = User.objects.filter(
+                role='agent',
+                is_active=True,
+                provinces=incident.province,
+            ).distinct().order_by('first_name', 'last_name', 'id')
         
         context = {
             'incident': incident,
             'commentaires': commentaires,
             'pieces_jointes': incident.pieces_jointes.all(),
-            'form': CommentaireForm() if user_is_agent(request.user) else None,
+            'form': CommentaireForm() if (user_is_agent(request.user) or user_is_admin(request.user)) else None,
+            'available_agents': available_agents,
+            'user_can_edit': user_is_agent(request.user) or user_is_admin(request.user),
             'user_is_agent': user_is_agent(request.user),
             'user_is_admin': user_is_admin(request.user),
-            'user_can_comment': user_is_agent(request.user),
+            'user_is_owner': getattr(incident.travailleur, 'id', None) == getattr(request.user, 'id', None),
+            'user_can_comment': user_is_agent(request.user) or user_is_admin(request.user),
             'page_title': f'Détails - {incident.code_suivi}',
         }
         
         return render(request, self.template_name, context)
     
     def post(self, request, code):
-        """Ajouter un commentaire (agents seulement)."""
+        """Ajouter un commentaire (agents et admins seulement)."""
         incident = get_object_or_404(Incident, code_suivi=code)
         
         # Vérifier les permissions
-        if not user_is_agent(request.user):
+        if not (user_is_agent(request.user) or user_is_admin(request.user)):
             return render(request, 'core/error_403.html', status=403)
         
         form = CommentaireForm(request.POST)
@@ -206,17 +231,39 @@ class IncidentDetailView(LoginRequiredMixin, View):
             commentaire = form.save(commit=False)
             commentaire.incident = incident
             commentaire.auteur = request.user
-            # Rendre visible automatiquement les commentaires publiés par un agent
-            if user_is_agent(request.user):
-                commentaire.type_commentaire = 'public'
+            # Le type de commentaire peut être défini dans le formulaire à l'avenir
+            # Pour l'instant, on le met en 'public' par défaut.
             commentaire.save()
             
             messages.success(request, 'Commentaire ajouté avec succès.')
-            return redirect('denunciations:incident_detail', code=code)
+            return redirect('core:incident_detail', code=incident.code_suivi)
         
+        # Si le formulaire n'est pas valide, on doit reconstruire le contexte complet
+        messages.error(request, "Le commentaire n'a pas pu être ajouté. Veuillez corriger les erreurs.")
+        
+        if request.user.role == 'travailleur':
+            commentaires = incident.commentaires.filter(type_commentaire='public')
+        else:
+            commentaires = incident.commentaires.all()
+
+        available_agents = []
+        if user_is_admin(request.user) and incident.province:
+            available_agents = User.objects.filter(
+                role='agent', is_active=True, provinces=incident.province
+            ).distinct().order_by('first_name', 'last_name', 'id')
+
         context = {
             'incident': incident,
             'form': form,
+            'commentaires': commentaires,
+            'pieces_jointes': incident.pieces_jointes.all(),
+            'available_agents': available_agents,
+            'user_can_edit': True,
+            'user_is_agent': user_is_agent(request.user),
+            'user_is_admin': user_is_admin(request.user),
+            'user_is_owner': getattr(incident.travailleur, 'id', None) == getattr(request.user, 'id', None),
+            'user_can_comment': True,
+            'page_title': f'Détails - {incident.code_suivi}',
         }
         
         return render(request, self.template_name, context)
@@ -325,6 +372,26 @@ class IncidentsListView(LoginRequiredMixin, View):
                     Q(ville__icontains=search)
                 )
 
+        province = request.GET.get('province')
+        if province:
+            qs = qs.filter(province__nom__iexact=province)
+
+        secteur = request.GET.get('secteur')
+        if secteur:
+            qs = qs.filter(employeur__secteur=secteur)
+
+        est_anonyme = request.GET.get('est_anonyme')
+        if est_anonyme in {'1', 'true', 'True', 'yes', 'on'}:
+            qs = qs.filter(est_anonyme=True)
+        elif est_anonyme in {'0', 'false', 'False', 'no', 'off'}:
+            qs = qs.filter(est_anonyme=False)
+
+        est_lu = request.GET.get('est_lu')
+        if est_lu in {'1', 'true', 'True', 'yes', 'on'}:
+            qs = qs.filter(est_lu=True)
+        elif est_lu in {'0', 'false', 'False', 'no', 'off'}:
+            qs = qs.filter(est_lu=False)
+
         # Tri par date
         qs = qs.order_by('-date_creation')
 
@@ -340,13 +407,30 @@ class IncidentsListView(LoginRequiredMixin, View):
 
         # URL d'export (conserver les paramètres de filtre)
         export_url = f"{request.build_absolute_uri(request.path)}"
+
+        active_filter_title = 'Liste des Dénonciations'
+        if statut := request.GET.get('statut'):
+            status_labels = {
+                'nouvelle': 'Dénonciations nouvelles',
+                'analyse': 'Dénonciations en analyse',
+                'attente': 'Dénonciations en attente',
+                'resolue': 'Dénonciations résolues',
+                'classée': 'Dénonciations classées',
+            }
+            active_filter_title = status_labels.get(statut, active_filter_title)
+        elif request.GET.get('est_anonyme') in {'1', 'true', 'True', 'yes', 'on'}:
+            active_filter_title = 'Dénonciations anonymes'
+        elif request.GET.get('est_lu') in {'0', 'false', 'False', 'no', 'off'}:
+            active_filter_title = 'Dénonciations non lues'
+
         # Prepare context
         context = {
-            'page_title': 'Liste des Dénonciations',
+            'page_title': active_filter_title,
             'filter_form': form,
             'incidents_page': incidents_page,
             'paginator': paginator,
             'export_endpoint': f"{request.scheme}://{request.get_host()}{request.path.replace('incidents/', 'export/xlsx/')}",
+            'active_filter_title': active_filter_title,
         }
         # If AJAX request, return only the fragment HTML
         if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax'):
@@ -398,21 +482,6 @@ class ExportIncidentExcel(LoginRequiredMixin, View):
         response['Content-Disposition'] = f'attachment; filename=incident_{incident.code_suivi}.xlsx'
         wb.save(response)
         return response
-    
-    @staticmethod
-    def _can_view_incident(user, incident):
-        """Vérifier si l'utilisateur peut voir l'incident."""
-        if user_is_admin(user):
-            return True
-        
-        if user_is_agent(user):
-            # Agents can view all incidents
-            return True
-        
-        if user.role == 'travailleur':
-            return incident.travailleur == user
-        
-        return False
 
 
 class UpdateIncidentStatusView(LoginRequiredMixin, View):
@@ -442,7 +511,7 @@ class UpdateIncidentStatusView(LoginRequiredMixin, View):
         incident.save()
         
         messages.success(request, f'Statut changé de {old_status} à {new_status}.')
-        return redirect('denunciations:incident_detail', code=code)
+        return redirect('core:incident_detail', code=incident.code_suivi)
 
 
 class AssignIncidentView(LoginRequiredMixin, View):
@@ -469,4 +538,4 @@ class AssignIncidentView(LoginRequiredMixin, View):
         except User.DoesNotExist:
             messages.error(request, 'Agent introuvable.')
         
-        return redirect('denunciations:incident_detail', code=code)
+        return redirect('core:incident_detail', code=incident.code_suivi)

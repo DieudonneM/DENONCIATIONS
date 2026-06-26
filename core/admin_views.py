@@ -2,15 +2,19 @@
 Vues personnalisées pour l'administration (gestion des utilisateurs, provinces, entreprises).
 """
 
+import json
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.db.models.functions import ExtractMonth
+from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_http_methods
 
 from users.models import User
-from denunciations.models import Province, Employeur
+from denunciations.models import Province, Employeur, Incident
 from .admin_forms import (
     AdminUserCreateForm, AdminUserEditForm, AdminAgentProvinceForm,
     ProvinceForm, EmployeurForm, UserSearchForm, ProvinceSearchForm, EmployeurSearchForm
@@ -52,13 +56,109 @@ def admin_root(request):
 @admin_required
 def admin_dashboard(request):
     """Tableau de bord administrateur personnalisé."""
+    incidents = Incident.objects.select_related('province').all()
+    stats = {
+        'total': incidents.count(),
+        'nouvelle': incidents.filter(statut='nouvelle').count(),
+        'analyse': incidents.filter(statut='analyse').count(),
+        'attente': incidents.filter(statut='attente').count(),
+        'resolue': incidents.filter(statut='resolue').count(),
+        'classée': incidents.filter(statut='classée').count(),
+        'anonyme': incidents.filter(est_anonyme=True).count(),
+        'non_lu': incidents.filter(est_lu=False).count(),
+    }
+
+    type_counts = (
+        incidents
+        .values('type_incident')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:8]
+    )
+    province_counts = (
+        incidents
+        .values('province__nom')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:8]
+    )
+    sector_counts = (
+        incidents
+        .values('employeur__secteur')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:6]
+    )
+    monthly_total_counts = (
+        incidents
+        .annotate(month=ExtractMonth('date_creation'))
+        .values('month')
+        .annotate(count=Count('id'))
+        .order_by('month')
+    )
+    monthly_resolved_counts = (
+        incidents
+        .filter(statut='resolue')
+        .annotate(month=ExtractMonth('date_creation'))
+        .values('month')
+        .annotate(count=Count('id'))
+        .order_by('month')
+    )
+    monthly_analysis_counts = (
+        incidents
+        .filter(statut='analyse')
+        .annotate(month=ExtractMonth('date_creation'))
+        .values('month')
+        .annotate(count=Count('id'))
+        .order_by('month')
+    )
+
+    monthly_labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
+    monthly_total_data = [0] * 12
+    monthly_resolved_data = [0] * 12
+    monthly_analysis_data = [0] * 12
+
+    for item in monthly_total_counts:
+        monthly_total_data[item['month'] - 1] = item['count']
+    for item in monthly_resolved_counts:
+        monthly_resolved_data[item['month'] - 1] = item['count']
+    for item in monthly_analysis_counts:
+        monthly_analysis_data[item['month'] - 1] = item['count']
+
+    identification_data = [
+        {'label': 'Anonymes', 'value': stats['anonyme']},
+        {'label': 'Identifiés', 'value': max(stats['total'] - stats['anonyme'], 0)},
+    ]
+
     context = {
-        'total_users': User.objects.count(),
-        'total_agents': User.objects.filter(role='agent').count(),
-        'total_travailleurs': User.objects.filter(role='travailleur').count(),
-        'total_provinces': Province.objects.count(),
-        'total_employeurs': Employeur.objects.count(),
-        'recent_users': User.objects.order_by('-date_joined')[:5],
+        'user_name': request.user.get_full_name() or request.user.email,
+        'stats': stats,
+        'status_cards': [
+            {'label': 'Total', 'value': stats['total'], 'filter': '', 'color': '#1E40AF'},
+            {'label': 'Résolu', 'value': stats['resolue'], 'filter': 'statut=resolue', 'color': '#16A34A'},
+            {'label': 'Non lue', 'value': stats['non_lu'], 'filter': 'est_lu=0', 'color': '#DC2626'},
+            {'label': 'En analyse', 'value': stats['analyse'], 'filter': 'statut=analyse', 'color': '#4338CA'},
+            {'label': 'Classée', 'value': stats['classée'], 'filter': 'statut=classée', 'color': '#374151'},
+        ],
+        'type_chart_labels': json.dumps([dict(Incident.TYPE_INCIDENT_CHOICES).get(item['type_incident'], 'Autre') for item in type_counts]),
+        'type_chart_values': json.dumps([item['count'] for item in type_counts]),
+        'province_chart_labels': json.dumps([item['province__nom'] or 'Non spécifiée' for item in province_counts]),
+        'province_chart_values': json.dumps([item['count'] for item in province_counts]),
+        'province_filters': [
+            {'label': item['province__nom'] or 'Non spécifiée', 'filter': item['province__nom'] or 'Non spécifiée'}
+            for item in province_counts
+        ],
+        'sector_filters': [
+            {'label': item['employeur__secteur'] or 'Autre', 'filter': item['employeur__secteur'] or 'autre'}
+            for item in sector_counts
+        ],
+        'type_filters': [
+            {'label': dict(Incident.TYPE_INCIDENT_CHOICES).get(item['type_incident'], 'Autre'), 'filter': item['type_incident']}
+            for item in type_counts
+        ],
+        'monthly_labels': json.dumps(monthly_labels),
+        'monthly_total_data': json.dumps(monthly_total_data),
+        'monthly_resolved_data': json.dumps(monthly_resolved_data),
+        'monthly_analysis_data': json.dumps(monthly_analysis_data),
+        'identification_labels': json.dumps([entry['label'] for entry in identification_data]),
+        'identification_values': json.dumps([entry['value'] for entry in identification_data]),
     }
     return render(request, 'core/admin/dashboard.html', context)
 
@@ -152,6 +252,32 @@ def admin_users_delete(request, user_id):
 
 @login_required
 @admin_required
+@require_http_methods(["POST"])
+def admin_users_reset_password(request, user_id):
+    """Réinitialiser le mot de passe d'un utilisateur avec un mot de passe par défaut."""
+    user = get_object_or_404(User, pk=user_id)
+    new_password = 'ChangeMe123!'
+    user.set_password(new_password)
+    user.save(update_fields=['password'])
+    messages.success(request, f'Mot de passe réinitialisé pour {user.email}. Nouveau mot de passe : {new_password}')
+    return redirect('core:admin_users_list')
+
+
+@login_required
+@admin_required
+@require_http_methods(["POST"])
+def admin_users_refresh_password(request, user_id):
+    """Générer un nouveau mot de passe aléatoire pour un utilisateur."""
+    user = get_object_or_404(User, pk=user_id)
+    new_password = get_random_string(length=12)
+    user.set_password(new_password)
+    user.save(update_fields=['password'])
+    messages.success(request, f'Nouveau mot de passe généré pour {user.email}. Mot de passe : {new_password}')
+    return redirect('core:admin_users_list')
+
+
+@login_required
+@admin_required
 def admin_agents_provinces(request, user_id):
     """Gérer les provinces assignées à un agent."""
     user = get_object_or_404(User, pk=user_id, role='agent')
@@ -172,6 +298,72 @@ def admin_agents_provinces(request, user_id):
         'title': f'Assigner des provinces à {user.get_full_name()}'
     }
     return render(request, 'core/admin/agent_provinces.html', context)
+
+
+# ============================================================================
+#                       GESTION DES PUBLICATIONS
+# ============================================================================
+
+@login_required
+@admin_required
+def admin_incidents_list(request):
+    """Liste des publications avec filtre et suppression possible par l'admin."""
+    incidents_list = Incident.objects.select_related('employeur', 'province', 'travailleur', 'agent_assigné').order_by('-date_creation')
+
+    search = request.GET.get('search', '')
+    statut = request.GET.get('statut', '')
+    type_incident = request.GET.get('type_incident', '')
+
+    if search:
+        incidents_list = incidents_list.filter(
+            Q(code_suivi__icontains=search) |
+            Q(employeur__nom__icontains=search) |
+            Q(ville__icontains=search) |
+            Q(province__nom__icontains=search)
+        )
+
+    if statut:
+        incidents_list = incidents_list.filter(statut=statut)
+
+    if type_incident:
+        incidents_list = incidents_list.filter(type_incident=type_incident)
+
+    est_anonyme = request.GET.get('est_anonyme')
+    if est_anonyme in {'1', 'true', 'True', 'yes', 'on'}:
+        incidents_list = incidents_list.filter(est_anonyme=True)
+    elif est_anonyme in {'0', 'false', 'False', 'no', 'off'}:
+        incidents_list = incidents_list.filter(est_anonyme=False)
+
+    est_lu = request.GET.get('est_lu')
+    if est_lu in {'1', 'true', 'True', 'yes', 'on'}:
+        incidents_list = incidents_list.filter(est_lu=True)
+    elif est_lu in {'0', 'false', 'False', 'no', 'off'}:
+        incidents_list = incidents_list.filter(est_lu=False)
+
+    paginator = Paginator(incidents_list, 20)
+    page_number = request.GET.get('page', 1)
+    incidents = paginator.get_page(page_number)
+
+    context = {
+        'incidents': incidents,
+        'search': search,
+        'statut': statut,
+        'type_incident': type_incident,
+        'total_count': paginator.count,
+    }
+    return render(request, 'core/admin/incidents_list.html', context)
+
+
+@login_required
+@admin_required
+@require_http_methods(["POST"])
+def admin_incidents_delete(request, incident_id):
+    """Supprimer une publication depuis l'administration."""
+    incident = get_object_or_404(Incident, pk=incident_id)
+    code = incident.code_suivi
+    incident.delete()
+    messages.success(request, f'Publication {code} supprimée avec succès!')
+    return redirect('core:admin_incidents_list')
 
 
 # ============================================================================

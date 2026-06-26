@@ -288,7 +288,7 @@
     </div>
 
     <div class="dashboard-grid">
-        <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card">
+        <a href="{% url 'denunciations:incidents_list' %}" class="stat-card">
             <div class="stat-value">{{ stats.total }}</div>
             <div class="stat-label">Total</div>
         </a>
@@ -421,98 +421,11 @@
 
     <div class="incidents-section">
         <div class="incidents-header">
-            <h3>👤 Mes Dénonciations Assignées</h3>
+            <h3>📝 Publications</h3>
         </div>
-        {% if my_incidents %}
-            <div class="incident-list-table">
-                <div class="incident-list-header">
-                    <div>Type</div>
-                    <div>Entreprise</div>
-                    <div>Ville / Province</div>
-                    <div>Status</div>
-                    <div>Action</div>
-                </div>
-                {% for incident in my_incidents %}
-                    <div class="incident-list-row">
-                        <div class="incident-list-cell type">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">{{ incident.get_type_incident_display }}</a>
-                        </div>
-                        <div class="incident-list-cell">{{ incident.employeur.nom }}</div>
-                        <div class="incident-list-cell">{{ incident.ville }}, {{ incident.province.nom }}</div>
-                        <div class="incident-list-cell"><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
-                        <div class="incident-list-cell incident-actions">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-manage">Consulter</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-data">Aucune dénonciation assignée à vous pour le moment.</div>
-        {% endif %}
-    </div>
-
-    <div class="incidents-section">
-        <div class="incidents-header">
-            <h3>⚠️ Dénonciations Non Assignées</h3>
+        <div class="management-body">
+            <p>Cliquez sur une statistique pour ouvrir la page des publications filtrées correspondant à ce statut.</p>
         </div>
-        {% if unassigned_incidents %}
-            <div class="incident-list-table">
-                <div class="incident-list-header">
-                    <div>Type</div>
-                    <div>Entreprise</div>
-                    <div>Ville / Province</div>
-                    <div>Status</div>
-                    <div>Action</div>
-                </div>
-                {% for incident in unassigned_incidents %}
-                    <div class="incident-list-row unassigned">
-                        <div class="incident-list-cell type">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">{{ incident.get_type_incident_display }}</a>
-                        </div>
-                        <div class="incident-list-cell">{{ incident.employeur.nom }}</div>
-                        <div class="incident-list-cell">{{ incident.ville }}, {{ incident.province.nom }}</div>
-                        <div class="incident-list-cell"><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
-                        <div class="incident-list-cell incident-actions">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-manage">Consulter</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-data">Toutes les dénonciations sont assignées.</div>
-        {% endif %}
-    </div>
-
-    <div class="incidents-section">
-        <div class="incidents-header">
-            <h3>📝 Dénonciations Récentes</h3>
-        </div>
-        {% if recent_incidents %}
-            <div class="incident-list-table">
-                <div class="incident-list-header">
-                    <div>Type</div>
-                    <div>Entreprise</div>
-                    <div>Ville / Province</div>
-                    <div>Status</div>
-                    <div>Action</div>
-                </div>
-                {% for incident in recent_incidents %}
-                    <div class="incident-list-row {% if not incident.agent_assigné %}unassigned{% endif %}">
-                        <div class="incident-list-cell type">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">{{ incident.get_type_incident_display }}</a>
-                        </div>
-                        <div class="incident-list-cell">{{ incident.employeur.nom }}</div>
-                        <div class="incident-list-cell">{{ incident.ville }}, {{ incident.province.nom }}</div>
-                        <div class="incident-list-cell"><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
-                        <div class="incident-list-cell incident-actions">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-manage">Consulter</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-data">Aucune dénonciation dans votre/vos province(s).</div>
-        {% endif %}
     </div>
 </section>
 {% endblock %}
