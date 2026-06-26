@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.db.models.functions import ExtractMonth
-from django.utils.crypto import get_random_string
+from django.contrib.auth.forms import PasswordResetForm
 from django.views.decorators.http import require_http_methods
 
 from users.models import User
@@ -253,26 +253,26 @@ def admin_users_delete(request, user_id):
 @login_required
 @admin_required
 @require_http_methods(["POST"])
-def admin_users_reset_password(request, user_id):
-    """Réinitialiser le mot de passe d'un utilisateur avec un mot de passe par défaut."""
+def admin_users_send_reset_link(request, user_id):
+    """
+    Envoie un lien de réinitialisation de mot de passe à l'utilisateur.
+    Ceci utilise le mécanisme intégré de Django pour plus de sécurité.
+    """
     user = get_object_or_404(User, pk=user_id)
-    new_password = 'ChangeMe123!'
-    user.set_password(new_password)
-    user.save(update_fields=['password'])
-    messages.success(request, f'Mot de passe réinitialisé pour {user.email}. Nouveau mot de passe : {new_password}')
-    return redirect('core:admin_users_list')
-
-
-@login_required
-@admin_required
-@require_http_methods(["POST"])
-def admin_users_refresh_password(request, user_id):
-    """Générer un nouveau mot de passe aléatoire pour un utilisateur."""
-    user = get_object_or_404(User, pk=user_id)
-    new_password = get_random_string(length=12)
-    user.set_password(new_password)
-    user.save(update_fields=['password'])
-    messages.success(request, f'Nouveau mot de passe généré pour {user.email}. Mot de passe : {new_password}')
+    
+    form = PasswordResetForm({'email': user.email})
+    
+    if form.is_valid():
+        form.save(
+            request=request,
+            use_https=request.is_secure(),
+            email_template_name='registration/password_reset_email.html',
+            subject_template_name='registration/password_reset_subject.txt'
+        )
+        messages.success(request, f"Un lien de réinitialisation de mot de passe a été envoyé à {user.email}.")
+    else:
+        messages.error(request, f"Impossible d'envoyer l'email de réinitialisation pour {user.email}. L'utilisateur est-il actif ?")
+        
     return redirect('core:admin_users_list')
 
 
