@@ -210,6 +210,99 @@ class DashboardAccessTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response['Location'])
 
+    def test_agent_dashboard_stat_cards_link_to_filtered_incidents_page(self):
+        """Le dashboard agent doit rediriger vers la page de publications filtrée lorsqu'on clique sur une statistique."""
+        province = Province.objects.create(nom='Province Test', code='PST')
+        user = User.objects.create_user(
+            username='agent_dashboard_link',
+            email='agent_dashboard_link@test.cd',
+            password='password123',
+            role='agent'
+        )
+        user.provinces.add(province)
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('core:dashboard_agent'))
+
+        self.assertContains(
+            response,
+            f'href="{reverse("denunciations:incidents_list")}?statut=nouvelle"'
+        )
+
+    def test_incidents_list_heading_reflects_status_filter(self):
+        """La page de liste doit afficher un titre explicite quand un filtre de statut est appliqué."""
+        user = User.objects.create_user(
+            username='travailleur_heading',
+            email='travailleur_heading@test.cd',
+            password='password123',
+            role='travailleur'
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('denunciations:incidents_list'), {'statut': 'nouvelle'})
+
+        self.assertContains(response, 'Dénonciations nouvelles')
+
+
+class AdminManagementTest(TestCase):
+    """Tests des actions d'administration personnalisées."""
+
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username='admin_management',
+            email='admin_management@test.cd',
+            password='password123',
+            role='administrateur'
+        )
+        self.province = Province.objects.create(nom='Kinshasa', code='KIN')
+        self.employeur = Employeur.objects.create(
+            nom='Entreprise Test',
+            secteur='industrie',
+            province=self.province,
+            ville='Kinshasa'
+        )
+        self.user = User.objects.create_user(
+            username='travailleur_admin',
+            email='travailleur_admin@test.cd',
+            password='password123',
+            role='travailleur'
+        )
+        self.incident = Incident.objects.create(
+            travailleur=self.user,
+            employeur=self.employeur,
+            province=self.province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Incident de test'
+        )
+
+    def test_admin_root_redirects_to_dashboard(self):
+        """La racine admin doit rediriger vers le dashboard statistique."""
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('core:admin_root'))
+        self.assertRedirects(response, reverse('core:admin_dashboard'))
+
+    def test_admin_can_reset_user_password(self):
+        """L'admin doit pouvoir réinitialiser le mot de passe d'un utilisateur."""
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse('core:admin_users_reset_password', kwargs={'user_id': self.user.id}),
+            follow=True
+        )
+        self.assertRedirects(response, reverse('core:admin_users_list'))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('ChangeMe123!'))
+
+    def test_admin_can_delete_incident(self):
+        """L'admin doit pouvoir supprimer une publication."""
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse('core:admin_incidents_delete', kwargs={'incident_id': self.incident.id}),
+            follow=True
+        )
+        self.assertRedirects(response, reverse('core:admin_incidents_list'))
+        self.assertFalse(Incident.objects.filter(pk=self.incident.pk).exists())
+
 
 class CommentaireModelTest(TestCase):
     """Tests pour le modèle Commentaire."""

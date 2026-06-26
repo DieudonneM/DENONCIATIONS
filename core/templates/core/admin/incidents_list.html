@@ -1,0 +1,69 @@
+{% extends 'core/admin/base.html' %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1>📝 Publications</h1>
+    <div class="actions">
+        <a href="{% url 'core:admin_dashboard' %}" class="btn-admin">← Retour au dashboard</a>
+    </div>
+</div>
+
+<div class="search-box">
+    <form method="get">
+        <div class="form-group">
+            <input type="text" name="search" value="{{ search }}" placeholder="Rechercher par code, employeur, ville..." class="form-control">
+        </div>
+        <div class="form-group">
+            <select name="statut" class="form-control">
+                <option value="">-- Tous les statuts --</option>
+                <option value="nouvelle" {% if statut == 'nouvelle' %}selected{% endif %}>Nouvelle</option>
+                <option value="analyse" {% if statut == 'analyse' %}selected{% endif %}>En cours d'analyse</option>
+                <option value="attente" {% if statut == 'attente' %}selected{% endif %}>En attente</option>
+                <option value="resolue" {% if statut == 'resolue' %}selected{% endif %}>Résolue</option>
+                <option value="classée" {% if statut == 'classée' %}selected{% endif %}>Classée</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-admin">🔍 Rechercher</button>
+    </form>
+</div>
+
+{% if incidents %}
+    <div class="admin-card">
+        <p class="muted">Affichage de <strong>{{ incidents|length }}</strong> sur <strong>{{ total_count }}</strong> publications</p>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Employeur</th>
+                    <th>Province</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incident in incidents %}
+                    <tr>
+                        <td><strong>{{ incident.code_suivi }}</strong></td>
+                        <td>{{ incident.employeur.nom }}</td>
+                        <td>{{ incident.province.nom|default:'-' }}</td>
+                        <td>{{ incident.get_statut_display }}</td>
+                        <td>
+                            <div class="actions">
+                                <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-admin btn-admin-sm">🔎 Voir</a>
+                                <form method="post" action="{% url 'core:admin_incidents_delete' incident.id %}" class="d-inline" onsubmit="return confirm('Supprimer cette publication ?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-admin btn-admin-danger btn-admin-sm">🗑️ Supprimer</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="admin-card empty-state">
+        <p>ℹ️ Aucune publication trouvée</p>
+    </div>
+{% endif %}
+{% endblock %}

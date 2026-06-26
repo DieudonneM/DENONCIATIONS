@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container section-padded">
-  <h1>Liste des Dénonciations</h1>
+  <h1>{{ active_filter_title|default:'Liste des Dénonciations' }}</h1>
 
   <form method="get" class="filter-form inline-form mb-4">
     <div class="min-w-180">{{ filter_form.statut }}</div>

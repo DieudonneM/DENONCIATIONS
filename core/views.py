@@ -36,143 +36,19 @@ from .auth_backends import user_is_agent, user_is_admin, user_is_travailleur
 # VUES PUBLIQUES (Sans authentification requise)
 # ============================================================================
 
-class IncidentPublicFormView(View):
-    """Vue pour créer une dénonciation publiquement (sans connexion)."""
-    
-    template_name = 'core/form_denonciation.html'
-    form_class = IncidentForm
-    
-    def get(self, request):
-        """Afficher le formulaire vide."""
-        form = self.form_class()
-        context = {
-            'form': form,
-            'page_title': 'Dénoncer un incident de travail',
-            'provinces': Province.objects.all(),
-            'employeurs': Employeur.objects.all(),
-        }
-        return render(request, self.template_name, context)
-    
-    def post(self, request):
-        """Traiter la soumission du formulaire."""
-        form = self.form_class(request.POST, request.FILES)
-        
-        if form.is_valid():
-            # Créer l'incident
-            incident = form.save(commit=False)
-            incident.statut = 'nouvelle'
-            incident.est_lu = False
-            
-            # Gérer l'anonymat
-            if form.cleaned_data.get('est_anonyme'):
-                incident.travailleur = None
-            
-            incident.save()
-            
-            # Gérer les fichiers joints
-            files = request.FILES.getlist('pieces_jointes')
-            for file in files:
-                PieceJointe.objects.create(
-                    incident=incident,
-                    fichier=file,
-                    nom_original=file.name,
-                    type_fichier=file.content_type,
-                    taille_fichier=file.size,
-                )
-            
-            # Rediriger vers la page de succès
-            return redirect('core:incident_success', code=incident.code_suivi)
-        
-        context = {
-            'form': form,
-            'page_title': 'Dénoncer un incident de travail',
-            'provinces': Province.objects.all(),
-            'employeurs': Employeur.objects.all(),
-        }
-        return render(request, self.template_name, context)
-
-
-class IncidentSuccessView(TemplateView):
-    """Page de succès après création d'une dénonciation."""
-    
-    template_name = 'core/page_succes.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        code = kwargs.get('code')
-        
-        try:
-            incident = Incident.objects.get(code_suivi=code)
-            context['incident'] = incident
-            context['code_suivi'] = code
-            context['type_incident'] = incident.get_type_incident_display()
-            context['employeur'] = incident.employeur.nom
-        except Incident.DoesNotExist:
-            context['error'] = 'Dénonciation non trouvée.'
-        
-        return context
-
-
-class SearchIncidentView(View):
-    """Vue pour rechercher et consulter un incident par code de suivi (anonyme)."""
-    
-    template_name = 'core/search_denonciation.html'
-    
-    def get(self, request):
-        """Afficher le formulaire de recherche."""
-        form = SearchIncidentForm()
-        context = {
-            'form': form,
-            'page_title': 'Consulter une dénonciation',
-        }
-        return render(request, self.template_name, context)
-    
-    def post(self, request):
-        """Rechercher et afficher le résultat."""
-        form = SearchIncidentForm(request.POST)
-        
-        if form.is_valid():
-            code = form.cleaned_data['code_suivi']
-            
-            try:
-                incident = Incident.objects.get(code_suivi=code)
-                
-                # Marquer comme lu
-                if not incident.est_lu:
-                    incident.est_lu = True
-                    incident.save()
-                
-                context = {
-                    'incident': incident,
-                    'code_suivi': code,
-                    'commentaires_publics': incident.commentaires.filter(type_commentaire='public'),
-                    'pieces_jointes': incident.pieces_jointes.all(),
-                }
-                return render(request, 'core/detail_denonciation_public.html', context)
-            
-            except Incident.DoesNotExist:
-                form.add_error(None, 'Code de suivi introuvable.')
-        
-        context = {
-            'form': form,
-            'page_title': 'Consulter une dénonciation',
-        }
-        return render(request, self.template_name, context)
-
-
 # ============================================================================
 # DASHBOARDS
 # ============================================================================
 
 class DashboardView(LoginRequiredMixin, View):
-    """Vue du tableau de bord (redirects selon le rôle)."""
+    """Vue du tableau de bord principal, selon le rôle utilisateur."""
     
     login_url = 'users:login'
     
     def get(self, request):
         """Rediriger vers le dashboard approprié selon le rôle."""
         if user_is_admin(request.user):
-            return redirect('core:dashboard_admin')
+            return redirect('core:admin_dashboard')
         elif user_is_agent(request.user):
             return redirect('core:dashboard_agent')
         else:
@@ -426,7 +302,7 @@ class EditIncidentView(LoginRequiredMixin, View):
                 )
 
             messages.success(request, 'Votre publication a été mise à jour avec succès.')
-            return redirect('core:incident_detail', code=code)
+            return redirect('core:incident_detail', code=incident.code_suivi)
 
         context = {
             'incident': incident,
@@ -434,154 +310,6 @@ class EditIncidentView(LoginRequiredMixin, View):
             'page_title': 'Modifier votre publication',
         }
         return render(request, self.template_name, context)
-
-
-class IncidentDetailView(LoginRequiredMixin, View):
-    """Vue détaillée d'un incident."""
-    
-    template_name = 'core/detail_incident.html'
-    login_url = 'users:login'
-    
-    def get(self, request, code):
-        """Afficher les détails d'un incident."""
-        incident = get_object_or_404(Incident, code_suivi=code)
-        
-        # Vérifier les permissions
-        if not check_user_can_view_incident(request.user, incident):
-            return render(request, 'core/error_403.html', status=403)
-        
-        # Marquer comme lu si c'est un agent
-        if user_is_agent(request.user) and not incident.est_lu:
-            incident.est_lu = True
-            incident.save()
-        
-        # Les commentaires sont visibles pour tous les utilisateurs autorisés.
-        commentaires = incident.commentaires.all()
-        
-        available_agents = []
-        if user_is_admin(request.user) and incident.province:
-            available_agents = User.objects.filter(
-                role='agent',
-                is_active=True,
-                provinces=incident.province
-            ).distinct().order_by('first_name', 'last_name', 'id')
-
-        context = {
-            'incident': incident,
-            'commentaires': commentaires,
-            'pieces_jointes': incident.pieces_jointes.all(),
-            'form': CommentaireForm() if (user_is_agent(request.user) or user_is_admin(request.user)) else None,
-            'available_agents': available_agents,
-            'user_can_edit': user_is_agent(request.user) or user_is_admin(request.user),
-            'user_is_admin': user_is_admin(request.user),
-            'user_is_owner': getattr(incident.travailleur, 'id', None) == getattr(request.user, 'id', None),
-            'user_can_comment': user_is_agent(request.user) or user_is_admin(request.user),
-        }
-        
-        return render(request, self.template_name, context)
-    
-    def post(self, request, code):
-        """Ajouter un commentaire (agents seulement)."""
-        incident = get_object_or_404(Incident, code_suivi=code)
-        
-        # Vérifier les permissions
-        if not (user_is_agent(request.user) or user_is_admin(request.user)):
-            return render(request, 'core/error_403.html', status=403)
-        
-        form = CommentaireForm(request.POST)
-        
-        if form.is_valid():
-            commentaire = form.save(commit=False)
-            commentaire.incident = incident
-            commentaire.auteur = request.user
-            commentaire.save()
-            
-            messages.success(request, 'Commentaire ajouté avec succès.')
-            return redirect('core:incident_detail', code=code)
-        
-        available_agents = []
-        if user_is_admin(request.user) and incident.province:
-            available_agents = User.objects.filter(
-                role='agent',
-                is_active=True,
-                provinces=incident.province
-            ).distinct().order_by('first_name', 'last_name', 'id')
-
-        context = {
-            'incident': incident,
-            'commentaires': incident.commentaires.all(),
-            'pieces_jointes': incident.pieces_jointes.all(),
-            'form': form,
-            'available_agents': available_agents,
-            'user_can_edit': user_is_agent(request.user) or user_is_admin(request.user),
-            'user_is_admin': user_is_admin(request.user),
-            'user_is_owner': getattr(incident.travailleur, 'id', None) == getattr(request.user, 'id', None),
-            'user_can_comment': user_is_agent(request.user) or user_is_admin(request.user),
-        }
-        
-        return render(request, self.template_name, context)
-
-
-class UpdateIncidentStatusView(LoginRequiredMixin, View):
-    """Vue pour modifier le statut d'un incident (agents/admins)."""
-    
-    login_url = 'users:login'
-    
-    def post(self, request, code):
-        """Modifier le statut."""
-        incident = get_object_or_404(Incident, code_suivi=code)
-        
-        # Vérifier les permissions
-        if not (user_is_agent(request.user) or user_is_admin(request.user)):
-            return JsonResponse({'error': 'Permission refusée'}, status=403)
-        
-        new_status = request.POST.get('statut')
-        
-        if new_status not in dict(Incident.STATUT_CHOICES):
-            return JsonResponse({'error': 'Statut invalide'}, status=400)
-        
-        old_status = incident.statut
-        incident.statut = new_status
-        
-        if new_status == 'resolue':
-            incident.date_resolution = timezone.now()
-        
-        incident.save()
-        
-        messages.success(request, f'Statut changé de {old_status} à {new_status}.')
-        return redirect('core:incident_detail', code=code)
-
-
-class AssignIncidentView(LoginRequiredMixin, View):
-    """Vue pour assigner un incident à un agent."""
-    
-    login_url = 'users:login'
-    
-    def post(self, request, code):
-        """Assigner l'incident."""
-        incident = get_object_or_404(Incident, code_suivi=code)
-        
-        # Vérifier les permissions (admin seulement)
-        if not user_is_admin(request.user):
-            return JsonResponse({'error': 'Permission refusée'}, status=403)
-        
-        agent_id = request.POST.get('agent')
-        
-        if not agent_id:
-            messages.error(request, 'Veuillez sélectionner un agent.')
-            return redirect('core:incident_detail', code=code)
-
-        try:
-            agent = User.objects.get(id=agent_id, role='agent')
-            incident.agent_assigné = agent
-            incident.save()
-            
-            messages.success(request, f'Incident assigné à {agent.get_full_name()}.')
-        except User.DoesNotExist:
-            messages.error(request, 'Agent non trouvé.')
-        
-        return redirect('core:incident_detail', code=code)
-
 
 # ============================================================================
 # PAGES STATIQUES

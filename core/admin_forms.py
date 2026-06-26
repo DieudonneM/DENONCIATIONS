@@ -78,6 +78,16 @@ class AdminUserEditForm(forms.ModelForm):
         required=False,
         help_text='Attribuez des provinces à cet agent si applicable.'
     )
+    password1 = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe'}),
+        label='Nouveau mot de passe'
+    )
+    password2 = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer le mot de passe'}),
+        label='Confirmer le mot de passe'
+    )
     
     class Meta:
         model = User
@@ -97,8 +107,22 @@ class AdminUserEditForm(forms.ModelForm):
         # Rendre email en lecture seule
         self.fields['email'].widget.attrs['readonly'] = True
 
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+
+        if password1 or password2:
+            if password1 != password2:
+                raise forms.ValidationError('Les mots de passe ne correspondent pas.')
+
+        return cleaned_data
+
     def save(self, commit=True):
         user = super().save(commit=False)
+        password1 = self.cleaned_data.get('password1')
+        if password1:
+            user.set_password(password1)
         if commit:
             user.save()
             provinces = self.cleaned_data.get('provinces')

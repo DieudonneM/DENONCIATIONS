@@ -1,116 +1,267 @@
 {% extends 'core/admin/base.html' %}
 
 {% block admin_content %}
-<div class="admin-header">
-    <div>
-        <h1>🎛️ Tableau de Bord Admin</h1>
-        <p class="muted">Bienvenue dans l'interface de gestion personnalisée</p>
+<div class="dashboard-admin-shell">
+    <div class="dashboard-admin-topbar">
+        <button class="dashboard-pill">Control Admin</button>
+        <div class="dashboard-title-area">
+            <h1>Dashboard Administrateur</h1>
+            <p class="dashboard-subtitle">{{ user_name }} connecté</p>
+        </div>
+        <button class="dashboard-pill dashboard-pill-secondary">Control Admin</button>
     </div>
-</div>
 
-<div class="admin-card">
-    <div class="admin-metrics-grid">
-        <!-- Total Utilisateurs -->
-        <div class="admin-metric users">
-            <div class="metric-label">👥 Total</div>
-            <div class="metric-value">{{ total_users }}</div>
-            <div class="metric-sub">Utilisateurs</div>
-        </div>
-        
-        <!-- Agents -->
-        <div class="admin-metric agents">
-            <div class="metric-label">🕵️ Agents</div>
-            <div class="metric-value">{{ total_agents }}</div>
-            <div class="metric-sub">Agents assignés</div>
-        </div>
-        
-        <!-- Travailleurs -->
-        <div class="admin-metric travailleurs">
-            <div class="metric-label">💼 Travailleurs</div>
-            <div class="metric-value">{{ total_travailleurs }}</div>
-            <div class="metric-sub">Travailleurs inscrits</div>
-        </div>
-        
-        <!-- Provinces -->
-        <div class="admin-metric provinces">
-            <div class="metric-label">🗺️ Provinces</div>
-            <div class="metric-value">{{ total_provinces }}</div>
-            <div class="metric-sub">Provinces</div>
-        </div>
-        
-        <!-- Entreprises -->
-        <div class="admin-metric employeurs">
-            <div class="metric-label">🏢 Entreprises</div>
-            <div class="metric-value">{{ total_employeurs }}</div>
-            <div class="metric-sub">Entreprises</div>
-        </div>
-    </div>
-</div>
+    <div class="dashboard-admin-body">
+        <aside class="dashboard-filters-panel">
+            <div class="filter-card">
+                <h2>Status</h2>
+                <p>Sélectionner pour filtrer</p>
+                <div class="filter-actions">
+                    {% for status in status_cards %}
+                        <a href="{% url 'denunciations:incidents_list' %}{% if status.filter %}?{{ status.filter }}{% endif %}" class="filter-chip">{{ status.label }}</a>
+                    {% endfor %}
+                </div>
+            </div>
 
-<!-- Utilisateurs récents -->
-<div class="admin-card">
-    <h2 class="section-title">📋 Utilisateurs Récemment Inscrits</h2>
-    
-    {% if recent_users %}
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Email</th>
-                    <th>Nom</th>
-                    <th>Rôle</th>
-                    <th>Date d'inscription</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in recent_users %}
-                    <tr>
-                        <td><strong>{{ user.email }}</strong></td>
-                        <td>{{ user.get_full_name }}</td>
-                        <td>
-                            {% if user.role == 'administrateur' %}
-                                <span class="role-badge role-admin">{{ user.get_role_display }}</span>
-                            {% elif user.role == 'agent' %}
-                                <span class="role-badge role-agent">{{ user.get_role_display }}</span>
-                            {% else %}
-                                <span class="role-badge role-other">{{ user.get_role_display }}</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ user.date_joined|date:"d/m/Y" }}</td>
-                    </tr>
+            <div class="filter-card">
+                <h2>Province</h2>
+                <p>Sélectionner pour filtrer</p>
+                <div class="filter-actions">
+                    {% for province in province_filters %}
+                        <a href="{% url 'denunciations:incidents_list' %}?province={{ province.filter|urlencode }}" class="filter-chip">{{ province.label }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="filter-card">
+                <h2>Secteur d'activité</h2>
+                <p>Sélectionner pour filtrer</p>
+                <div class="filter-actions">
+                    {% for sector in sector_filters %}
+                        <a href="{% url 'denunciations:incidents_list' %}?secteur={{ sector.filter|urlencode }}" class="filter-chip">{{ sector.label }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="filter-card">
+                <h2>Type de dénonciation</h2>
+                <p>Sélectionner pour filtrer</p>
+                <div class="filter-actions">
+                    {% for ttype in type_filters %}
+                        <a href="{% url 'denunciations:incidents_list' %}?type_incident={{ ttype.filter|urlencode }}" class="filter-chip">{{ ttype.label }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+
+        <section class="dashboard-main-panel">
+            <div class="metric-cards-grid">
+                {% for card in status_cards %}
+                    <a href="{% url 'denunciations:incidents_list' %}{% if card.filter %}?{{ card.filter }}{% endif %}" class="metric-card" style="border-top: 4px solid {{ card.color }};">
+                        <div class="metric-card-label">{{ card.label }}</div>
+                        <div class="metric-card-value">{{ card.value }}</div>
+                        <div class="metric-card-meta">Status</div>
+                        <div class="metric-sparkline"></div>
+                    </a>
                 {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <div class="empty-state">
-            <p>Aucun utilisateur récent</p>
-        </div>
-    {% endif %}
-</div>
+            </div>
 
-<!-- Actions rapides -->
-<div class="admin-card">
-    <h2 class="section-subtitle">⚡ Actions Rapides</h2>
-    
-    <div class="admin-actions-grid">
-        <a href="{% url 'core:admin_users_create' %}" class="btn-admin btn-admin-success">
-            ➕ Ajouter un Utilisateur
-        </a>
-        <a href="{% url 'core:admin_provinces_create' %}" class="btn-admin btn-admin-success">
-            ➕ Ajouter une Province
-        </a>
-        <a href="{% url 'core:admin_employeurs_create' %}" class="btn-admin btn-admin-success">
-            ➕ Ajouter une Entreprise
-        </a>
-        <a href="{% url 'core:admin_users_list' %}" class="btn-admin">
-            👥 Gérer les Utilisateurs
-        </a>
-        <a href="{% url 'core:admin_provinces_list' %}" class="btn-admin">
-            🗺️ Gérer les Provinces
-        </a>
-        <a href="{% url 'core:admin_employeurs_list' %}" class="btn-admin">
-            🏢 Gérer les Entreprises
-        </a>
+            <div class="dashboard-charts-row">
+                <div class="chart-card large-chart">
+                    <div class="chart-header">
+                        <h3>Évolution de nombre de dénonciation dans le temps</h3>
+                    </div>
+                    <canvas id="evolutionChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Type de dénonciation</h3>
+                    </div>
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="dashboard-charts-row dashboard-bottom-row">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Top 8 des dénonciations par Province</h3>
+                    </div>
+                    <canvas id="provinceChart"></canvas>
+                </div>
+                <div class="chart-card donut-card">
+                    <div class="chart-header">
+                        <h3>Répartition par identification</h3>
+                    </div>
+                    <canvas id="identificationChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Nombre de dénonciations par mois</h3>
+                    </div>
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </section>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+    const evolutionLabels = {{ monthly_labels|safe }};
+    const evolutionTotal = {{ monthly_total_data|safe }};
+    const evolutionResolved = {{ monthly_resolved_data|safe }};
+    const evolutionAnalysis = {{ monthly_analysis_data|safe }};
+
+    const typeLabels = {{ type_chart_labels|safe }};
+    const typeValues = {{ type_chart_values|safe }};
+
+    const provinceLabels = {{ province_chart_labels|safe }};
+    const provinceValues = {{ province_chart_values|safe }};
+
+    const identificationLabels = {{ identification_labels|safe }};
+    const identificationValues = {{ identification_values|safe }};
+
+    const ctxEvolution = document.getElementById('evolutionChart');
+    if (ctxEvolution) {
+        new Chart(ctxEvolution, {
+            type: 'line',
+            data: {
+                labels: evolutionLabels,
+                datasets: [
+                    {
+                        label: 'Total',
+                        data: evolutionTotal,
+                        borderColor: '#1d4ed8',
+                        backgroundColor: 'rgba(59, 130, 246, 0.18)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3,
+                    },
+                    {
+                        label: 'Résolues',
+                        data: evolutionResolved,
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.18)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3,
+                    },
+                    {
+                        label: 'En analyse',
+                        data: evolutionAnalysis,
+                        borderColor: '#4338ca',
+                        backgroundColor: 'rgba(67, 56, 202, 0.18)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    const ctxType = document.getElementById('typeChart');
+    if (ctxType) {
+        new Chart(ctxType, {
+            type: 'bar',
+            data: {
+                labels: typeLabels,
+                datasets: [{
+                    label: 'Dénonciations',
+                    data: typeValues,
+                    backgroundColor: '#14b8a6',
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    const ctxProvince = document.getElementById('provinceChart');
+    if (ctxProvince) {
+        new Chart(ctxProvince, {
+            type: 'bar',
+            data: {
+                labels: provinceLabels,
+                datasets: [{
+                    label: 'Province',
+                    data: provinceValues,
+                    backgroundColor: '#60a5fa',
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    const ctxIdentification = document.getElementById('identificationChart');
+    if (ctxIdentification) {
+        new Chart(ctxIdentification, {
+            type: 'doughnut',
+            data: {
+                labels: identificationLabels,
+                datasets: [{
+                    data: identificationValues,
+                    backgroundColor: ['#f59e0b', '#ef4444'],
+                    hoverOffset: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    const ctxMonthly = document.getElementById('monthlyChart');
+    if (ctxMonthly) {
+        new Chart(ctxMonthly, {
+            type: 'bar',
+            data: {
+                labels: evolutionLabels,
+                datasets: [{
+                    label: 'Dénonciations',
+                    data: evolutionTotal,
+                    backgroundColor: '#0ea5e9'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+</script>
 {% endblock %}

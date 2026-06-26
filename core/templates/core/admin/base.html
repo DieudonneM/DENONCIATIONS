@@ -89,6 +89,219 @@
     gap: 1rem;
 }
 
+.dashboard-admin-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.dashboard-admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-title-area h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #0f172a;
+}
+
+.dashboard-subtitle {
+    margin: 0.35rem 0 0;
+    color: #475569;
+}
+
+.dashboard-pill {
+    background: #facc15;
+    border: none;
+    border-radius: 999px;
+    color: #0f172a;
+    padding: 0.9rem 1.4rem;
+    font-weight: 700;
+    cursor: default;
+}
+
+.dashboard-pill-secondary {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+.dashboard-admin-body {
+    display: grid;
+    grid-template-columns: 290px 1fr;
+    gap: 1.5rem;
+}
+
+.dashboard-filters-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.filter-card {
+    padding: 1.5rem;
+    background: #0f172a;
+    color: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+.filter-card h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+}
+
+.filter-card p {
+    margin: 0 0 1rem;
+    color: #cbd5e1;
+}
+
+.filter-actions {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #0f172a;
+    background: #f8fafc;
+    border-radius: 999px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.filter-chip:hover {
+    transform: translateY(-1px);
+    background: #e2e8f0;
+}
+
+.dashboard-main-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.metric-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.metric-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    background: #eff6ff;
+    border-radius: 18px;
+    padding: 1.75rem 1.5rem 1.25rem;
+    text-decoration: none;
+    color: #0f172a;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.metric-card-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.metric-card-value {
+    font-size: 2.1rem;
+    font-weight: 800;
+}
+
+.metric-card-meta {
+    color: #64748b;
+    font-size: 0.88rem;
+}
+
+.metric-sparkline {
+    width: 100%;
+    height: 40px;
+    background: linear-gradient(90deg, rgba(59,130,246,0.18), transparent 70%);
+    border-radius: 12px;
+}
+
+.dashboard-charts-row {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+    gap: 1rem;
+}
+
+.dashboard-bottom-row {
+    grid-template-columns: 1.1fr 0.7fr 1fr;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    padding: 1.5rem;
+}
+
+.large-chart {
+    min-height: 420px;
+}
+
+.donut-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.chart-header {
+    margin-bottom: 1rem;
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+}
+
+@media (max-width: 1250px) {
+    .metric-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .dashboard-charts-row {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-bottom-row {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-admin-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 200px;
+    }
+    .admin-content {
+        margin-left: 200px;
+        padding: 1rem;
+    }
+    .dashboard-admin-topbar {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+    .metric-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .btn-admin {
     padding: 0.6rem 1.2rem;
     background: #2196F3;
@@ -366,41 +579,28 @@
         <h3>🎛️ Administration</h3>
         
         <ul>
-            <li><a href="{% url 'core:admin_dashboard' %}" 
-                   class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                📊 Tableau de Bord
+            <li><a href="{% url 'core:dashboard' %}" 
+                   class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                📊 Dashboard
             </a></li>
             
             <li class="mt-4">
-                <strong class="nav-heading">👥 Utilisateurs</strong>
+                <strong class="nav-heading">⚙️ Administration</strong>
                 <a href="{% url 'core:admin_users_list' %}"
                    class="{% if 'admin_users' in request.resolver_match.url_name %}active{% endif %}">
-                   👤 Tous les utilisateurs
+                   👤 Utilisateurs
                 </a>
-                <a href="{% url 'core:admin_users_create' %}">
-                   ➕ Créer un utilisateur
-                </a>
-            </li>
-            
-            <li class="mt-4">
-                <strong class="nav-heading">🗺️ Provinces</strong>
                 <a href="{% url 'core:admin_provinces_list' %}"
                    class="{% if 'admin_provinces' in request.resolver_match.url_name %}active{% endif %}">
-                   🗺️ Toutes les provinces
+                   🗺️ Provinces
                 </a>
-                <a href="{% url 'core:admin_provinces_create' %}">
-                   ➕ Créer une province
-                </a>
-            </li>
-            
-            <li class="mt-4">
-                <strong class="nav-heading">🏢 Entreprises</strong>
                 <a href="{% url 'core:admin_employeurs_list' %}"
                    class="{% if 'admin_employeurs' in request.resolver_match.url_name %}active{% endif %}">
-                   🏢 Toutes les entreprises
+                   🏢 Entreprises
                 </a>
-                <a href="{% url 'core:admin_employeurs_create' %}">
-                   ➕ Créer une entreprise
+                <a href="{% url 'core:admin_incidents_list' %}"
+                   class="{% if request.resolver_match.url_name == 'admin_incidents_list' %}active{% endif %}">
+                   📝 Publications
                 </a>
             </li>
         </ul>
