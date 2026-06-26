@@ -48,14 +48,14 @@ def admin_required(view_func):
 @login_required
 @admin_required
 def admin_root(request):
-    """Redirige l'URL /admin/ vers le tableau de bord administrateur personnalisé."""
+    """Redirige l'URL /admin/ vers le tableau de bord des statistiques."""
     return redirect('core:admin_dashboard')
 
 
 @login_required
 @admin_required
-def admin_dashboard(request):
-    """Tableau de bord administrateur personnalisé."""
+def admin_statistics_dashboard(request):
+    """Tableau de bord administrateur affichant les statistiques."""
     incidents = Incident.objects.select_related('province').all()
     stats = {
         'total': incidents.count(),
@@ -162,6 +162,15 @@ def admin_dashboard(request):
     }
     return render(request, 'core/admin/dashboard.html', context)
 
+
+@login_required
+@admin_required
+def admin_global_management(request):
+    """Page d'administration globale servant de hub pour les différentes sections de gestion."""
+    context = {
+        'page_title': 'Administration Globale',
+    }
+    return render(request, 'core/admin/global_management.html', context)
 
 # ============================================================================
 #                       GESTION DES UTILISATEURS

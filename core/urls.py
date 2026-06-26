@@ -45,14 +45,18 @@ urlpatterns = [
     
     # Accès racine du panel admin personnalisé
     path('admin/', admin_views.admin_root, name='admin_root'),
-    path('admin/dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
+    path('admin/dashboard/', admin_views.admin_statistics_dashboard, name='admin_dashboard'),
+    path('admin/management/', admin_views.admin_global_management, name='admin_global_management'),
     
     # Gestion des utilisateurs
     path('admin/users/', admin_views.admin_users_list, name='admin_users_list'),
     path('admin/users/create/', admin_views.admin_users_create, name='admin_users_create'),
     path('admin/users/<int:user_id>/edit/', admin_views.admin_users_edit, name='admin_users_edit'),
     path('admin/users/<int:user_id>/delete/', admin_views.admin_users_delete, name='admin_users_delete'),
-    path('admin/users/<int:user_id>/send-reset-link/', admin_views.admin_users_send_reset_link, name='admin_users_send_reset_link'),
+    path('admin/users/<int:user_id>/send-reset-link/', admin_views.admin_users_send_reset_link, name='admin_users_send_reset_link'), # Nouvelle URL
+    # Alias pour la rétrocompatibilité avec les templates qui utilisent encore les anciens noms d'URL
+    path('admin/users/<int:user_id>/reset-password/', admin_views.admin_users_send_reset_link, name='admin_users_reset_password'),
+    path('admin/users/<int:user_id>/refresh-password/', admin_views.admin_users_send_reset_link, name='admin_users_refresh_password'),
     path('admin/users/<int:user_id>/provinces/', admin_views.admin_agents_provinces, name='admin_agents_provinces'),
 
     # Gestion des publications

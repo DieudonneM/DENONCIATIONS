@@ -1,14 +1,17 @@
-{% extends 'core/admin/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
-{% block admin_content %}
+{% block title %}Dashboard Admin - MEPT-RDC{% endblock %}
+
+{% block content %}
 <div class="dashboard-admin-shell">
     <div class="dashboard-admin-topbar">
-        <button class="dashboard-pill">Control Admin</button>
+        <a href="{% url 'core:admin_global_management' %}" class="dashboard-pill">Control Admin</a>
         <div class="dashboard-title-area">
             <h1>Dashboard Administrateur</h1>
             <p class="dashboard-subtitle">{{ user_name }} connecté</p>
         </div>
-        <button class="dashboard-pill dashboard-pill-secondary">Control Admin</button>
+        <a href="{% url 'core:admin_global_management' %}" class="dashboard-pill dashboard-pill-secondary">Control Admin</a>
     </div>
 
     <div class="dashboard-admin-body">
@@ -18,7 +21,7 @@
                 <p>Sélectionner pour filtrer</p>
                 <div class="filter-actions">
                     {% for status in status_cards %}
-                        <a href="{% url 'denunciations:incidents_list' %}{% if status.filter %}?{{ status.filter }}{% endif %}" class="filter-chip">{{ status.label }}</a>
+                        <a href="{% url 'core:admin_incidents_list' %}{% if status.filter %}?{{ status.filter }}{% endif %}" class="filter-chip">{{ status.label }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -28,7 +31,7 @@
                 <p>Sélectionner pour filtrer</p>
                 <div class="filter-actions">
                     {% for province in province_filters %}
-                        <a href="{% url 'denunciations:incidents_list' %}?province={{ province.filter|urlencode }}" class="filter-chip">{{ province.label }}</a>
+                        <a href="{% url 'core:admin_incidents_list' %}?province={{ province.filter|urlencode }}" class="filter-chip">{{ province.label }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -38,7 +41,7 @@
                 <p>Sélectionner pour filtrer</p>
                 <div class="filter-actions">
                     {% for sector in sector_filters %}
-                        <a href="{% url 'denunciations:incidents_list' %}?secteur={{ sector.filter|urlencode }}" class="filter-chip">{{ sector.label }}</a>
+                        <a href="{% url 'core:admin_incidents_list' %}?secteur={{ sector.filter|urlencode }}" class="filter-chip">{{ sector.label }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -48,7 +51,7 @@
                 <p>Sélectionner pour filtrer</p>
                 <div class="filter-actions">
                     {% for ttype in type_filters %}
-                        <a href="{% url 'denunciations:incidents_list' %}?type_incident={{ ttype.filter|urlencode }}" class="filter-chip">{{ ttype.label }}</a>
+                        <a href="{% url 'core:admin_incidents_list' %}?type_incident={{ ttype.filter|urlencode }}" class="filter-chip">{{ ttype.label }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -57,7 +60,7 @@
         <section class="dashboard-main-panel">
             <div class="metric-cards-grid">
                 {% for card in status_cards %}
-                    <a href="{% url 'denunciations:incidents_list' %}{% if card.filter %}?{{ card.filter }}{% endif %}" class="metric-card" style="border-top: 4px solid {{ card.color }};">
+                    <a href="{% url 'core:admin_incidents_list' %}{% if card.filter %}?{{ card.filter }}{% endif %}" class="metric-card" style="border-top: 4px solid {{ card.color }};">
                         <div class="metric-card-label">{{ card.label }}</div>
                         <div class="metric-card-value">{{ card.value }}</div>
                         <div class="metric-card-meta">Status</div>
