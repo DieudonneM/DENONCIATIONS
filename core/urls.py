@@ -52,8 +52,7 @@ urlpatterns = [
     path('admin/users/create/', admin_views.admin_users_create, name='admin_users_create'),
     path('admin/users/<int:user_id>/edit/', admin_views.admin_users_edit, name='admin_users_edit'),
     path('admin/users/<int:user_id>/delete/', admin_views.admin_users_delete, name='admin_users_delete'),
-    path('admin/users/<int:user_id>/reset-password/', admin_views.admin_users_reset_password, name='admin_users_reset_password'),
-    path('admin/users/<int:user_id>/refresh-password/', admin_views.admin_users_refresh_password, name='admin_users_refresh_password'),
+    path('admin/users/<int:user_id>/send-reset-link/', admin_views.admin_users_send_reset_link, name='admin_users_send_reset_link'),
     path('admin/users/<int:user_id>/provinces/', admin_views.admin_agents_provinces, name='admin_agents_provinces'),
 
     # Gestion des publications
