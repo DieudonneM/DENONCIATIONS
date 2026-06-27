@@ -12,45 +12,30 @@
 
 .dashboard-admin-topbar {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.8rem 2rem;
-    background: linear-gradient(120deg, var(--primary-blue-dark) 0%, var(--primary-blue) 48%, #1f6fd8 100%);
-    border-radius: 24px;
-    color: var(--white);
-    box-shadow: 0 20px 48px rgba(13, 46, 94, 0.2);
-    overflow: hidden;
-    position: relative;
-}
-
-.dashboard-admin-topbar::after {
-    content: "";
-    position: absolute;
-    width: 240px;
-    height: 240px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    top: -90px;
-    right: -70px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.75rem 2rem;
+    background: transparent;
+    color: var(--primary-blue-dark);
 }
 
 .dashboard-title-area h1 {
     margin: 0;
-    font-size: clamp(1.6rem, 2.2vw, 2.2rem);
-    color: var(--white);
+    font-size: clamp(2.2rem, 3vw, 3.2rem);
+    color: var(--primary-blue-dark);
+    font-weight: 900;
 }
 
 .dashboard-subtitle {
-    margin: 0.25rem 0 0;
-    color: rgba(255,255,255,0.9);
-    max-width: 760px;
+    margin: 0.35rem 0 0;
+    color: rgba(15, 23, 42, 0.72);
+    font-size: 1rem;
 }
 
 .dashboard-topbar-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    display: none;
 }
 
 .dashboard-pill {
@@ -75,9 +60,29 @@
 
 .dashboard-admin-body {
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
-    gap: 1.25rem;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 1.1rem;
     align-items: start;
+    margin-top: 1rem;
+}
+
+/* Sidebar banner flush-left styling */
+.sidebar-banner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--accent-yellow);
+    color: var(--primary-blue-dark);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.14);
+    position: relative;
+    left: -1.1rem;
+    width: calc(100% + 1.1rem);
+    border-radius: 0 18px 18px 0;
+    margin-bottom: 1rem;
 }
 
 .dashboard-filters-panel,
@@ -88,22 +93,23 @@
 }
 
 .filter-card {
-    padding: 1.3rem;
-    background: linear-gradient(180deg, #0f172a 0%, #111c33 100%);
+    padding: 1.4rem;
+    background: #0c1f62;
     color: white;
-    border-radius: 22px;
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.15);
+    border-radius: 24px;
+    box-shadow: 0 24px 56px rgba(5, 18, 72, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .filter-card h2 {
-    margin: 0 0 0.4rem;
-    font-size: 1.08rem;
+    margin: 0 0 0.9rem;
+    font-size: 1.15rem;
 }
 
 .filter-card p {
-    margin: 0 0 1rem;
-    color: rgba(255,255,255,0.75);
-    font-size: 0.92rem;
+    margin: 0 0 1.1rem;
+    color: rgba(255,255,255,0.72);
+    font-size: 0.95rem;
 }
 
 .filter-block + .filter-block {
@@ -111,64 +117,93 @@
 }
 
 .filter-block h4 {
-    margin-bottom: 0.65rem;
-    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
     color: #f8fafc;
 }
 
 .filter-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.55rem;
+    display: grid;
+    gap: 0.75rem;
 }
 
 .filter-chip {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.45rem 0.8rem;
-    border-radius: 999px;
-    background: #f8fafc;
-    color: #0f172a;
-    font-size: 0.82rem;
-    font-weight: 600;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.12);
+    color: #f8fafc;
+    font-size: 0.92rem;
+    font-weight: 700;
     text-decoration: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.16);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .filter-chip:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+}
+
+.filter-chip-active {
+    background: #1d4ed8;
+    color: #ffffff;
+    box-shadow: 0 12px 26px rgba(29, 78, 216, 0.22);
+    border-color: rgba(255, 255, 255, 0.18);
 }
 
 .filter-reset-block {
-    margin-top: 0.8rem;
+    margin-top: 1rem;
 }
 
-.filter-chip-reset {
-    background: var(--accent-yellow);
-    color: var(--primary-blue-dark);
+.filter-accordion {
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+.filter-accordion summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.08);
+    color: #f8fafc;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.14);
+}
+
+.filter-accordion summary::-webkit-details-marker {
+    display: none;
+}
+
+.filter-accordion[open] summary {
+    background: rgba(255,255,255,0.16);
 }
 
 .metric-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0.9rem;
+    grid-template-columns: repeat(5, minmax(180px, 1fr));
+    gap: 1rem;
 }
 
 .metric-card {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     gap: 0.4rem;
-    padding: 1rem 1rem 0.9rem;
-    border-radius: 18px;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-    border: 1px solid rgba(19, 66, 148, 0.08);
-    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+    padding: 1.1rem 1rem 1rem;
+    border-radius: 20px;
+    background: #dbe9ff;
+    border: 1px solid rgba(18, 48, 122, 0.16);
+    box-shadow: 0 18px 38px rgba(20, 70, 160, 0.08);
     text-decoration: none;
     color: var(--primary-blue-dark);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    min-height: 120px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    min-height: 150px;
     position: relative;
     overflow: hidden;
 }
@@ -179,42 +214,43 @@
     inset: 0 auto auto 0;
     width: 100%;
     height: 3px;
-    background: linear-gradient(90deg, var(--accent-yellow) 0%, var(--primary-blue) 100%);
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.85) 0%, rgba(59, 130, 246, 0.75) 100%);
 }
 
 .metric-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(20, 70, 160, 0.12);
 }
 
 .metric-card-highlight {
-    background: linear-gradient(135deg, #fff8d6 0%, #ffffff 55%, #edf5ff 100%);
-    border-color: rgba(255, 215, 0, 0.25);
+    background: #e9f2ff;
+    border-color: rgba(37, 99, 235, 0.18);
 }
 
 .metric-card-label {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--gray);
+    letter-spacing: 0.15em;
+    color: rgba(15, 23, 42, 0.7);
 }
 
 .metric-card-value {
-    font-size: 1.65rem;
+    font-size: 2rem;
     font-weight: 800;
-    line-height: 1.1;
+    line-height: 1.05;
+    color: #0f172a;
 }
 
 .metric-card-meta {
-    font-size: 0.85rem;
-    color: var(--gray);
+    font-size: 0.9rem;
+    color: rgba(15, 23, 42, 0.7);
 }
 
 .metric-sparkline {
-    margin-top: 0.4rem;
-    height: 6px;
+    margin-top: 0.6rem;
+    height: 10px;
     border-radius: 999px;
-    background: linear-gradient(90deg, rgba(19, 66, 148, 0.2), rgba(255, 215, 0, 0.4));
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.35), rgba(59, 130, 246, 0.55));
 }
 
 .dashboard-card {
@@ -249,22 +285,25 @@
 .dashboard-charts-row,
 .dashboard-bottom-row {
     display: grid;
-    grid-template-columns: 1.4fr 0.9fr;
     gap: 1rem;
 }
 
+.dashboard-charts-row {
+    grid-template-columns: 1.5fr 1fr;
+}
+
 .dashboard-bottom-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1.1fr 0.9fr 1fr;
 }
 
 .chart-card {
     position: relative;
     min-height: 300px;
-    padding: 1.1rem 1.1rem 1rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-    border: 1px solid rgba(19, 66, 148, 0.07);
-    border-radius: 20px;
-    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+    padding: 1rem 1.1rem 1rem;
+    background: #f8fbff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 22px;
+    box-shadow: 0 16px 35px rgba(15, 23, 42, 0.06);
 }
 
 .chart-header {

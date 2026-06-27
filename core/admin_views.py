@@ -150,6 +150,7 @@ def admin_statistics_dashboard(request):
             'filter': item['province__nom'] or 'Non spécifiée',
             'count': item['count'],
             'url': build_filter_url(request, 'core:admin_dashboard', {'province': item['province__nom'] or 'Non spécifiée'}),
+            'active': current_province_filter == (item['province__nom'] or 'Non spécifiée')
         }
         for item in province_counts
     ]
@@ -159,6 +160,7 @@ def admin_statistics_dashboard(request):
             'filter': item['employeur__secteur'] or 'autre',
             'count': item['count'],
             'url': build_filter_url(request, 'core:admin_dashboard', {'secteur': item['employeur__secteur'] or 'autre'}),
+            'active': current_sector_filter == (item['employeur__secteur'] or 'autre')
         }
         for item in sector_counts
     ]
@@ -168,6 +170,7 @@ def admin_statistics_dashboard(request):
             'filter': item['type_incident'],
             'count': item['count'],
             'url': build_filter_url(request, 'core:admin_dashboard', {'type_incident': item['type_incident']}),
+            'active': current_type_incident_filter == item['type_incident']
         }
         for item in type_counts
     ]
@@ -205,15 +208,27 @@ def admin_statistics_dashboard(request):
     identification_values = [anonyme_incidents, total_incidents - anonyme_incidents]
 
     status_filter_options = [
-        {'label': 'Tous', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': ''})},
-        {'label': 'Nouvelles', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'nouvelle'})},
-        {'label': 'Analyse', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'analyse'})},
-        {'label': 'En attente', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'attente'})},
-        {'label': 'Résolues', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'resolue'})},
-        {'label': 'Archivées', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'classée'})},
+        {'label': 'Tous', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': ''}), 'active': not current_status_filter},
+        {'label': 'Nouvelles', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'nouvelle'}), 'active': current_status_filter == 'nouvelle'},
+        {'label': 'Analyse', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'analyse'}), 'active': current_status_filter == 'analyse'},
+        {'label': 'En attente', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'attente'}), 'active': current_status_filter == 'attente'},
+        {'label': 'Résolues', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'resolue'}), 'active': current_status_filter == 'resolue'},
+        {'label': 'Archivées', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'classée'}), 'active': current_status_filter == 'classée'},
     ]
 
+    current_status_label = next((item['label'] for item in status_filter_options if item['active']), 'Sélectionner pour filtrer')
+    current_province_label = current_province_filter or 'Sélectionner pour filtrer'
+    current_sector_label = dict(Employeur.SECTEUR_CHOICES).get(current_sector_filter, 'Sélectionner pour filtrer') if current_sector_filter else 'Sélectionner pour filtrer'
+    current_type_label = dict(Incident.TYPE_INCIDENT_CHOICES).get(current_type_incident_filter, 'Sélectionner pour filtrer') if current_type_incident_filter else 'Sélectionner pour filtrer'
+
     context = {
+        'user_name': request.user.get_full_name() or request.user.email,
+        'stats': stats,
+        'status_filter_options': status_filter_options,
+        'current_status_label': current_status_label,
+        'current_province_label': current_province_label,
+        'current_sector_label': current_sector_label,
+        'current_type_label': current_type_label,
         'user_name': request.user.get_full_name() or request.user.email,
         'stats': stats,
         'status_filter_options': status_filter_options,
@@ -247,7 +262,7 @@ def admin_statistics_dashboard(request):
         'monthly_total_data': json.dumps(monthly_total_data),
         'monthly_resolved_data': json.dumps(monthly_resolved_data),
         'monthly_analysis_data': json.dumps(monthly_analysis_data),
-        'type_chart_labels': json.dumps([item['label'] for item in type_filters]),
+            'type_chart_labels': json.dumps([item['label'] for item in type_filters]),
         'type_chart_values': json.dumps([item['count'] for item in type_filters]),
         'province_chart_labels': json.dumps([item['label'] for item in province_filters]),
         'province_chart_values': json.dumps([item['count'] for item in province_filters]),

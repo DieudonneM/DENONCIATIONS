@@ -7,56 +7,67 @@
 <div class="dashboard-admin-shell">
     <section class="dashboard-admin-topbar">
         <div class="dashboard-title-area">
-            <p class="dashboard-subtitle">Administration nationale</p>
-            <h1>Tableau de bord statistique</h1>
+            <p class="dashboard-subtitle">Dashboard Administrateur</p>
+            <h1>Dashboard Administrateur</h1>
             <p class="dashboard-subtitle">{{ user_name }}</p>
-        </div>
-        <div class="dashboard-topbar-actions">
-            <a href="{% url 'core:admin_global_management' %}" class="dashboard-pill">Centre de gestion</a>
-            <a href="{% url 'core:admin_incidents_list' %}" class="dashboard-pill dashboard-pill-secondary">Voir les incidents</a>
         </div>
     </section>
 
     <div class="dashboard-admin-body">
         <aside class="dashboard-filters-panel">
+            <div class="sidebar-banner">
+                <span>Control Admin</span>
+            </div>
             <div class="filter-card">
-                <h2>Affiner l’analyse</h2>
-                <p>Explorez les données selon les statuts, provinces, secteurs et types.</p>
+                <h2>Filtres</h2>
+                <p>Sélectionnez un filtre pour mettre à jour les métriques et graphiques.</p>
 
                 <div class="filter-block">
-                    <h4>Statuts</h4>
-                    <div class="filter-actions">
-                        {% for status in status_filter_options %}
-                            <a href="{{ status.url }}" class="filter-chip">{{ status.label }}</a>
-                        {% endfor %}
-                    </div>
+                    <h4>Status</h4>
+                    <details class="filter-accordion" open>
+                        <summary>{{ current_status_label }}</summary>
+                        <div class="filter-actions">
+                            {% for status in status_filter_options %}
+                                <a href="{{ status.url }}" class="filter-chip{% if status.active %} filter-chip-active{% endif %}">{{ status.label }}</a>
+                            {% endfor %}
+                        </div>
+                    </details>
                 </div>
 
                 <div class="filter-block">
-                    <h4>Provinces</h4>
-                    <div class="filter-actions">
-                        {% for province in province_filters %}
-                            <a href="{{ province.url }}" class="filter-chip">{{ province.label }}</a>
-                        {% endfor %}
-                    </div>
+                    <h4>Province</h4>
+                    <details class="filter-accordion">
+                        <summary>{{ current_province_label }}</summary>
+                        <div class="filter-actions">
+                            {% for province in province_filters %}
+                                <a href="{{ province.url }}" class="filter-chip{% if province.active %} filter-chip-active{% endif %}">{{ province.label }}</a>
+                            {% endfor %}
+                        </div>
+                    </details>
                 </div>
 
                 <div class="filter-block">
-                    <h4>Secteurs</h4>
-                    <div class="filter-actions">
-                        {% for sector in sector_filters %}
-                            <a href="{{ sector.url }}" class="filter-chip">{{ sector.label }}</a>
-                        {% endfor %}
-                    </div>
+                    <h4>Secteur d’activité</h4>
+                    <details class="filter-accordion">
+                        <summary>{{ current_sector_label }}</summary>
+                        <div class="filter-actions">
+                            {% for sector in sector_filters %}
+                                <a href="{{ sector.url }}" class="filter-chip{% if sector.active %} filter-chip-active{% endif %}">{{ sector.label }}</a>
+                            {% endfor %}
+                        </div>
+                    </details>
                 </div>
 
                 <div class="filter-block">
-                    <h4>Types</h4>
-                    <div class="filter-actions">
-                        {% for ttype in type_filters %}
-                            <a href="{{ ttype.url }}" class="filter-chip">{{ ttype.label }}</a>
-                        {% endfor %}
-                    </div>
+                    <h4>Type de dénonciation</h4>
+                    <details class="filter-accordion">
+                        <summary>{{ current_type_label }}</summary>
+                        <div class="filter-actions">
+                            {% for ttype in type_filters %}
+                                <a href="{{ ttype.url }}" class="filter-chip{% if ttype.active %} filter-chip-active{% endif %}">{{ ttype.label }}</a>
+                            {% endfor %}
+                        </div>
+                    </details>
                 </div>
 
                 <div class="filter-reset-block">
@@ -67,7 +78,7 @@
 
         <main class="dashboard-main-panel">
             <div class="metric-cards-grid">
-                <a class="metric-card metric-card-highlight" href="{% url 'core:admin_incidents_list' %}">
+                <a class="metric-card metric-card-highlight" href="{{ total_metric_url }}">
                     <span class="metric-card-label">Total</span>
                     <strong class="metric-card-value">{{ stats.total }}</strong>
                     <span class="metric-card-meta">{{ user_name }}</span>
@@ -105,14 +116,14 @@
                     </div>
                     <canvas id="evolutionChart"></canvas>
                 </div>
-                <div class="chart-card donut-card">
+                <div class="chart-card">
                     <div class="chart-header">
                         <div>
-                            <p class="dashboard-card-kicker">Répartition</p>
-                            <h3>Par anonymat</h3>
+                            <p class="dashboard-card-kicker">Type</p>
+                            <h3>Type de dénonciation</h3>
                         </div>
                     </div>
-                    <canvas id="repartitionChart"></canvas>
+                    <canvas id="typeChart"></canvas>
                 </div>
             </div>
 
@@ -120,26 +131,26 @@
                 <div class="chart-card">
                     <div class="chart-header">
                         <div>
-                            <p class="dashboard-card-kicker">Répartition</p>
-                            <h3>Par type</h3>
-                        </div>
-                    </div>
-                    <canvas id="typeChart"></canvas>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <div>
-                            <p class="dashboard-card-kicker">Répartition</p>
-                            <h3>Par province</h3>
+                            <p class="dashboard-card-kicker">Top 8</p>
+                            <h3>Top 8 des dénonciations par province</h3>
                         </div>
                     </div>
                     <canvas id="provinceChart"></canvas>
                 </div>
-                <div class="chart-card">
+                <div class="chart-card donut-card">
                     <div class="chart-header">
                         <div>
                             <p class="dashboard-card-kicker">Répartition</p>
-                            <h3>Par secteur d'activité</h3>
+                            <h3>Répartition par identification</h3>
+                        </div>
+                    </div>
+                    <canvas id="repartitionChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <p class="dashboard-card-kicker">Secteur</p>
+                            <h3>Répartition par secteur d'activité</h3>
                         </div>
                     </div>
                     <canvas id="sectorChart"></canvas>
@@ -369,7 +380,7 @@
                     datasets: [{
                         label: 'Nombre',
                         data: {{ sector_chart_values|safe }},
-                        backgroundColor: chartColors.purple,
+                        backgroundColor: [chartColors.purple, chartColors.blue, chartColors.green, chartColors.orange, chartColors.red, chartColors.yellow, chartColors.grey],
                         borderWidth: 0
                     }]
                 },
