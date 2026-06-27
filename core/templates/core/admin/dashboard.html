@@ -1,270 +1,409 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard Admin - MEPT-RDC{% endblock %}
+{% block title %}Dashboard Administrateur{% endblock %}
 
 {% block content %}
 <div class="dashboard-admin-shell">
-    <div class="dashboard-admin-topbar">
-        <a href="{% url 'core:admin_global_management' %}" class="dashboard-pill">Control Admin</a>
+    <section class="dashboard-admin-topbar">
         <div class="dashboard-title-area">
-            <h1>Dashboard Administrateur</h1>
-            <p class="dashboard-subtitle">{{ user_name }} connecté</p>
+            <p class="dashboard-subtitle">Administration nationale</p>
+            <h1>Tableau de bord statistique</h1>
+            <p class="dashboard-subtitle">{{ user_name }}</p>
         </div>
-        <a href="{% url 'core:admin_global_management' %}" class="dashboard-pill dashboard-pill-secondary">Control Admin</a>
-    </div>
+        <div class="dashboard-topbar-actions">
+            <a href="{% url 'core:admin_global_management' %}" class="dashboard-pill">Centre de gestion</a>
+            <a href="{% url 'core:admin_incidents_list' %}" class="dashboard-pill dashboard-pill-secondary">Voir les incidents</a>
+        </div>
+    </section>
 
     <div class="dashboard-admin-body">
         <aside class="dashboard-filters-panel">
             <div class="filter-card">
-                <h2>Status</h2>
-                <p>Sélectionner pour filtrer</p>
-                <div class="filter-actions">
-                    {% for status in status_cards %}
-                        <a href="{% url 'core:admin_incidents_list' %}{% if status.filter %}?{{ status.filter }}{% endif %}" class="filter-chip">{{ status.label }}</a>
-                    {% endfor %}
-                </div>
-            </div>
+                <h2>Affiner l’analyse</h2>
+                <p>Explorez les données selon les statuts, provinces, secteurs et types.</p>
 
-            <div class="filter-card">
-                <h2>Province</h2>
-                <p>Sélectionner pour filtrer</p>
-                <div class="filter-actions">
-                    {% for province in province_filters %}
-                        <a href="{% url 'core:admin_incidents_list' %}?province={{ province.filter|urlencode }}" class="filter-chip">{{ province.label }}</a>
-                    {% endfor %}
+                <div class="filter-block">
+                    <h4>Statuts</h4>
+                    <div class="filter-actions">
+                        {% for status in status_filter_options %}
+                            <a href="{{ status.url }}" class="filter-chip">{{ status.label }}</a>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
 
-            <div class="filter-card">
-                <h2>Secteur d'activité</h2>
-                <p>Sélectionner pour filtrer</p>
-                <div class="filter-actions">
-                    {% for sector in sector_filters %}
-                        <a href="{% url 'core:admin_incidents_list' %}?secteur={{ sector.filter|urlencode }}" class="filter-chip">{{ sector.label }}</a>
-                    {% endfor %}
+                <div class="filter-block">
+                    <h4>Provinces</h4>
+                    <div class="filter-actions">
+                        {% for province in province_filters %}
+                            <a href="{{ province.url }}" class="filter-chip">{{ province.label }}</a>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
 
-            <div class="filter-card">
-                <h2>Type de dénonciation</h2>
-                <p>Sélectionner pour filtrer</p>
-                <div class="filter-actions">
-                    {% for ttype in type_filters %}
-                        <a href="{% url 'core:admin_incidents_list' %}?type_incident={{ ttype.filter|urlencode }}" class="filter-chip">{{ ttype.label }}</a>
-                    {% endfor %}
+                <div class="filter-block">
+                    <h4>Secteurs</h4>
+                    <div class="filter-actions">
+                        {% for sector in sector_filters %}
+                            <a href="{{ sector.url }}" class="filter-chip">{{ sector.label }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="filter-block">
+                    <h4>Types</h4>
+                    <div class="filter-actions">
+                        {% for ttype in type_filters %}
+                            <a href="{{ ttype.url }}" class="filter-chip">{{ ttype.label }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="filter-reset-block">
+                    <a href="{{ reset_filters_url }}" class="filter-chip filter-chip-reset">Réinitialiser les filtres</a>
                 </div>
             </div>
         </aside>
 
-        <section class="dashboard-main-panel">
+        <main class="dashboard-main-panel">
             <div class="metric-cards-grid">
-                {% for card in status_cards %}
-                    <a href="{% url 'core:admin_incidents_list' %}{% if card.filter %}?{{ card.filter }}{% endif %}" class="metric-card" style="border-top: 4px solid {{ card.color }};">
-                        <div class="metric-card-label">{{ card.label }}</div>
-                        <div class="metric-card-value">{{ card.value }}</div>
-                        <div class="metric-card-meta">Status</div>
-                        <div class="metric-sparkline"></div>
-                    </a>
-                {% endfor %}
+                <a class="metric-card metric-card-highlight" href="{% url 'core:admin_incidents_list' %}">
+                    <span class="metric-card-label">Total</span>
+                    <strong class="metric-card-value">{{ stats.total }}</strong>
+                    <span class="metric-card-meta">{{ user_name }}</span>
+                    <div class="metric-sparkline"></div>
+                </a>
+                <a class="metric-card" href="{{ non_lu_metric_url }}">
+                    <span class="metric-card-label">Non lues</span>
+                    <strong class="metric-card-value">{{ stats.non_lu }}</strong>
+                    <span class="metric-card-meta">À vérifier</span>
+                </a>
+                <a class="metric-card" href="{{ resolved_metric_url }}">
+                    <span class="metric-card-label">Résolues</span>
+                    <strong class="metric-card-value">{{ stats.resolue }}</strong>
+                    <span class="metric-card-meta">Clôturées</span>
+                </a>
+                <a class="metric-card" href="{{ pending_metric_url }}">
+                    <span class="metric-card-label">En attente</span>
+                    <strong class="metric-card-value">{{ stats.attente }}</strong>
+                    <span class="metric-card-meta">Informations manquantes</span>
+                </a>
+                <a class="metric-card" href="{{ archived_metric_url }}">
+                    <span class="metric-card-label">Archivé</span>
+                    <strong class="metric-card-value">{{ stats.classée }}</strong>
+                    <span class="metric-card-meta">Archivées</span>
+                </a>
             </div>
 
             <div class="dashboard-charts-row">
                 <div class="chart-card large-chart">
                     <div class="chart-header">
-                        <h3>Évolution de nombre de dénonciation dans le temps</h3>
+                        <div>
+                            <p class="dashboard-card-kicker">Évolution</p>
+                            <h3>Nombre de dénonciations dans le temps</h3>
+                        </div>
                     </div>
                     <canvas id="evolutionChart"></canvas>
                 </div>
-                <div class="chart-card">
+                <div class="chart-card donut-card">
                     <div class="chart-header">
-                        <h3>Type de dénonciation</h3>
+                        <div>
+                            <p class="dashboard-card-kicker">Répartition</p>
+                            <h3>Par anonymat</h3>
+                        </div>
                     </div>
-                    <canvas id="typeChart"></canvas>
+                    <canvas id="repartitionChart"></canvas>
                 </div>
             </div>
 
-            <div class="dashboard-charts-row dashboard-bottom-row">
+            <div class="dashboard-bottom-row">
                 <div class="chart-card">
                     <div class="chart-header">
-                        <h3>Top 8 des dénonciations par Province</h3>
+                        <div>
+                            <p class="dashboard-card-kicker">Répartition</p>
+                            <h3>Par type</h3>
+                        </div>
+                    </div>
+                    <canvas id="typeChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <p class="dashboard-card-kicker">Répartition</p>
+                            <h3>Par province</h3>
+                        </div>
                     </div>
                     <canvas id="provinceChart"></canvas>
                 </div>
-                <div class="chart-card donut-card">
-                    <div class="chart-header">
-                        <h3>Répartition par identification</h3>
-                    </div>
-                    <canvas id="identificationChart"></canvas>
-                </div>
                 <div class="chart-card">
                     <div class="chart-header">
-                        <h3>Nombre de dénonciations par mois</h3>
+                        <div>
+                            <p class="dashboard-card-kicker">Répartition</p>
+                            <h3>Par secteur d'activité</h3>
+                        </div>
                     </div>
-                    <canvas id="monthlyChart"></canvas>
+                    <canvas id="sectorChart"></canvas>
                 </div>
             </div>
-        </section>
+        </main>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
-    const evolutionLabels = {{ monthly_labels|safe }};
-    const evolutionTotal = {{ monthly_total_data|safe }};
-    const evolutionResolved = {{ monthly_resolved_data|safe }};
-    const evolutionAnalysis = {{ monthly_analysis_data|safe }};
+    document.addEventListener('DOMContentLoaded', function () {
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
+        Chart.defaults.color = '#475569';
 
-    const typeLabels = {{ type_chart_labels|safe }};
-    const typeValues = {{ type_chart_values|safe }};
+        const chartColors = {
+            blue: 'rgba(19, 66, 148, 0.85)',
+            green: 'rgba(31, 120, 155, 0.85)',
+            red: 'rgba(231, 76, 60, 0.85)',
+            yellow: 'rgba(255, 215, 0, 0.9)',
+            purple: 'rgba(102, 126, 234, 0.85)',
+            orange: 'rgba(245, 158, 11, 0.85)',
+            grey: 'rgba(148, 163, 184, 0.85)'
+        };
 
-    const provinceLabels = {{ province_chart_labels|safe }};
-    const provinceValues = {{ province_chart_values|safe }};
+        const chartBorderColors = {
+            blue: '#134294',
+            green: '#1f789b',
+            red: '#e74c3c'
+        };
 
-    const identificationLabels = {{ identification_labels|safe }};
-    const identificationValues = {{ identification_values|safe }};
-
-    const ctxEvolution = document.getElementById('evolutionChart');
-    if (ctxEvolution) {
-        new Chart(ctxEvolution, {
-            type: 'line',
-            data: {
-                labels: evolutionLabels,
-                datasets: [
-                    {
-                        label: 'Total',
-                        data: evolutionTotal,
-                        borderColor: '#1d4ed8',
-                        backgroundColor: 'rgba(59, 130, 246, 0.18)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 3,
-                    },
-                    {
-                        label: 'Résolues',
-                        data: evolutionResolved,
-                        borderColor: '#16a34a',
-                        backgroundColor: 'rgba(22, 163, 74, 0.18)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 3,
-                    },
-                    {
-                        label: 'En analyse',
-                        data: evolutionAnalysis,
-                        borderColor: '#4338ca',
-                        backgroundColor: 'rgba(67, 56, 202, 0.18)',
-                        tension: 0.3,
-                        fill: true,
-                        pointRadius: 3,
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
+        const evolutionCtx = document.getElementById('evolutionChart');
+        if (evolutionCtx) {
+            new Chart(evolutionCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: {{ monthly_labels|safe }},
+                    datasets: [
+                        {
+                            label: 'Total',
+                            data: {{ monthly_total_data|safe }},
+                            borderColor: chartBorderColors.blue,
+                            backgroundColor: chartColors.blue,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Résolu',
+                            data: {{ monthly_resolved_data|safe }},
+                            borderColor: chartBorderColors.green,
+                            backgroundColor: chartColors.green,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Analyse',
+                            data: {{ monthly_analysis_data|safe }},
+                            borderColor: chartBorderColors.red,
+                            backgroundColor: chartColors.red,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            tension: 0.35
+                        }
+                    ]
                 },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (value) => value,
+                            color: '#0f172a',
+                            font: { weight: '700', size: 11 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(15, 23, 42, 0.08)' },
+                            ticks: { color: '#64748b' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b' }
+                        }
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    const ctxType = document.getElementById('typeChart');
-    if (ctxType) {
-        new Chart(ctxType, {
-            type: 'bar',
-            data: {
-                labels: typeLabels,
-                datasets: [{
-                    label: 'Dénonciations',
-                    data: typeValues,
-                    backgroundColor: '#14b8a6',
-                }]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { beginAtZero: true, grid: { color: '#f3f4f6' } },
-                    y: { grid: { display: false } }
+        const typeCtx = document.getElementById('typeChart');
+        if (typeCtx) {
+            new Chart(typeCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {{ type_chart_labels|safe }},
+                    datasets: [{
+                        label: 'Nombre',
+                        data: {{ type_chart_values|safe }},
+                        backgroundColor: [chartColors.blue, chartColors.green, chartColors.red, chartColors.yellow, chartColors.purple, chartColors.orange, chartColors.grey],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            formatter: (value) => value,
+                            color: '#0f172a',
+                            font: { weight: '700', size: 10 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(15, 23, 42, 0.08)' },
+                            ticks: { color: '#64748b' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b' }
+                        }
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    const ctxProvince = document.getElementById('provinceChart');
-    if (ctxProvince) {
-        new Chart(ctxProvince, {
-            type: 'bar',
-            data: {
-                labels: provinceLabels,
-                datasets: [{
-                    label: 'Province',
-                    data: provinceValues,
-                    backgroundColor: '#60a5fa',
-                }]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { beginAtZero: true, grid: { color: '#f3f4f6' } },
-                    y: { grid: { display: false } }
+        const repartitionCtx = document.getElementById('repartitionChart');
+        if (repartitionCtx) {
+            new Chart(repartitionCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: {{ identification_labels|safe }},
+                    datasets: [{
+                        data: {{ identification_values|safe }},
+                        backgroundColor: [chartColors.yellow, chartColors.red]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
+                        datalabels: {
+                            color: '#0f172a',
+                            formatter: (value) => value,
+                            font: { weight: '700', size: 11 }
+                        }
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    const ctxIdentification = document.getElementById('identificationChart');
-    if (ctxIdentification) {
-        new Chart(ctxIdentification, {
-            type: 'doughnut',
-            data: {
-                labels: identificationLabels,
-                datasets: [{
-                    data: identificationValues,
-                    backgroundColor: ['#f59e0b', '#ef4444'],
-                    hoverOffset: 8,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
+        const provinceCtx = document.getElementById('provinceChart');
+        if (provinceCtx) {
+            new Chart(provinceCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {{ province_chart_labels|safe }},
+                    datasets: [{
+                        label: 'Nombre',
+                        data: {{ province_chart_values|safe }},
+                        backgroundColor: chartColors.green,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            formatter: (value) => value,
+                            color: '#0f172a',
+                            font: { weight: '700', size: 10 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(15, 23, 42, 0.08)' },
+                            ticks: { color: '#64748b' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b' }
+                        }
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    const ctxMonthly = document.getElementById('monthlyChart');
-    if (ctxMonthly) {
-        new Chart(ctxMonthly, {
-            type: 'bar',
-            data: {
-                labels: evolutionLabels,
-                datasets: [{
-                    label: 'Dénonciations',
-                    data: evolutionTotal,
-                    backgroundColor: '#0ea5e9'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true }
+        const sectorCtx = document.getElementById('sectorChart');
+        if (sectorCtx) {
+            new Chart(sectorCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {{ sector_chart_labels|safe }},
+                    datasets: [{
+                        label: 'Nombre',
+                        data: {{ sector_chart_values|safe }},
+                        backgroundColor: chartColors.purple,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            formatter: (value) => value,
+                            color: '#0f172a',
+                            font: { weight: '700', size: 10 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(15, 23, 42, 0.08)' },
+                            ticks: { color: '#64748b' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b' }
+                        }
+                    },
+                    animation: false
                 }
-            }
-        });
-    }
+            });
+        }
+    });
 </script>
 {% endblock %}
