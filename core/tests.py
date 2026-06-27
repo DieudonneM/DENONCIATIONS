@@ -282,6 +282,22 @@ class AdminManagementTest(TestCase):
         response = self.client.get(reverse('core:admin_root'))
         self.assertRedirects(response, reverse('core:admin_dashboard'))
 
+    def test_admin_dashboard_renders_charts(self):
+        """Le dashboard admin doit afficher les graphiques de synthèse."""
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('core:admin_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="evolutionChart"')
+        self.assertContains(response, 'id="typeChart"')
+        self.assertContains(response, 'id="repartitionChart"')
+        self.assertContains(response, 'id="provinceChart"')
+        self.assertContains(response, 'id="sectorChart"')
+        self.assertContains(response, 'Réinitialiser les filtres')
+        self.assertContains(response, 'Non lues')
+        self.assertContains(response, 'Archivé')
+        self.assertNotContains(response, 'Répartition détaillée')
+
     def test_admin_can_reset_user_password(self):
         """L'admin doit pouvoir réinitialiser le mot de passe d'un utilisateur."""
         self.client.force_login(self.admin)

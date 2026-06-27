@@ -12,6 +12,8 @@ from django.db.models import Q, Count
 from django.db.models.functions import ExtractMonth
 from django.contrib.auth.forms import PasswordResetForm
 from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from django.urls import reverse
 
 from users.models import User
 from denunciations.models import Province, Employeur, Incident
@@ -45,6 +47,25 @@ def admin_required(view_func):
 #                       TABLEAU DE BORD ADMIN
 # ============================================================================
 
+
+def build_filter_url(request, view_name, params=None):
+    """Construit une URL de filtre en conservant les filtres actifs actuels."""
+    query = request.GET.copy()
+    query.pop('page', None)
+
+    if params:
+        for key, value in params.items():
+            if value in (None, ''):
+                query.pop(key, None)
+            else:
+                query[key] = value
+
+    url = reverse(view_name)
+    if query:
+        return f'{url}?{query.urlencode()}'
+    return url
+
+
 @login_required
 @admin_required
 def admin_root(request):
@@ -55,110 +76,185 @@ def admin_root(request):
 @login_required
 @admin_required
 def admin_statistics_dashboard(request):
-    """Tableau de bord administrateur affichant les statistiques."""
-    incidents = Incident.objects.select_related('province').all()
+    """Tableau de bord administrateur affichant les statistiques avec filtres."""
+    # Récupérer tous les incidents pour les options de filtre
+    all_incidents_for_filters = Incident.objects.all()
+
+    # Appliquer les filtres aux incidents pour les statistiques et graphiques
+    incidents_queryset = Incident.objects.select_related('province', 'employeur').all()
+
+    # Paramètres de filtre depuis la requête GET
+    current_status_filter = request.GET.get('statut')
+    current_province_filter = request.GET.get('province')
+    current_sector_filter = request.GET.get('secteur')
+    current_type_incident_filter = request.GET.get('type_incident')
+    current_est_anonyme_filter = request.GET.get('est_anonyme')
+    current_est_lu_filter = request.GET.get('est_lu')
+
+    if current_status_filter:
+        incidents_queryset = incidents_queryset.filter(statut=current_status_filter)
+    if current_province_filter:
+        incidents_queryset = incidents_queryset.filter(province__nom=current_province_filter)
+    if current_sector_filter:
+        incidents_queryset = incidents_queryset.filter(employeur__secteur=current_sector_filter)
+    if current_type_incident_filter:
+        incidents_queryset = incidents_queryset.filter(type_incident=current_type_incident_filter)
+    if current_est_anonyme_filter:
+        incidents_queryset = incidents_queryset.filter(est_anonyme=True if current_est_anonyme_filter == 'true' else False)
+    if current_est_lu_filter:
+        incidents_queryset = incidents_queryset.filter(est_lu=True if current_est_lu_filter == 'true' else False)
+
+    # Calcul des statistiques basées sur les incidents filtrés
+    total_incidents = incidents_queryset.count()
+    nouvelle_incidents = incidents_queryset.filter(statut='nouvelle').count()
+    analyse_incidents = incidents_queryset.filter(statut='analyse').count()
+    attente_incidents = incidents_queryset.filter(statut='attente').count()
+    resolue_incidents = incidents_queryset.filter(statut='resolue').count()
+    classée_incidents = incidents_queryset.filter(statut='classée').count()
+    anonyme_incidents = incidents_queryset.filter(est_anonyme=True).count()
+    non_lu_incidents = incidents_queryset.filter(est_lu=False).count()
+
     stats = {
-        'total': incidents.count(),
-        'nouvelle': incidents.filter(statut='nouvelle').count(),
-        'analyse': incidents.filter(statut='analyse').count(),
-        'attente': incidents.filter(statut='attente').count(),
-        'resolue': incidents.filter(statut='resolue').count(),
-        'classée': incidents.filter(statut='classée').count(),
-        'anonyme': incidents.filter(est_anonyme=True).count(),
-        'non_lu': incidents.filter(est_lu=False).count(),
+        'total': total_incidents,
+        'nouvelle': nouvelle_incidents,
+        'analyse': analyse_incidents,
+        'attente': attente_incidents,
+        'resolue': resolue_incidents,
+        'classée': classée_incidents,
+        'anonyme': anonyme_incidents,
+        'non_lu': non_lu_incidents,
     }
 
     type_counts = (
-        incidents
+        incidents_queryset
         .values('type_incident')
         .annotate(count=Count('id'))
         .order_by('-count')[:8]
     )
     province_counts = (
-        incidents
+        incidents_queryset
         .values('province__nom')
         .annotate(count=Count('id'))
         .order_by('-count')[:8]
     )
     sector_counts = (
-        incidents
+        incidents_queryset
         .values('employeur__secteur')
         .annotate(count=Count('id'))
         .order_by('-count')[:6]
     )
-    monthly_total_counts = (
-        incidents
+
+    province_filters = [
+        {
+            'label': item['province__nom'] or 'Non spécifiée',
+            'filter': item['province__nom'] or 'Non spécifiée',
+            'count': item['count'],
+            'url': build_filter_url(request, 'core:admin_dashboard', {'province': item['province__nom'] or 'Non spécifiée'}),
+        }
+        for item in province_counts
+    ]
+    sector_filters = [
+        {
+            'label': dict(Employeur.SECTEUR_CHOICES).get(item['employeur__secteur'], 'Autre'),
+            'filter': item['employeur__secteur'] or 'autre',
+            'count': item['count'],
+            'url': build_filter_url(request, 'core:admin_dashboard', {'secteur': item['employeur__secteur'] or 'autre'}),
+        }
+        for item in sector_counts
+    ]
+    type_filters = [
+        {
+            'label': dict(Incident.TYPE_INCIDENT_CHOICES).get(item['type_incident'], 'Autre'),
+            'filter': item['type_incident'],
+            'count': item['count'],
+            'url': build_filter_url(request, 'core:admin_dashboard', {'type_incident': item['type_incident']}),
+        }
+        for item in type_counts
+    ]
+
+    monthly_stats = (
+        incidents_queryset
         .annotate(month=ExtractMonth('date_creation'))
         .values('month')
-        .annotate(count=Count('id'))
+        .annotate(
+            total=Count('id'),
+            resolved=Count('id', filter=Q(statut='resolue')),
+            analysis=Count('id', filter=Q(statut='analyse')),
+        )
         .order_by('month')
     )
-    monthly_resolved_counts = (
-        incidents
-        .filter(statut='resolue')
-        .annotate(month=ExtractMonth('date_creation'))
-        .values('month')
-        .annotate(count=Count('id'))
-        .order_by('month')
-    )
-    monthly_analysis_counts = (
-        incidents
-        .filter(statut='analyse')
-        .annotate(month=ExtractMonth('date_creation'))
-        .values('month')
-        .annotate(count=Count('id'))
-        .order_by('month')
-    )
+    month_lookup = {item['month']: item for item in monthly_stats}
+    month_names = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
 
-    monthly_labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
-    monthly_total_data = [0] * 12
-    monthly_resolved_data = [0] * 12
-    monthly_analysis_data = [0] * 12
+    monthly_labels = []
+    monthly_total_data = []
+    monthly_resolved_data = []
+    monthly_analysis_data = []
 
-    for item in monthly_total_counts:
-        monthly_total_data[item['month'] - 1] = item['count']
-    for item in monthly_resolved_counts:
-        monthly_resolved_data[item['month'] - 1] = item['count']
-    for item in monthly_analysis_counts:
-        monthly_analysis_data[item['month'] - 1] = item['count']
+    now = timezone.now()
+    for offset in range(5, -1, -1):
+        month_number = ((now.month - offset - 1) % 12) + 1
+        year_number = now.year + ((now.month - offset - 1) // 12)
+        month_info = month_lookup.get(month_number, {'total': 0, 'resolved': 0, 'analysis': 0})
+        monthly_labels.append(f'{month_names[month_number - 1]} {year_number}')
+        monthly_total_data.append(month_info['total'])
+        monthly_resolved_data.append(month_info['resolved'])
+        monthly_analysis_data.append(month_info['analysis'])
 
-    identification_data = [
-        {'label': 'Anonymes', 'value': stats['anonyme']},
-        {'label': 'Identifiés', 'value': max(stats['total'] - stats['anonyme'], 0)},
+    identification_labels = ['Anonymes', 'Identifiés']
+    identification_values = [anonyme_incidents, total_incidents - anonyme_incidents]
+
+    status_filter_options = [
+        {'label': 'Tous', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': ''})},
+        {'label': 'Nouvelles', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'nouvelle'})},
+        {'label': 'Analyse', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'analyse'})},
+        {'label': 'En attente', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'attente'})},
+        {'label': 'Résolues', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'resolue'})},
+        {'label': 'Archivées', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'classée'})},
     ]
 
     context = {
         'user_name': request.user.get_full_name() or request.user.email,
         'stats': stats,
-        'status_cards': [
-            {'label': 'Total', 'value': stats['total'], 'filter': '', 'color': '#1E40AF'},
-            {'label': 'Résolu', 'value': stats['resolue'], 'filter': 'statut=resolue', 'color': '#16A34A'},
-            {'label': 'Non lue', 'value': stats['non_lu'], 'filter': 'est_lu=0', 'color': '#DC2626'},
-            {'label': 'En analyse', 'value': stats['analyse'], 'filter': 'statut=analyse', 'color': '#4338CA'},
-            {'label': 'Classée', 'value': stats['classée'], 'filter': 'statut=classée', 'color': '#374151'},
-        ],
-        'type_chart_labels': json.dumps([dict(Incident.TYPE_INCIDENT_CHOICES).get(item['type_incident'], 'Autre') for item in type_counts]),
-        'type_chart_values': json.dumps([item['count'] for item in type_counts]),
-        'province_chart_labels': json.dumps([item['province__nom'] or 'Non spécifiée' for item in province_counts]),
-        'province_chart_values': json.dumps([item['count'] for item in province_counts]),
-        'province_filters': [
-            {'label': item['province__nom'] or 'Non spécifiée', 'filter': item['province__nom'] or 'Non spécifiée'}
-            for item in province_counts
-        ],
-        'sector_filters': [
-            {'label': item['employeur__secteur'] or 'Autre', 'filter': item['employeur__secteur'] or 'autre'}
-            for item in sector_counts
-        ],
-        'type_filters': [
-            {'label': dict(Incident.TYPE_INCIDENT_CHOICES).get(item['type_incident'], 'Autre'), 'filter': item['type_incident']}
-            for item in type_counts
-        ],
+        'status_filter_options': status_filter_options,
+        'reset_filters_url': reverse('core:admin_dashboard'),
+        'total_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'statut': ''}),
+        'non_lu_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'est_lu': 'false'}),
+        'resolved_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'statut': 'resolue'}),
+        'pending_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'statut': 'attente'}),
+        'archived_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'statut': 'classée'}),
+        # Options pour les filtres de la barre latérale
+        'all_status_choices': Incident.STATUT_CHOICES,
+        'all_provinces': Province.objects.all().order_by('nom'),
+        'all_sectors': Employeur.SECTEUR_CHOICES,
+        'all_incident_types': Incident.TYPE_INCIDENT_CHOICES,
+
+        # Valeurs des filtres actuellement appliqués
+        'current_status_filter': current_status_filter,
+        'current_province_filter': current_province_filter,
+        'current_sector_filter': current_sector_filter,
+        'current_type_incident_filter': current_type_incident_filter,
+        'current_est_anonyme_filter': current_est_anonyme_filter,
+        'current_est_lu_filter': current_est_lu_filter,
+
+        'province_filters': province_filters,
+        'sector_filters': sector_filters,
+        'type_filters': type_filters,
+        'max_province_count': max((item['count'] for item in province_filters), default=0),
+        'max_sector_count': max((item['count'] for item in sector_filters), default=0),
+        'max_type_count': max((item['count'] for item in type_filters), default=0),
         'monthly_labels': json.dumps(monthly_labels),
         'monthly_total_data': json.dumps(monthly_total_data),
         'monthly_resolved_data': json.dumps(monthly_resolved_data),
         'monthly_analysis_data': json.dumps(monthly_analysis_data),
-        'identification_labels': json.dumps([entry['label'] for entry in identification_data]),
-        'identification_values': json.dumps([entry['value'] for entry in identification_data]),
+        'type_chart_labels': json.dumps([item['label'] for item in type_filters]),
+        'type_chart_values': json.dumps([item['count'] for item in type_filters]),
+        'province_chart_labels': json.dumps([item['label'] for item in province_filters]),
+        'province_chart_values': json.dumps([item['count'] for item in province_filters]),
+        'sector_chart_labels': json.dumps([item['label'] for item in sector_filters]),
+        'sector_chart_values': json.dumps([item['count'] for item in sector_filters]),
+        'identification_labels': json.dumps(identification_labels),
+        'identification_values': json.dumps(identification_values),
     }
     return render(request, 'core/admin/dashboard.html', context)
 
@@ -322,6 +418,8 @@ def admin_incidents_list(request):
     search = request.GET.get('search', '')
     statut = request.GET.get('statut', '')
     type_incident = request.GET.get('type_incident', '')
+    province_filter = request.GET.get('province', '')
+    secteur_filter = request.GET.get('secteur', '')
 
     if search:
         incidents_list = incidents_list.filter(
@@ -336,6 +434,12 @@ def admin_incidents_list(request):
 
     if type_incident:
         incidents_list = incidents_list.filter(type_incident=type_incident)
+
+    if province_filter:
+        incidents_list = incidents_list.filter(province__nom=province_filter)
+
+    if secteur_filter:
+        incidents_list = incidents_list.filter(employeur__secteur=secteur_filter)
 
     est_anonyme = request.GET.get('est_anonyme')
     if est_anonyme in {'1', 'true', 'True', 'yes', 'on'}:
@@ -358,7 +462,10 @@ def admin_incidents_list(request):
         'search': search,
         'statut': statut,
         'type_incident': type_incident,
+        'province': province_filter,
+        'secteur': secteur_filter,
         'total_count': paginator.count,
+        'reset_filters_url': reverse('core:admin_incidents_list'),
     }
     return render(request, 'core/admin/incidents_list.html', context)
 

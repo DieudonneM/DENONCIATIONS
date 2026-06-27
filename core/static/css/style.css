@@ -3,6 +3,389 @@
    Design professionnel - Couleurs: Bleu, Jaune, Blanc, Rouge
    ============================================================================ */
 
+.dashboard-admin-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    padding-bottom: 1.2rem;
+}
+
+.dashboard-admin-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.8rem 2rem;
+    background: linear-gradient(120deg, var(--primary-blue-dark) 0%, var(--primary-blue) 48%, #1f6fd8 100%);
+    border-radius: 24px;
+    color: var(--white);
+    box-shadow: 0 20px 48px rgba(13, 46, 94, 0.2);
+    overflow: hidden;
+    position: relative;
+}
+
+.dashboard-admin-topbar::after {
+    content: "";
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    top: -90px;
+    right: -70px;
+}
+
+.dashboard-title-area h1 {
+    margin: 0;
+    font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+    color: var(--white);
+}
+
+.dashboard-subtitle {
+    margin: 0.25rem 0 0;
+    color: rgba(255,255,255,0.9);
+    max-width: 760px;
+}
+
+.dashboard-topbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.dashboard-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.1rem;
+    border-radius: 999px;
+    font-weight: 700;
+    background: var(--accent-yellow);
+    color: var(--primary-blue-dark);
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(255, 215, 0, 0.25);
+}
+
+.dashboard-pill-secondary {
+    background: rgba(255,255,255,0.14);
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.24);
+    box-shadow: none;
+}
+
+.dashboard-admin-body {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.dashboard-filters-panel,
+.dashboard-main-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.filter-card {
+    padding: 1.3rem;
+    background: linear-gradient(180deg, #0f172a 0%, #111c33 100%);
+    color: white;
+    border-radius: 22px;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.15);
+}
+
+.filter-card h2 {
+    margin: 0 0 0.4rem;
+    font-size: 1.08rem;
+}
+
+.filter-card p {
+    margin: 0 0 1rem;
+    color: rgba(255,255,255,0.75);
+    font-size: 0.92rem;
+}
+
+.filter-block + .filter-block {
+    margin-top: 1rem;
+}
+
+.filter-block h4 {
+    margin-bottom: 0.65rem;
+    font-size: 0.95rem;
+    color: #f8fafc;
+}
+
+.filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filter-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+}
+
+.filter-reset-block {
+    margin-top: 0.8rem;
+}
+
+.filter-chip-reset {
+    background: var(--accent-yellow);
+    color: var(--primary-blue-dark);
+}
+
+.metric-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.9rem;
+}
+
+.metric-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem 1rem 0.9rem;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid rgba(19, 66, 148, 0.08);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+    text-decoration: none;
+    color: var(--primary-blue-dark);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: 120px;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-yellow) 0%, var(--primary-blue) 100%);
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+}
+
+.metric-card-highlight {
+    background: linear-gradient(135deg, #fff8d6 0%, #ffffff 55%, #edf5ff 100%);
+    border-color: rgba(255, 215, 0, 0.25);
+}
+
+.metric-card-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--gray);
+}
+
+.metric-card-value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.metric-card-meta {
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.metric-sparkline {
+    margin-top: 0.4rem;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(19, 66, 148, 0.2), rgba(255, 215, 0, 0.4));
+}
+
+.dashboard-card {
+    background: rgba(255,255,255,0.96);
+    border-radius: 22px;
+    padding: 1.2rem;
+    box-shadow: 0 15px 32px rgba(15, 23, 42, 0.06);
+    border: 1px solid rgba(19,66,148,0.06);
+}
+
+.dashboard-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.9rem;
+}
+
+.dashboard-card-kicker {
+    margin-bottom: 0.25rem;
+    color: var(--primary-blue);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+}
+
+.dashboard-card-head h3 {
+    margin-bottom: 0;
+    color: var(--primary-blue-dark);
+}
+
+.dashboard-charts-row,
+.dashboard-bottom-row {
+    display: grid;
+    grid-template-columns: 1.4fr 0.9fr;
+    gap: 1rem;
+}
+
+.dashboard-bottom-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.chart-card {
+    position: relative;
+    min-height: 300px;
+    padding: 1.1rem 1.1rem 1rem;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid rgba(19, 66, 148, 0.07);
+    border-radius: 20px;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.8rem;
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--primary-blue-dark);
+}
+
+.large-chart {
+    min-height: 390px;
+}
+
+.chart-card canvas {
+    width: 100% !important;
+    height: 220px !important;
+}
+
+.large-chart canvas {
+    height: 290px !important;
+}
+
+.donut-card canvas {
+    height: 240px !important;
+}
+
+.distribution-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.distribution-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.distribution-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: var(--dark-gray);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #eef3ff;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent-yellow) 0%, var(--primary-blue) 100%);
+}
+
+.empty-state {
+    color: var(--gray);
+    font-style: italic;
+}
+
+@media (max-width: 1200px) {
+    .metric-cards-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .dashboard-charts-row,
+    .dashboard-bottom-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 960px) {
+    .dashboard-admin-body {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .dashboard-admin-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.35rem;
+    }
+
+    .dashboard-topbar-actions {
+        width: 100%;
+    }
+
+    .dashboard-pill {
+        width: 100%;
+    }
+
+    .metric-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card {
+        min-height: 280px;
+    }
+
+    .large-chart {
+        min-height: 340px;
+    }
+}
 :root {
     /* Couleurs principales */
     --primary-blue: #134294;           /* Bleu royal */
