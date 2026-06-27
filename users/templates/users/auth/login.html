@@ -3,6 +3,10 @@
 
 {% block title %}Connexion - Plateforme de Dénonciation MEPT-RDC{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'users/css/users_auth_login.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid auth-page">
     <div class="row min-vh-100 align-items-center">
@@ -101,135 +105,4 @@
     </div>
 </div>
 
-<style>
-    .auth-page {
-        background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
-        min-height: 100vh;
-    }
-
-    .auth-form-container {
-        max-width: 450px;
-        margin: 0 auto;
-    }
-
-    .auth-form-wrapper {
-        background: white;
-        padding: 3rem 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(19, 66, 148, 0.1);
-    }
-
-    .auth-header {
-        margin-bottom: 2rem;
-    }
-
-    .auth-title {
-        color: #134294;
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .auth-subtitle {
-        color: #666;
-        font-size: 1rem;
-    }
-
-    .form-label {
-        color: #333;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        display: block;
-    }
-
-    .form-control {
-        border: 2px solid #e0e0e0;
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-    }
-
-    .form-control:focus {
-        border-color: #134294;
-        box-shadow: 0 0 0 3px rgba(19, 66, 148, 0.1);
-        outline: none;
-    }
-
-    .btn-primary {
-        background-color: #134294;
-        border-color: #134294;
-        font-weight: 600;
-        padding: 0.75rem 1.5rem;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        background-color: #0d2e5e;
-        border-color: #0d2e5e;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(19, 66, 148, 0.3);
-    }
-
-    .auth-footer {
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid #eee;
-    }
-
-    .auth-link {
-        color: #134294;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .auth-link:hover {
-        text-decoration: underline;
-    }
-
-    .auth-side-panel {
-        background: linear-gradient(135deg, #134294 0%, #0d2e5e 100%);
-        color: white;
-    }
-
-    .auth-icon {
-        font-size: 4rem;
-        color: rgba(255, 255, 255, 0.9);
-    }
-
-    .auth-side-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: white;
-    }
-
-    .auth-side-text {
-        font-size: 1.1rem;
-        color: rgba(255, 255, 255, 0.9);
-        line-height: 1.6;
-    }
-
-    .form-error-message {
-        color: #dc3545;
-        font-size: 0.875rem;
-        margin-top: 0.5rem;
-        display: block;
-    }
-
-    .alert-danger {
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-        color: #721c24;
-    }
-
-    @media (max-width: 768px) {
-        .auth-form-wrapper {
-            padding: 2rem 1.5rem;
-        }
-
-        .auth-title {
-            font-size: 1.75rem;
-        }
-    }
-</style>
 {% endblock %}
