@@ -1,0 +1,277 @@
+.py-5 {
+    padding: 3rem 0;
+}
+
+.incident-detail-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.header-left h1 {
+    color: #001F3F;
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+}
+
+.header-left p {
+    color: #666;
+    margin: 0;
+}
+
+.badge-large {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+}
+
+.detail-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.detail-section h2 {
+    color: #001F3F;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem 2rem;
+}
+
+.details-grid dt {
+    font-weight: 600;
+    color: #333;
+}
+
+.details-grid dd {
+    color: #666;
+    margin: 0;
+}
+
+.description-box {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid #001F3F;
+    line-height: 1.6;
+    color: #333;
+}
+
+.attachments-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.attachment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.attachment-link {
+    color: #001F3F;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.attachment-link:hover {
+    text-decoration: underline;
+}
+
+.file-size {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.update-section,
+.assign-section {
+    border-left: 4px solid #ff9800;
+}
+
+.status-note {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: #eef6ff;
+    border: 1px solid #cfe3ff;
+    border-radius: 8px;
+    color: #1d3e6f;
+    line-height: 1.6;
+}
+
+.status-form,
+.assign-form,
+.comment-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.status-form select,
+.assign-form select {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.status-form button,
+.assign-form button {
+    white-space: nowrap;
+}
+
+.add-comment-box {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+}
+
+.add-comment-box h3 {
+    color: #001F3F;
+    margin-bottom: 1rem;
+}
+
+.add-comment-box .form-group {
+    margin-bottom: 1rem;
+}
+
+.add-comment-box label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.add-comment-box select,
+.add-comment-box textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-comment-box textarea {
+    min-height: 100px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.comments-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.comment-item {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 4px;
+    border-left: 4px solid #001F3F;
+}
+
+.comment-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.comment-meta strong {
+    color: #333;
+}
+
+.badge-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.badge-public {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-interne {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+.comment-date {
+    font-size: 0.85rem;
+    color: #999;
+    margin-left: auto;
+}
+
+.comment-body {
+    color: #555;
+    line-height: 1.6;
+}
+
+.no-comments {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .status-form,
+    .assign-form,
+    .comment-form {
+        flex-direction: column;
+    }
+
+    .comment-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comment-date {
+        margin-left: 0;
+    }
+
+    .detail-actions {
+        flex-direction: column;
+    }
+
+    .detail-actions a {
+        width: 100%;
+    }
+}

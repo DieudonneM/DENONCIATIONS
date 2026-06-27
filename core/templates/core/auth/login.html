@@ -3,6 +3,10 @@
 
 {% block title %}Connexion - MEPT-RDC{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/core_auth_login.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="auth-container">
     <div class="auth-box">
@@ -46,40 +50,4 @@
     </div>
 </div>
 
-<style>
-.auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 60vh;
-}
-
-.auth-box {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-}
-
-.auth-form {
-    margin: 2rem 0;
-}
-
-.btn-block {
-    width: 100%;
-}
-
-.auth-links {
-    border-top: 1px solid #eee;
-    padding-top: 1rem;
-    margin-top: 1rem;
-}
-
-.auth-links p {
-    margin-bottom: 0.5rem;
-}
-</style>
 {% endblock %}
