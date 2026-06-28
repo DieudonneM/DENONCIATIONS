@@ -62,3 +62,32 @@ class IncidentDetailViewPermissionTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'core/detail_incident.html')
+
+    def test_public_incident_form_accepts_valid_submission(self):
+        response = self.client.post(
+            '/denoncier/',
+            {
+                'type_incident': 'salaire',
+                'ville': 'Kinshasa',
+                'province': self.province.id,
+                'description': 'Ce message décrit précisément l’incident de test.',
+                'employeur': 'Entreprise Test',
+                'est_anonyme': 'on',
+                'confirm_anonymous': 'on',
+            },
+            follow=True,
+            HTTP_HOST='localhost',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, response.redirect_chain[0][0])
+        self.assertTrue(Incident.objects.filter(description='Ce message décrit précisément l’incident de test.').exists())
+
+    def test_incidents_list_page_uses_admin_like_design_without_delete_action(self):
+        self.client.force_login(self.admin)
+        response = self.client.get('/incidents/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Rechercher et filtrer')
+        self.assertContains(response, 'btn-admin')
+        self.assertNotContains(response, 'Supprimer')

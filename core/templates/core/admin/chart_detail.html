@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard Administrateur{% endblock %}
+{% block title %}{{ chart_title }}{% endblock %}
 
 {% block extra_css %}
     {{ block.super }}
@@ -9,14 +9,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-admin-shell">
+<div class="dashboard-admin-shell dashboard-detail-shell">
     <section class="dashboard-admin-topbar">
         <div class="dashboard-title-area">
-            <p class="dashboard-subtitle">Dashboard Administrateur</p>
-            <h1>Dashboard Administrateur</h1>
+            <p class="dashboard-subtitle">Visualisation détaillée</p>
+            <h1>{{ chart_title }}</h1>
             <p class="dashboard-subtitle">{{ user_name }} - connecté 🟢</p>
         </div>
-        <a href="{% url 'core:admin_global_management' %}" class="dashboard-pill dashboard-pill-secondary">Control Admin</a>
+        <div class="dashboard-detail-actions">
+            <a href="{{ back_url }}" class="dashboard-pill dashboard-pill-secondary">Retour au dashboard</a>
+        </div>
     </section>
 
     <div class="dashboard-admin-body">
@@ -26,7 +28,7 @@
             </div>
             <div class="filter-card">
                 <h2>Filtres</h2>
-                <p>Sélectionnez un filtre pour mettre à jour les métriques et graphiques.</p>
+                <p>Sélectionnez un filtre pour mettre à jour le graphique.</p>
 
                 <div class="filter-block">
                     <h4>Status</h4>
@@ -83,84 +85,24 @@
         </aside>
 
         <main class="dashboard-main-panel">
-            <div class="metric-cards-grid">
-                <a class="metric-card metric-card-highlight" href="{{ total_metric_url }}">
-                    <span class="metric-card-label">Total</span>
-                    <strong class="metric-card-value">{{ stats.total }}</strong>
-                    <span class="metric-card-meta">Nombre dossiers</span>
-                    <div class="metric-sparkline"></div>
-                </a>
-                <a class="metric-card" href="{{ non_lu_metric_url }}">
-                    <span class="metric-card-label">Non lues</span>
-                    <strong class="metric-card-value">{{ stats.non_lu }}</strong>
-                    <span class="metric-card-meta">À vérifier</span>
-                </a>
-                <a class="metric-card" href="{{ resolved_metric_url }}">
-                    <span class="metric-card-label">Résolues</span>
-                    <strong class="metric-card-value">{{ stats.resolue }}</strong>
-                    <span class="metric-card-meta">Clôturées</span>
-                </a>
-                <a class="metric-card" href="{{ pending_metric_url }}">
-                    <span class="metric-card-label">En attente</span>
-                    <strong class="metric-card-value">{{ stats.attente }}</strong>
-                    <span class="metric-card-meta">Informations manquantes</span>
-                </a>
-                <a class="metric-card" href="{{ archived_metric_url }}">
-                    <span class="metric-card-label">Archivé</span>
-                    <strong class="metric-card-value">{{ stats.classée }}</strong>
-                    <span class="metric-card-meta">Archivées</span>
-                </a>
-            </div>
-
-            <div class="dashboard-charts-row">
-                <a href="{% url 'core:admin_chart_detail' chart_type='evolution' %}" class="chart-card large-chart chart-card-link">
-                    <div class="chart-header">
-                        <div>
-                            <p class="dashboard-card-kicker">Évolution</p>
-                            <h3>Nombre de dénonciations dans le temps</h3>
-                        </div>
+            <div class="chart-card large-chart detail-chart-card">
+                <div class="chart-header">
+                    <div>
+                        <p class="dashboard-card-kicker">Détail</p>
+                        <h3>{{ chart_title }}</h3>
                     </div>
+                </div>
+                {% if selected_chart_type == 'evolution' %}
                     <canvas id="evolutionChart"></canvas>
-                </a>
-                <a href="{% url 'core:admin_chart_detail' chart_type='type' %}" class="chart-card chart-card-link">
-                    <div class="chart-header">
-                        <div>
-                            <p class="dashboard-card-kicker">Type</p>
-                            <h3>Type de dénonciation</h3>
-                        </div>
-                    </div>
+                {% elif selected_chart_type == 'type' %}
                     <canvas id="typeChart"></canvas>
-                </a>
-            </div>
-
-            <div class="dashboard-bottom-row">
-                <a href="{% url 'core:admin_chart_detail' chart_type='province' %}" class="chart-card chart-card-link">
-                    <div class="chart-header">
-                        <div>
-                            <p class="dashboard-card-kicker">Top 8</p>
-                            <h3>Top 8 des dénonciations par province</h3>
-                        </div>
-                    </div>
+                {% elif selected_chart_type == 'province' %}
                     <canvas id="provinceChart"></canvas>
-                </a>
-                <a href="{% url 'core:admin_chart_detail' chart_type='repartition' %}" class="chart-card donut-card chart-card-link">
-                    <div class="chart-header">
-                        <div>
-                            <p class="dashboard-card-kicker">Répartition</p>
-                            <h3>Répartition par identification</h3>
-                        </div>
-                    </div>
+                {% elif selected_chart_type == 'repartition' %}
                     <canvas id="repartitionChart"></canvas>
-                </a>
-                <a href="{% url 'core:admin_chart_detail' chart_type='sector' %}" class="chart-card chart-card-link">
-                    <div class="chart-header">
-                        <div>
-                            <p class="dashboard-card-kicker">Secteur</p>
-                            <h3>Répartition par secteur d'activité</h3>
-                        </div>
-                    </div>
+                {% else %}
                     <canvas id="sectorChart"></canvas>
-                </a>
+                {% endif %}
             </div>
         </main>
     </div>
@@ -192,6 +134,7 @@
             red: '#e74c3c'
         };
 
+        {% if selected_chart_type == 'evolution' %}
         const evolutionCtx = document.getElementById('evolutionChart');
         if (evolutionCtx) {
             new Chart(evolutionCtx.getContext('2d'), {
@@ -234,33 +177,19 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
                     plugins: {
-                        legend: { display: true, position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                        legend: { display: true, position: 'top' },
                         tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            formatter: (value) => value,
-                            color: '#0f172a',
-                            font: { weight: '700', size: 11 }
-                        }
+                        datalabels: { display: false }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(15, 23, 42, 0.08)' },
-                            ticks: { color: '#64748b' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#64748b' }
-                        }
+                        y: { beginAtZero: true },
+                        x: { grid: { display: false } }
                     }
                 }
             });
         }
-
+        {% elif selected_chart_type == 'type' %}
         const typeCtx = document.getElementById('typeChart');
         if (typeCtx) {
             new Chart(typeCtx.getContext('2d'), {
@@ -278,33 +207,49 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
                     plugins: {
                         legend: { display: false },
                         tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'right',
-                            formatter: (value) => value,
-                            color: '#0f172a',
-                            font: { weight: '700', size: 10 }
-                        }
+                        datalabels: { display: false }
                     },
                     scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(15, 23, 42, 0.08)' },
-                            ticks: { color: '#64748b' }
-                        },
-                        y: {
-                            grid: { display: false },
-                            ticks: { color: '#64748b' }
-                        }
+                        x: { beginAtZero: true },
+                        y: { grid: { display: false } }
                     }
                 }
             });
         }
-
+        {% elif selected_chart_type == 'province' %}
+        const provinceCtx = document.getElementById('provinceChart');
+        if (provinceCtx) {
+            new Chart(provinceCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {{ province_chart_labels|safe }},
+                    datasets: [{
+                        label: 'Nombre',
+                        data: {{ province_chart_values|safe }},
+                        backgroundColor: chartColors.green,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
+                        datalabels: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+        {% elif selected_chart_type == 'repartition' %}
         const repartitionCtx = document.getElementById('repartitionChart');
         if (repartitionCtx) {
             new Chart(repartitionCtx.getContext('2d'), {
@@ -323,60 +268,12 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
-                        datalabels: {
-                            color: '#0f172a',
-                            formatter: (value) => value,
-                            font: { weight: '700', size: 11 }
-                        }
+                        datalabels: { display: false }
                     }
                 }
             });
         }
-
-        const provinceCtx = document.getElementById('provinceChart');
-        if (provinceCtx) {
-            new Chart(provinceCtx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: {{ province_chart_labels|safe }},
-                    datasets: [{
-                        label: 'Nombre',
-                        data: {{ province_chart_values|safe }},
-                        backgroundColor: chartColors.green,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'right',
-                            formatter: (value) => value,
-                            color: '#0f172a',
-                            font: { weight: '700', size: 10 }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(15, 23, 42, 0.08)' },
-                            ticks: { color: '#64748b' }
-                        },
-                        y: {
-                            grid: { display: false },
-                            ticks: { color: '#64748b' }
-                        }
-                    }
-                }
-            });
-        }
-
+        {% else %}
         const sectorCtx = document.getElementById('sectorChart');
         if (sectorCtx) {
             new Chart(sectorCtx.getContext('2d'), {
@@ -394,33 +291,19 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 8, right: 8, bottom: 0, left: 0 } },
                     plugins: {
                         legend: { display: false },
                         tooltip: { backgroundColor: '#0d2e5e', titleColor: '#ffffff', bodyColor: '#ffffff' },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'right',
-                            formatter: (value) => value,
-                            color: '#0f172a',
-                            font: { weight: '700', size: 10 }
-                        }
+                        datalabels: { display: false }
                     },
                     scales: {
-                        x: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(15, 23, 42, 0.08)' },
-                            ticks: { color: '#64748b' }
-                        },
-                        y: {
-                            grid: { display: false },
-                            ticks: { color: '#64748b' }
-                        }
-                    },
-                    animation: false
+                        x: { beginAtZero: true },
+                        y: { grid: { display: false } }
+                    }
                 }
             });
         }
+        {% endif %}
     });
 </script>
 {% endblock %}

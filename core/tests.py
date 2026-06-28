@@ -306,6 +306,32 @@ class AdminManagementTest(TestCase):
         self.assertContains(response, 'Control Admin')
         self.assertContains(response, f'href="{reverse("core:admin_global_management")}"')
 
+    def test_dashboard_chart_cards_link_to_detail_page(self):
+        """Les cartes de graphiques doivent mener vers une page dédiée de visualisation."""
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('core:admin_dashboard'))
+
+        self.assertContains(response, f'href="{reverse("core:admin_chart_detail", kwargs={"chart_type": "evolution"})}"')
+        self.assertContains(response, f'href="{reverse("core:admin_chart_detail", kwargs={"chart_type": "type"})}"')
+
+    def test_dashboard_metric_cards_link_to_shared_incidents_list(self):
+        """Les cartes de métriques du dashboard admin doivent ouvrir la page de liste partagée."""
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('core:admin_dashboard'))
+
+        self.assertContains(response, f'href="{reverse("denunciations:incidents_list")}"')
+        self.assertContains(response, f'href="{reverse("denunciations:incidents_list")}?est_lu=false"')
+        self.assertContains(response, f'href="{reverse("denunciations:incidents_list")}?statut=resolue"')
+
+    def test_chart_detail_page_renders_filters_and_chart(self):
+        """La page de détail d’un graphique doit afficher le panneau de filtres et le graphique sélectionné."""
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('core:admin_chart_detail', kwargs={'chart_type': 'evolution'}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Filtres')
+        self.assertContains(response, 'id="evolutionChart"')
+
     def test_admin_can_reset_user_password(self):
         """L'admin doit pouvoir réinitialiser le mot de passe d'un utilisateur."""
         self.client.force_login(self.admin)

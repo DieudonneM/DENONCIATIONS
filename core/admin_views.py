@@ -48,7 +48,7 @@ def admin_required(view_func):
 # ============================================================================
 
 
-def build_filter_url(request, view_name, params=None):
+def build_filter_url(request, view_name, params=None, view_kwargs=None):
     """Construit une URL de filtre en conservant les filtres actifs actuels."""
     query = request.GET.copy()
     query.pop('page', None)
@@ -60,7 +60,7 @@ def build_filter_url(request, view_name, params=None):
             else:
                 query[key] = value
 
-    url = reverse(view_name)
+    url = reverse(view_name, kwargs=view_kwargs) if view_kwargs else reverse(view_name)
     if query:
         return f'{url}?{query.urlencode()}'
     return url
@@ -73,17 +73,10 @@ def admin_root(request):
     return redirect('core:admin_dashboard')
 
 
-@login_required
-@admin_required
-def admin_statistics_dashboard(request):
-    """Tableau de bord administrateur affichant les statistiques avec filtres."""
-    # Récupérer tous les incidents pour les options de filtre
-    all_incidents_for_filters = Incident.objects.all()
-
-    # Appliquer les filtres aux incidents pour les statistiques et graphiques
+def _build_admin_dashboard_context(request, selected_chart_type=None):
+    """Construit le contexte partagé pour le dashboard et ses vues de détail."""
     incidents_queryset = Incident.objects.select_related('province', 'employeur').all()
 
-    # Paramètres de filtre depuis la requête GET
     current_status_filter = request.GET.get('statut')
     current_province_filter = request.GET.get('province')
     current_sector_filter = request.GET.get('secteur')
@@ -104,7 +97,6 @@ def admin_statistics_dashboard(request):
     if current_est_lu_filter:
         incidents_queryset = incidents_queryset.filter(est_lu=True if current_est_lu_filter == 'true' else False)
 
-    # Calcul des statistiques basées sur les incidents filtrés
     total_incidents = incidents_queryset.count()
     nouvelle_incidents = incidents_queryset.filter(statut='nouvelle').count()
     analyse_incidents = incidents_queryset.filter(statut='analyse').count()
@@ -144,12 +136,15 @@ def admin_statistics_dashboard(request):
         .order_by('-count')[:6]
     )
 
+    view_name = 'core:admin_chart_detail' if selected_chart_type else 'core:admin_dashboard'
+    view_kwargs = {'chart_type': selected_chart_type} if selected_chart_type else None
+
     province_filters = [
         {
             'label': item['province__nom'] or 'Non spécifiée',
             'filter': item['province__nom'] or 'Non spécifiée',
             'count': item['count'],
-            'url': build_filter_url(request, 'core:admin_dashboard', {'province': item['province__nom'] or 'Non spécifiée'}),
+            'url': build_filter_url(request, view_name, {'province': item['province__nom'] or 'Non spécifiée'}, view_kwargs),
             'active': current_province_filter == (item['province__nom'] or 'Non spécifiée')
         }
         for item in province_counts
@@ -159,7 +154,7 @@ def admin_statistics_dashboard(request):
             'label': dict(Employeur.SECTEUR_CHOICES).get(item['employeur__secteur'], 'Autre'),
             'filter': item['employeur__secteur'] or 'autre',
             'count': item['count'],
-            'url': build_filter_url(request, 'core:admin_dashboard', {'secteur': item['employeur__secteur'] or 'autre'}),
+            'url': build_filter_url(request, view_name, {'secteur': item['employeur__secteur'] or 'autre'}, view_kwargs),
             'active': current_sector_filter == (item['employeur__secteur'] or 'autre')
         }
         for item in sector_counts
@@ -169,7 +164,7 @@ def admin_statistics_dashboard(request):
             'label': dict(Incident.TYPE_INCIDENT_CHOICES).get(item['type_incident'], 'Autre'),
             'filter': item['type_incident'],
             'count': item['count'],
-            'url': build_filter_url(request, 'core:admin_dashboard', {'type_incident': item['type_incident']}),
+            'url': build_filter_url(request, view_name, {'type_incident': item['type_incident']}, view_kwargs),
             'active': current_type_incident_filter == item['type_incident']
         }
         for item in type_counts
@@ -208,12 +203,12 @@ def admin_statistics_dashboard(request):
     identification_values = [anonyme_incidents, total_incidents - anonyme_incidents]
 
     status_filter_options = [
-        {'label': 'Tous', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': ''}), 'active': not current_status_filter},
-        {'label': 'Nouvelles', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'nouvelle'}), 'active': current_status_filter == 'nouvelle'},
-        {'label': 'Analyse', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'analyse'}), 'active': current_status_filter == 'analyse'},
-        {'label': 'En attente', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'attente'}), 'active': current_status_filter == 'attente'},
-        {'label': 'Résolues', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'resolue'}), 'active': current_status_filter == 'resolue'},
-        {'label': 'Archivées', 'url': build_filter_url(request, 'core:admin_dashboard', {'statut': 'classée'}), 'active': current_status_filter == 'classée'},
+        {'label': 'Tous', 'url': build_filter_url(request, view_name, {'statut': ''}, view_kwargs), 'active': not current_status_filter},
+        {'label': 'Nouvelles', 'url': build_filter_url(request, view_name, {'statut': 'nouvelle'}, view_kwargs), 'active': current_status_filter == 'nouvelle'},
+        {'label': 'Analyse', 'url': build_filter_url(request, view_name, {'statut': 'analyse'}, view_kwargs), 'active': current_status_filter == 'analyse'},
+        {'label': 'En attente', 'url': build_filter_url(request, view_name, {'statut': 'attente'}, view_kwargs), 'active': current_status_filter == 'attente'},
+        {'label': 'Résolues', 'url': build_filter_url(request, view_name, {'statut': 'resolue'}, view_kwargs), 'active': current_status_filter == 'resolue'},
+        {'label': 'Archivées', 'url': build_filter_url(request, view_name, {'statut': 'classée'}, view_kwargs), 'active': current_status_filter == 'classée'},
     ]
 
     current_status_label = next((item['label'] for item in status_filter_options if item['active']), 'Sélectionner pour filtrer')
@@ -221,7 +216,9 @@ def admin_statistics_dashboard(request):
     current_sector_label = dict(Employeur.SECTEUR_CHOICES).get(current_sector_filter, 'Sélectionner pour filtrer') if current_sector_filter else 'Sélectionner pour filtrer'
     current_type_label = dict(Incident.TYPE_INCIDENT_CHOICES).get(current_type_incident_filter, 'Sélectionner pour filtrer') if current_type_incident_filter else 'Sélectionner pour filtrer'
 
-    context = {
+    reset_url = reverse('core:admin_chart_detail', kwargs={'chart_type': selected_chart_type}) if selected_chart_type else reverse('core:admin_dashboard')
+
+    return {
         'user_name': request.user.get_full_name() or request.user.email,
         'stats': stats,
         'status_filter_options': status_filter_options,
@@ -229,29 +226,22 @@ def admin_statistics_dashboard(request):
         'current_province_label': current_province_label,
         'current_sector_label': current_sector_label,
         'current_type_label': current_type_label,
-        'user_name': request.user.get_full_name() or request.user.email,
-        'stats': stats,
-        'status_filter_options': status_filter_options,
-        'reset_filters_url': reverse('core:admin_dashboard'),
-        'total_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'statut': ''}),
-        'non_lu_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'est_lu': 'false'}),
-        'resolved_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'statut': 'resolue'}),
-        'pending_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'statut': 'attente'}),
-        'archived_metric_url': build_filter_url(request, 'core:admin_incidents_list', {'statut': 'classée'}),
-        # Options pour les filtres de la barre latérale
+        'reset_filters_url': reset_url,
+        'total_metric_url': build_filter_url(request, 'denunciations:incidents_list', {'statut': ''}),
+        'non_lu_metric_url': build_filter_url(request, 'denunciations:incidents_list', {'est_lu': 'false'}),
+        'resolved_metric_url': build_filter_url(request, 'denunciations:incidents_list', {'statut': 'resolue'}),
+        'pending_metric_url': build_filter_url(request, 'denunciations:incidents_list', {'statut': 'attente'}),
+        'archived_metric_url': build_filter_url(request, 'denunciations:incidents_list', {'statut': 'classée'}),
         'all_status_choices': Incident.STATUT_CHOICES,
         'all_provinces': Province.objects.all().order_by('nom'),
         'all_sectors': Employeur.SECTEUR_CHOICES,
         'all_incident_types': Incident.TYPE_INCIDENT_CHOICES,
-
-        # Valeurs des filtres actuellement appliqués
         'current_status_filter': current_status_filter,
         'current_province_filter': current_province_filter,
         'current_sector_filter': current_sector_filter,
         'current_type_incident_filter': current_type_incident_filter,
         'current_est_anonyme_filter': current_est_anonyme_filter,
         'current_est_lu_filter': current_est_lu_filter,
-
         'province_filters': province_filters,
         'sector_filters': sector_filters,
         'type_filters': type_filters,
@@ -262,7 +252,7 @@ def admin_statistics_dashboard(request):
         'monthly_total_data': json.dumps(monthly_total_data),
         'monthly_resolved_data': json.dumps(monthly_resolved_data),
         'monthly_analysis_data': json.dumps(monthly_analysis_data),
-            'type_chart_labels': json.dumps([item['label'] for item in type_filters]),
+        'type_chart_labels': json.dumps([item['label'] for item in type_filters]),
         'type_chart_values': json.dumps([item['count'] for item in type_filters]),
         'province_chart_labels': json.dumps([item['label'] for item in province_filters]),
         'province_chart_values': json.dumps([item['count'] for item in province_filters]),
@@ -270,8 +260,36 @@ def admin_statistics_dashboard(request):
         'sector_chart_values': json.dumps([item['count'] for item in sector_filters]),
         'identification_labels': json.dumps(identification_labels),
         'identification_values': json.dumps(identification_values),
+        'selected_chart_type': selected_chart_type,
     }
+
+
+@login_required
+@admin_required
+def admin_statistics_dashboard(request):
+    """Tableau de bord administrateur affichant les statistiques avec filtres."""
+    context = _build_admin_dashboard_context(request)
     return render(request, 'core/admin/dashboard.html', context)
+
+
+@login_required
+@admin_required
+def admin_chart_detail(request, chart_type):
+    """Affiche un graphique en plein écran avec le même système de filtres."""
+    valid_chart_types = {'evolution', 'type', 'province', 'repartition', 'sector'}
+    selected_chart_type = chart_type.lower() if chart_type and chart_type.lower() in valid_chart_types else 'evolution'
+
+    context = _build_admin_dashboard_context(request, selected_chart_type=selected_chart_type)
+    chart_titles = {
+        'evolution': 'Évolution des dénonciations dans le temps',
+        'type': 'Répartition par type de dénonciation',
+        'province': 'Top des dénonciations par province',
+        'repartition': 'Répartition par identification',
+        'sector': 'Répartition par secteur d’activité',
+    }
+    context['chart_title'] = chart_titles.get(selected_chart_type, 'Graphique détaillé')
+    context['back_url'] = reverse('core:admin_dashboard')
+    return render(request, 'core/admin/chart_detail.html', context)
 
 
 @login_required
