@@ -46,6 +46,7 @@ urlpatterns = [
     # Accès racine du panel admin personnalisé
     path('admin/', admin_views.admin_root, name='admin_root'),
     path('admin/dashboard/', admin_views.admin_statistics_dashboard, name='admin_dashboard'),
+    path('admin/dashboard/chart/<str:chart_type>/', admin_views.admin_chart_detail, name='admin_chart_detail'),
     path('admin/management/', admin_views.admin_global_management, name='admin_global_management'),
     
     # Gestion des utilisateurs

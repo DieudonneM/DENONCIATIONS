@@ -128,13 +128,7 @@ class IncidentForm(forms.ModelForm):
     def clean(self):
         """Validation supplémentaire."""
         cleaned_data = super().clean()
-        
-        # Si anonyme, au moins un contact optionnel est recommandé
-        est_anonyme = cleaned_data.get('est_anonyme')
-        email = cleaned_data.get('email_contact_anonyme')
-        telephone = cleaned_data.get('telephone_contact_anonyme')
-        
-        # Au moins un type d'incident
+
         if not cleaned_data.get('type_incident'):
             raise ValidationError('Sélectionnez un type d\'incident.')
 
@@ -153,7 +147,11 @@ class IncidentForm(forms.ModelForm):
         # Description requise
         if not cleaned_data.get('description') or len(cleaned_data.get('description', '').strip()) < 10:
             raise ValidationError('La description doit contenir au moins 10 caractères.')
-        
+
+        confirm_anonymous = self.data.get('confirm_anonymous')
+        if not confirm_anonymous:
+            raise ValidationError('Vous devez accepter la confidentialité pour soumettre votre dénonciation.')
+
         return cleaned_data
 
     def save(self, commit=True):

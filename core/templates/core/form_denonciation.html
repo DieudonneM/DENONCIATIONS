@@ -207,7 +207,7 @@
         
         <!-- BOUTONS D'ACTION -->
         <div class="form-actions">
-            <button type="submit" class="btn btn-submit">
+            <button type="submit" class="btn btn-submit" id="submitDenunciationBtn">
                 ✓ SOUMETTRE MA DÉNONCIATION
             </button>
             <button type="reset" class="btn btn-reset">
@@ -289,6 +289,9 @@
         const typeSelect = document.querySelector('select[name="type_incident"]');
         const autreWrapper = document.getElementById('autreTypeWrapper');
         const autreInput = document.querySelector('input[name="autre_type_incident"]');
+        const form = document.getElementById('denounceForm');
+        const submitBtn = document.getElementById('submitDenunciationBtn');
+        const confirmCheckbox = document.getElementById('confirmAnonymous');
 
         function toggleAutreField() {
             if (!typeSelect) return;
@@ -309,6 +312,22 @@
             typeSelect.addEventListener('change', toggleAutreField);
             // initial state
             toggleAutreField();
+        }
+
+        if (form && submitBtn) {
+            form.addEventListener('submit', function (event) {
+                const isValid = form.checkValidity();
+                if (!isValid || !confirmCheckbox || !confirmCheckbox.checked) {
+                    event.preventDefault();
+                    if (confirmCheckbox && !confirmCheckbox.checked) {
+                        confirmCheckbox.focus();
+                        alert('Vous devez accepter la confidentialité pour soumettre votre dénonciation.');
+                    }
+                } else {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Envoi en cours...';
+                }
+            });
         }
     });
 </script>
