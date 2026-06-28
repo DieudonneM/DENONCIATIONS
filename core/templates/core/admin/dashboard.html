@@ -3,20 +3,26 @@
 
 {% block title %}Dashboard Administrateur{% endblock %}
 
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/core_admin_base.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-admin-shell">
     <section class="dashboard-admin-topbar">
         <div class="dashboard-title-area">
             <p class="dashboard-subtitle">Dashboard Administrateur</p>
             <h1>Dashboard Administrateur</h1>
-            <p class="dashboard-subtitle">{{ user_name }}</p>
+            <p class="dashboard-subtitle">{{ user_name }} - connecté 🟢</p>
         </div>
+        <a href="{% url 'core:admin_global_management' %}" class="dashboard-pill dashboard-pill-secondary">Control Admin</a>
     </section>
 
     <div class="dashboard-admin-body">
         <aside class="dashboard-filters-panel">
             <div class="sidebar-banner">
-                <span>Control Admin</span>
+                <span>Filtres</span>
             </div>
             <div class="filter-card">
                 <h2>Filtres</h2>
@@ -81,7 +87,7 @@
                 <a class="metric-card metric-card-highlight" href="{{ total_metric_url }}">
                     <span class="metric-card-label">Total</span>
                     <strong class="metric-card-value">{{ stats.total }}</strong>
-                    <span class="metric-card-meta">{{ user_name }}</span>
+                    <span class="metric-card-meta">Nombre dossiers</span>
                     <div class="metric-sparkline"></div>
                 </a>
                 <a class="metric-card" href="{{ non_lu_metric_url }}">

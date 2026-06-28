@@ -298,6 +298,14 @@ class AdminManagementTest(TestCase):
         self.assertContains(response, 'Archivé')
         self.assertNotContains(response, 'Répartition détaillée')
 
+    def test_control_admin_banner_links_to_global_management(self):
+        """Le bouton Control Admin doit conduire vers la page d'administration globale."""
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('core:admin_dashboard'))
+
+        self.assertContains(response, 'Control Admin')
+        self.assertContains(response, f'href="{reverse("core:admin_global_management")}"')
+
     def test_admin_can_reset_user_password(self):
         """L'admin doit pouvoir réinitialiser le mot de passe d'un utilisateur."""
         self.client.force_login(self.admin)
