@@ -1,16 +1,27 @@
 /**
  * JavaScript principal - Plateforme de Dénonciation MEPT-RDC
- * Vanilla JS pour interactivité légère
+ * Interactions globales + animations modernes (GSAP/ScrollTrigger)
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Application chargée');
-    
-    // Initialiser les fonctionnalités
     initializeFormValidation();
     initializeMessageAlerts();
     initializeCloseButtons();
+    initializeNavigationMenu();
 });
+
+function initializeNavigationMenu() {
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+
+    if (!menuToggle || !navMenu) {
+        return;
+    }
+
+    menuToggle.addEventListener('click', function() {
+        navMenu.classList.toggle('active');
+    });
+}
 
 /**
  * Validation des formulaires côté client
@@ -73,6 +84,40 @@ function clearFieldError(field) {
     if (errorMsg) {
         errorMsg.remove();
     }
+}
+
+function createButtonRipple(button, event) {
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const ripple = document.createElement('span');
+    const left = event.clientX - rect.left - size / 2;
+    const top = event.clientY - rect.top - size / 2;
+
+    ripple.style.position = 'absolute';
+    ripple.style.width = `${size}px`;
+    ripple.style.height = `${size}px`;
+    ripple.style.left = `${left}px`;
+    ripple.style.top = `${top}px`;
+    ripple.style.borderRadius = '999px';
+    ripple.style.pointerEvents = 'none';
+    ripple.style.background = 'rgba(255, 255, 255, 0.28)';
+    ripple.style.transform = 'scale(0)';
+    ripple.style.opacity = '1';
+
+    if (getComputedStyle(button).position === 'static') {
+        button.style.position = 'relative';
+    }
+    button.style.overflow = 'hidden';
+
+    button.appendChild(ripple);
+
+    gsap.to(ripple, {
+        scale: 2.2,
+        opacity: 0,
+        duration: 0.55,
+        ease: 'power2.out',
+        onComplete: () => ripple.remove()
+    });
 }
 
 /**
@@ -198,28 +243,6 @@ function validateFileInput(inputElement, allowedExtensions = [], maxSizeInMB = 5
 /**
  * Animation au défilement
  */
-function animateOnScroll() {
-    const elements = document.querySelectorAll('.feature-card, .incident-item, .step');
-    
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, {
-        threshold: 0.1
-    });
-    
-    elements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.6s, transform 0.6s';
-        observer.observe(el);
-    });
-}
-
 /**
  * Utilitaires pour les formulaires
  */
@@ -335,6 +358,3 @@ window.DenunciationApp = {
     DashboardUtils,
     APIClient
 };
-
-// Démarrer les animations au scroll
-animateOnScroll();
