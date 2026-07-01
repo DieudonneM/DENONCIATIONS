@@ -446,7 +446,7 @@
     --spacing-2xl: 4rem;
     
     /* Typographie */
-    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family: 'ui-sans-serif', system-ui, sans-serif;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
     --font-size-lg: 1.125rem;
@@ -544,15 +544,14 @@ a:hover {
    ============================================================================ */
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 var(--spacing-md);
+    max-width: 100%;
 }
 
-.main-content {
+
+/*.main-content {
     min-height: calc(100vh - 300px);
-    padding: var(--spacing-xl) 0;
-}
+    padding: var(--spacing-xl) 0;}*/
+
 
 /* ============================================================================
    NAVIGATION
@@ -569,7 +568,7 @@ a:hover {
     position: relative;
 }
 
-/* Bande colorée decorative */
+/* Bande colorée decorative 
 .navbar::after {
     content: '';
     position: absolute;
@@ -579,7 +578,7 @@ a:hover {
     height: 5px;
     background: linear-gradient(90deg, var(--accent-yellow) 0%, var(--primary-blue) 33%, var(--accent-red) 66%, var(--accent-yellow) 100%);
     z-index: 101;
-}
+}*/
 
 .navbar-container {
     max-width: 1200px;
@@ -762,18 +761,50 @@ a:hover {
     box-shadow: var(--shadow-lg);
 }
 
+
+/* ============================================================================
+   BANDES DRAPEAUS
+   ============================================================================ */
+.top-flag{
+    display: flex;
+    width: 100%;
+    height: 5px;
+}
+
+.top-flag div {
+  flex: 1; 
+}
+
+.top-flag-bleu {
+    background-color: #0095C9;
+    height: 5px;
+    width: 100%;
+}
+
+.top-flag-jaune {
+    background-color: #FCE00E;
+    height: 5px;
+    width: 100%;
+}
+
+.top-flag-rouge {
+    background-color: #CF1022;
+    height: 5px;
+    width: 100%;
+}
+
+
 /* ============================================================================
    SECTION HERO
    ============================================================================ */
 
-.hero {
+/*.hero {
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
     color: var(--white);
     padding: var(--spacing-2xl) var(--spacing-md);
     position: relative;
     overflow: hidden;
-    margin-top: 5px;
-}
+}*/
 
 .hero::before {
     content: '';
@@ -787,8 +818,8 @@ a:hover {
     z-index: 1;
 }
 
-.hero-container {
-    max-width: 1200px;
+/*.hero-container {
+    max-width: 100rem;
     margin: 0 auto;
     padding: 0 var(--spacing-md);
     display: grid;
@@ -797,7 +828,7 @@ a:hover {
     align-items: center;
     position: relative;
     z-index: 2;
-}
+}*/
 
 .hero-content h1 {
     font-size: 6.8rem;
@@ -824,7 +855,7 @@ a:hover {
     box-shadow: var(--shadow-lg);
 }
 
-/* Hero visual utilities for templates using inline backgrounds */
+/* Hero visual utilities for templates using inline backgrounds 
 .hero.hero-cover {
     background-position: center;
     background-size: cover;
@@ -833,11 +864,12 @@ a:hover {
     display: flex;
     align-items: center;
     padding: calc(var(--spacing-xl) / 1.2) 0;
-}
+}*/
 
 .hero-centered { text-align: center; color: var(--white); }
 .hero-title { font-size: 7.5rem; margin: 0; color: var(--accent-red); font-weight: 800; text-shadow: 2px 2px 6px rgba(0,0,0,0.25); }
 .hero-subtitle { font-size: 3.5rem; margin: 0; color: var(--accent-yellow); font-weight: 700; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+.hero-subtitle-alt { font-size: 3rem; color: var(--white); margin-top: 0.15rem; }
 .hero-lead { font-size: 1.2rem; margin-top: 1rem; color: rgba(255,255,255,0.95); }
 .pill-danger { font-size: 2rem; padding: 8px 18px; }
 .hero-cta { font-size: 1.15rem; padding: 14px 40px; display: inline-block; margin-top: 1.25rem; }
