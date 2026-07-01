@@ -10,26 +10,21 @@ Contient :
 """
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import View, TemplateView, ListView
+from django.views.generic import View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth import authenticate, login, logout
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.db.models import Q, Count
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 
 from users.models import User
 from .models import Province, Employeur
 from denunciations.models import Incident, Commentaire, PieceJointe
-from .forms import (
+from denunciations.forms import (
     IncidentForm, CommentaireForm, SearchIncidentForm, FilterIncidentForm
 )
-from .utils import (
-    generate_tracking_code, get_incidents_by_user_role,
-    get_incident_statistics_by_user, check_user_can_view_incident
-)
-from .auth_backends import user_is_agent, user_is_admin, user_is_travailleur
+from .utils import get_incidents_by_user_role, check_user_can_view_incident
+from users.auth_backends import user_is_agent, user_is_admin, user_is_travailleur
 
 
 # ============================================================================
