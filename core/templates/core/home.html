@@ -5,17 +5,38 @@
 
 {% block content %}
 
-<!-- Section Hero -->
-<section class="hero hero-cover" style="background-image: url('{% static 'img/Conver_complaints.png' %}');">
-    <div class="container">
-        <div class="hero-content hero-centered hero-content-relative">
-            <h1 class="hero-title" style="font-size: 6.5rem; color: red; margin-bottom: -30px;">STOP</h1>
-            <h2 class="hero-subtitle" style="font-size: 3.2rem; margin-bottom: -20px;">AUX ABUS</h2>
-            <h2 class="hero-subtitle text-white"style="font-size: 3.0rem; margin-bottom: -5px;">AU TRAVAIL</h2>
-            <h2 class="pill-danger">DENONCEZ</h2>
-            <p class="hero-lead">Vos meilleures conditions de travail, notre priorité.<br>Vision du Chef de l'Etat<br>SEM Félix Antoine TSHISEKEDI TSHILOMBO</p>
-            <div class="hero-buttons">
-                <a href="{% url 'core:incident_form' %}" class="btn btn-primary hero-cta">➜ DÉPOSER UNE DÉNONCIATION</a>
+<!-- Section Hero Premium (inspiration ARSP + ANAPI) -->
+<section class="premium-hero" x-data="heroCarousel()" x-init="start()">
+    <div class="premium-hero-bg" :style="`background-image: url('${backgrounds[currentIndex]}')`"></div>
+    <div class="premium-hero-overlay"></div>
+    <div class="premium-hero-vignette"></div>
+
+    <div class="premium-hero-inner container">
+        <div class="premium-hero-content">
+            <span class="premium-hero-kicker">Plateforme Officielle | MEPT-RDC</span>
+
+            <div class="premium-hero-title-wrap">
+                <template x-for="(slide, index) in slides" :key="index">
+                    <article class="premium-hero-slide" :class="{ 'is-active': currentIndex === index }" aria-live="polite">
+                        <h1 class="premium-hero-title" x-html="slide.title"></h1>
+                        <p class="premium-hero-desc" x-text="slide.description"></p>
+                    </article>
+                </template>
+            </div>
+
+            <div class="premium-hero-actions">
+                <a href="{% url 'core:incident_form' %}" class="btn btn-primary btn-large">Deposer une denonciation</a>
+                <div class="premium-hero-dots">
+                    <template x-for="(slide, index) in slides" :key="`dot-${index}`">
+                        <button
+                            type="button"
+                            class="premium-hero-dot"
+                            :class="{ 'is-active': currentIndex === index }"
+                            :aria-label="`Aller a la slide ${index + 1}`"
+                            @click="goTo(index)">
+                        </button>
+                    </template>
+                </div>
             </div>
         </div>
     </div>
@@ -133,5 +154,54 @@
     </div>
 </section>
 
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('heroCarousel', () => ({
+        currentIndex: 0,
+        timer: null,
+        interval: 6500,
+        backgrounds: [
+            "{% static 'img/Conver_complaints.png' %}",
+            "{% static 'img/Conver_complaints.png' %}",
+            "{% static 'img/Conver_complaints.png' %}"
+        ],
+        slides: [
+            {
+                title: "STOP <em>AUX ABUS</em><br>AU TRAVAIL",
+                description: "Signalez les violations en toute confidentialite. Votre voix contribue a un environnement professionnel plus juste et plus securise."
+            },
+            {
+                title: "DENONCEZ <em>AVEC CONFIANCE</em>",
+                description: "Soumission guidee, preuves jointes et suivi transparent de votre dossier a chaque etape."
+            },
+            {
+                title: "VOS DROITS <em>NOTRE PRIORITE</em>",
+                description: "Une plateforme moderne au service des travailleurs, en ligne avec la vision de modernisation des services publics."
+            }
+        ],
+        start() {
+            this.stop();
+            this.timer = setInterval(() => this.next(), this.interval);
+        },
+        stop() {
+            if (this.timer) {
+                clearInterval(this.timer);
+                this.timer = null;
+            }
+        },
+        next() {
+            this.currentIndex = (this.currentIndex + 1) % this.slides.length;
+        },
+        goTo(index) {
+            this.currentIndex = index;
+            this.start();
+        }
+    }));
+});
+</script>
 {% endblock %}
 
