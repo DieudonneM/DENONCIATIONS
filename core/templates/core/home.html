@@ -153,8 +153,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const heroBackgrounds = [
         "{% static 'img/Conver_complaints.png' %}",
-        "{% static 'img/Conver_complaints.png' %}",
-        "{% static 'img/Conver_complaints.png' %}"
+        "{% static 'img/Conver_complaints_2.png' %}",
+        "{% static 'img/Conver_complaints_3.png' %}"
     ];
 
     const heroSlides = [
@@ -220,25 +220,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const timeline = gsap.timeline();
         timeline
+            // fade out current text quickly
             .to([heroTitle, heroDesc], {
                 opacity: 0,
                 y: -22,
-                duration: 0.45,
+                duration: 0.4,
                 ease: 'power2.inOut'
             })
+            // swap content (background image + text) immediately after fade-out
             .add(() => setHeroContent(index))
-            .fromTo(heroBg,
-                { scale: 1.03 },
-                { scale: 1.09, duration: 4.2, ease: 'power1.out', overwrite: true },
-                '<'
-            )
+            // fade in new text immediately and quickly (400ms)
             .to([heroTitle, heroDesc], {
                 opacity: 1,
                 y: 0,
-                duration: 0.65,
+                duration: 0.4,
                 stagger: 0.08,
                 ease: 'power3.out'
-            });
+            }, '<');
     }
 
     function nextHero() {
@@ -247,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function restartLoop() {
         clearInterval(changeTimer);
-        changeTimer = setInterval(nextHero, 4000);
+        changeTimer = setInterval(nextHero, 8000);
     }
 
     renderDots();
