@@ -6,44 +6,31 @@
 {% block content %}
 
 <!-- Section Hero Premium (inspiration ARSP + ANAPI) -->
-<section class="premium-hero" x-data="heroCarousel()" x-init="start()">
-    <div class="premium-hero-bg" :style="`background-image: url('${backgrounds[currentIndex]}')`"></div>
-    <div class="premium-hero-overlay"></div>
-    <div class="premium-hero-vignette"></div>
 
-    <div class="premium-hero-inner container">
-        <div class="premium-hero-content">
-            <span class="premium-hero-kicker">Plateforme Officielle | MEPT-RDC</span>
+<section id="hero-banner" class="reveal relative w-full left-0 right-0 overflow-hidden min-h-screen bg-slate-950">
+    <div id="hero-bg" class="absolute inset-0 bg-cover bg-center will-change-transform" style="background-image: url('{% static 'img/Conver_complaints.png' %}');"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(115deg,rgba(4,16,38,0.86)_0%,rgba(9,35,80,0.78)_40%,rgba(9,35,80,0.46)_65%,rgba(10,18,32,0.82)_100%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_30%,rgba(255,215,0,0.18),transparent_36%)]"></div>
 
-            <div class="premium-hero-title-wrap">
-                <template x-for="(slide, index) in slides" :key="index">
-                    <article class="premium-hero-slide" :class="{ 'is-active': currentIndex === index }" aria-live="polite">
-                        <h1 class="premium-hero-title" x-html="slide.title"></h1>
-                        <p class="premium-hero-desc" x-text="slide.description"></p>
-                    </article>
-                </template>
+    <div class="relative z-10 flex w-full min-h-screen items-center justify-center px-0 py-12">
+        <div class="w-full max-w-4xl text-center px-6">
+            <span class="mb-5 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[0.72rem] font-medium uppercase tracking-[0.24em] text-white/90 sm:text-xs">Plateforme officielle | MEPT-RDC</span>
+            <div class="overflow-hidden">
+                <h1 id="hero-title" class="max-w-4xl text-4xl font-extrabold uppercase leading-[0.92] tracking-[-0.04em] text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.6rem]"></h1>
             </div>
-
-            <div class="premium-hero-actions">
-                <a href="{% url 'core:incident_form' %}" class="btn btn-primary btn-large">Deposer une denonciation</a>
-                <div class="premium-hero-dots">
-                    <template x-for="(slide, index) in slides" :key="`dot-${index}`">
-                        <button
-                            type="button"
-                            class="premium-hero-dot"
-                            :class="{ 'is-active': currentIndex === index }"
-                            :aria-label="`Aller a la slide ${index + 1}`"
-                            @click="goTo(index)">
-                        </button>
-                    </template>
-                </div>
+            <div class="overflow-hidden">
+                <p id="hero-desc" class="mt-6 mx-auto max-w-2xl text-center text-base leading-7 text-white/90 sm:text-lg sm:leading-8 md:text-xl"></p>
+            </div>
+            <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row justify-center">
+                <a href="{% url 'core:incident_form' %}" class="inline-flex items-center justify-center rounded-full bg-[#ffd700] px-7 py-4 text-sm font-bold uppercase tracking-[0.16em] text-slate-950 transition duration-300 hover:-translate-y-0.5 hover:bg-[#ffe45a] focus:outline-none focus:ring-4 focus:ring-[#ffd700]/40">Déposer une dénonciation</a>
+                <div id="hero-dots" class="flex items-center gap-2"></div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Section Mot Du Ministre -->
-<section class="section-mot-ministre">
+<section class="section-mot-ministre reveal">
   <h2 class="titre-section">Mot du Ministre</h2>
   <div class="container-bas">
     <div class="partie-profil">
@@ -75,25 +62,25 @@
 
 
 <!-- Section Comment Déposer -->
-<section class="section-steps">
+<section class="section-steps reveal">
     <div class="container">
         <h2>COMMENT DÉNONCER UN ABUS ?</h2>
         <div class="steps-container">
             <!-- Étape 1 -->
-            <div class="step">
+            <div class="step reveal">
                 <div class="step-icon"><span class="material-icons">account_circle</span></div>
                 <h3>Enregistrement / Connexion</h3>
                 <p>Enregistrez-vous ou connectez-vous avec vos coordonnées pour accéder à votre compte.</p>
             </div>
             <!-- Étape 2 -->
-            <div class="step">
+            <div class="step reveal">
                 <!--<div class="step-icon">📋</div>-->
                 <div class="step-icon"><span class="material-icons">assignment</span></div>
                 <h3>Remplir le formulaire</h3>
                 <p>En remplissant votre dénonciation, vous pouvez choisir l'anonymat si vous le souhaitez.</p>
             </div>
             <!-- Étape 3 -->
-            <div class="step">
+            <div class="step reveal">
                 <div class="step-icon"><span class="material-icons">fact_check</span></div>
                 <h3>Restez informé</h3>
                 <p>Suivez le niveau d'avancement de votre dénonciation.</p>
@@ -103,13 +90,13 @@
 </section>
 
 <!-- Section Informations -->
-<section class="section-form section-padded section-muted">
+<section class="section-form section-padded section-muted reveal">
     <div class="container">
         <h2 class="text-center section-subtitle">DÉPOSER UNE DÉNONCIATION RAPIDE</h2>
 
         <!-- Preview du formulaire avec lien vers la page complète -->
         <div class="max-w-900">
-            <div class="card">
+            <div class="card reveal">
                 <p class="text-center muted mb-4">Signalez rapidement une violation des droits du travail. Le formulaire complet vous permet de fournir tous les détails nécessaires à une enquête approfondie.</p>
 
                 <!-- Mini formulaire de preview -->
@@ -146,7 +133,7 @@
 </section>
 
 <!-- Section CTA -->
-<section class="section-cta">
+<section class="section-cta reveal">
     <div class="container text-center">
         <h2 class="section-subtitle">Besoin d'aide?</h2>
         <p class="small mb-4">Contactez-nous pour toute question concernant votre dénonciation.</p>
@@ -157,50 +144,128 @@
 {% endblock %}
 
 {% block extra_js %}
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('heroCarousel', () => ({
-        currentIndex: 0,
-        timer: null,
-        interval: 6500,
-        backgrounds: [
-            "{% static 'img/Conver_complaints.png' %}",
-            "{% static 'img/Conver_complaints.png' %}",
-            "{% static 'img/Conver_complaints.png' %}"
-        ],
-        slides: [
-            {
-                title: "STOP <em>AUX ABUS</em><br>AU TRAVAIL",
-                description: "Signalez les violations en toute confidentialite. Votre voix contribue a un environnement professionnel plus juste et plus securise."
-            },
-            {
-                title: "DENONCEZ <em>AVEC CONFIANCE</em>",
-                description: "Soumission guidee, preuves jointes et suivi transparent de votre dossier a chaque etape."
-            },
-            {
-                title: "VOS DROITS <em>NOTRE PRIORITE</em>",
-                description: "Une plateforme moderne au service des travailleurs, en ligne avec la vision de modernisation des services publics."
-            }
-        ],
-        start() {
-            this.stop();
-            this.timer = setInterval(() => this.next(), this.interval);
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.gsap) {
+        return;
+    }
+
+    const heroBackgrounds = [
+        "{% static 'img/Conver_complaints.png' %}",
+        "{% static 'img/Conver_complaints.png' %}",
+        "{% static 'img/Conver_complaints.png' %}"
+    ];
+
+    const heroSlides = [
+        {
+            title: "STOP AUX ABUS AU TRAVAIL",
+            highlight: "AUX ABUS",
+            description: "Signalez les violations des droits du travail en toute confidentialité et contribuez à un cadre professionnel plus juste, plus sûr et plus responsable."
         },
-        stop() {
-            if (this.timer) {
-                clearInterval(this.timer);
-                this.timer = null;
-            }
+        {
+            title: "DÉNONCEZ AVEC CONFIANCE",
+            highlight: "AVEC CONFIANCE",
+            description: "Déposez votre signalement, joignez vos preuves et suivez l’évolution de votre dossier avec une expérience numérique claire et professionnelle."
         },
-        next() {
-            this.currentIndex = (this.currentIndex + 1) % this.slides.length;
-        },
-        goTo(index) {
-            this.currentIndex = index;
-            this.start();
+        {
+            title: "VOS DROITS, NOTRE PRIORITÉ",
+            highlight: "NOTRE PRIORITÉ",
+            description: "Le Ministère modernise l’accès au signalement pour protéger les travailleurs, accélérer les traitements et renforcer la confiance institutionnelle."
         }
-    }));
+    ];
+
+    const heroBg = document.getElementById('hero-bg');
+    const heroTitle = document.getElementById('hero-title');
+    const heroDesc = document.getElementById('hero-desc');
+    const heroDots = document.getElementById('hero-dots');
+    let activeIndex = 0;
+    let changeTimer = null;
+
+    function renderDots() {
+        heroDots.innerHTML = '';
+        heroSlides.forEach((_, index) => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'h-2.5 w-2.5 rounded-full border border-white/50 transition-all duration-300';
+            dot.setAttribute('aria-label', `Aller à la diapositive ${index + 1}`);
+            dot.addEventListener('click', () => {
+                updateHero(index);
+                restartLoop();
+            });
+            heroDots.appendChild(dot);
+        });
+    }
+
+    function updateDots(index) {
+        [...heroDots.children].forEach((dot, dotIndex) => {
+            dot.classList.toggle('bg-[#ffd700]', dotIndex === index);
+            dot.classList.toggle('border-[#ffd700]', dotIndex === index);
+            dot.classList.toggle('scale-125', dotIndex === index);
+            dot.classList.toggle('bg-transparent', dotIndex !== index);
+        });
+    }
+
+    function setHeroContent(index) {
+        const slide = heroSlides[index];
+        const highlightedTitle = slide.title.replace(slide.highlight, `<span class="text-[#ffd700]">${slide.highlight}</span>`);
+        heroTitle.innerHTML = highlightedTitle;
+        heroDesc.textContent = slide.description;
+        heroBg.style.backgroundImage = `url('${heroBackgrounds[index]}')`;
+        updateDots(index);
+    }
+
+    function updateHero(index) {
+        activeIndex = index;
+
+        const timeline = gsap.timeline();
+        timeline
+            .to([heroTitle, heroDesc], {
+                opacity: 0,
+                y: -22,
+                duration: 0.45,
+                ease: 'power2.inOut'
+            })
+            .add(() => setHeroContent(index))
+            .fromTo(heroBg,
+                { scale: 1.03 },
+                { scale: 1.09, duration: 4.2, ease: 'power1.out', overwrite: true },
+                '<'
+            )
+            .to([heroTitle, heroDesc], {
+                opacity: 1,
+                y: 0,
+                duration: 0.65,
+                stagger: 0.08,
+                ease: 'power3.out'
+            });
+    }
+
+    function nextHero() {
+        updateHero((activeIndex + 1) % heroSlides.length);
+    }
+
+    function restartLoop() {
+        clearInterval(changeTimer);
+        changeTimer = setInterval(nextHero, 4000);
+    }
+
+    renderDots();
+    setHeroContent(0);
+    gsap.to(heroBg, {
+        scale: 1.12,
+        duration: 18,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+    });
+    gsap.from([heroTitle, heroDesc], {
+        opacity: 0,
+        y: 26,
+        duration: 0.9,
+        stagger: 0.1,
+        ease: 'power3.out'
+    });
+    restartLoop();
 });
 </script>
 {% endblock %}

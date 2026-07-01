@@ -6,9 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Plateforme Nationale de Dépôt et Suivi des Dénonciations pour les Travailleurs - RDC">
     <title>{% block title %}Gestion des Dénonciations - Plateforme Nationale{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.png' %}">
+    <style>
+        body, h1, h2, h3, h4, h5, h6, p, a, button, input, select, textarea {
+            font-family: 'Rubik', sans-serif;
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -46,6 +55,11 @@
             </ul>
         </div>
     </nav>
+    <div class="barre-tricolore">
+        <div class="section-bleue"></div>
+        <div class="section-jaune"></div>
+        <div class="section-rouge"></div>
+    </div>
 
     <!-- Messages -->
     {% if messages %}
@@ -125,13 +139,10 @@
         </div>
     </footer>
 
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
     <script src="{% static 'js/main.js' %}"></script>
-    <script>
-        // Menu mobile toggle
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            document.getElementById('navMenu').classList.toggle('active');
-        });
-    </script>
+    <script src="{% static 'js/animations.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

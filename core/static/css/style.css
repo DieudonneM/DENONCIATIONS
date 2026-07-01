@@ -79,7 +79,7 @@ body {
     line-height: var(--line-height-body);
     letter-spacing: 0.01em;
     color: var(--gray-dark);
-    background-color: var(--gray-lighter);
+    background-color: var(--white);
 }
 
 button,
@@ -378,7 +378,7 @@ a:hover {
     position: relative;
 }
 
-/* Bande colorée decorative */
+/* Bande colorée decorative 
 .navbar::after {
     content: '';
     position: absolute;
@@ -388,7 +388,7 @@ a:hover {
     height: 5px;
     background: linear-gradient(90deg, var(--accent-yellow) 0%, var(--primary-blue) 33%, var(--accent-red) 66%, var(--accent-yellow) 100%);
     z-index: 101;
-}
+}*/
 
 .navbar-container {
     max-width: 1200px;
@@ -470,6 +470,29 @@ a:hover {
 .navbar-menu a:hover {
     opacity: 0.8;
     text-decoration: none;
+}
+
+.barre-tricolore {
+  display: flex;
+  width: 100%;
+  height: 5px; /* Ajustez l'épaisseur de la ligne ici */
+}
+
+/* On divise équitablement les 3 couleurs (1/3 chacune) */
+.barre-tricolore div {
+  flex: 1; 
+}
+
+.section-bleue {
+  background-color: #00a4e4; /* Bleu ciel officiel */
+}
+
+.section-jaune {
+  background-color: #fdd100; /* Jaune officiel */
+}
+
+.section-rouge {
+  background-color: #ce1126; /* Rouge officiel */
 }
 
 .menu-toggle {
@@ -660,6 +683,26 @@ a:hover {
     .hero-lead { font-size: 1.4rem; }
     .hero-cta { font-size: 1.6rem; padding: 16px 48px; }
 }
+
+/* Force hero section to full-bleed inside centered container */
+#hero-banner {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    box-sizing: border-box;
+}
+
+/* Remove the vertical padding added by .main-content around the hero only */
+#hero-banner {
+    margin-top: calc(-1 * var(--spacing-xl));
+    margin-bottom: calc(-1 * var(--spacing-xl));
+}
+
+/* Ensure the hero inner content keeps its own padding and stays centered */
+#hero-banner > .relative { padding-left: 0; padding-right: 0; }
 
 @media (max-width: 900px) {
     .hero-title { font-size: 7.6rem; }
@@ -859,83 +902,161 @@ a:hover {
 
 /* ============================================================================
     PAGE: core/home.html
-    Bloc: Étapes de dénonciation
+    Bloc: Étapes de dénonciation (look inspired by anapi.cd .e-con-inner)
     ============================================================================ */
 
 .section-steps {
-    background-color: var(--white);
-    padding: var(--spacing-2xl) var(--spacing-md);
+    background: linear-gradient(180deg, #f8fbfe 0%, #ffffff 100%);
+    padding: 72px 0 84px;
+}
+
+.section-steps .container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 0 16px;
 }
 
 .section-steps h2 {
     text-align: center;
-    margin-bottom: var(--spacing-2xl);
+    margin-bottom: 34px;
     position: relative;
-    padding-bottom: var(--spacing-md);
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-extrabold);
+    color: #06123a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .section-steps h2::after {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 100px;
+    width: 120px;
     height: 4px;
-    background-color: var(--accent-yellow);
-    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent-yellow), var(--primary-blue));
+    border-radius: 4px;
 }
 
 .steps-container {
-    max-width: 1200px;
-    margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-xl);
-    padding: 0 var(--spacing-md);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    align-items: stretch;
 }
 
 .step {
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(11, 34, 68, 0.06);
+    transition: transform 420ms cubic-bezier(.22,.65,.33,1), box-shadow 420ms, background 420ms, color 420ms;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    padding: var(--spacing-lg);
-    background-color: var(--light-gray);
-    border-radius: var(--border-radius);
-    transition: all 0.3s ease;
+    min-height: 220px;
+}
+
+.step::before {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 22px;
+    right: 22px;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(255,215,0,0.95), rgba(19,66,148,0.95));
+    border-radius: 4px;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 420ms cubic-bezier(.22,.65,.33,1), opacity 420ms;
+    pointer-events: none;
+    opacity: 0.95;
 }
 
 .step:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-5px);
-    background-color: var(--white);
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 18px 42px rgba(11, 34, 68, 0.12);
+    background: linear-gradient(180deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
+    color: #ffffff;
 }
 
+.step:hover::before {
+    transform: scaleX(1);
+    opacity: 0.08;
+}
+
+.step:hover h3,
+.step:hover .step h3,
+.step:hover .step h2 {
+    color: var(--accent-yellow);
+}
+
+.step:hover p {
+    color: rgba(255,255,255,0.92);
+}
+
+.step:hover .step-icon {
+    background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
+    border-color: rgba(255,255,255,0.06);
+}
+
+.step:hover .step-icon .material-icons { color: var(--accent-yellow); }
+
+
+
 .step-icon {
-    width: 90px;
-    height: 90px;
-    margin: 0 auto var(--spacing-lg);
-    background-color: var(--primary-blue);
+    width: 78px;
+    height: 78px;
+    margin-bottom: 18px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
-    color: var(--white);
+    background: var(--primary-blue);
+    border: 2px solid rgba(0,0,0,0.06);
+    color: #ffffff;
+    font-size: 36px;
+    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.06);
+    transition: transform 420ms cubic-bezier(.22,.65,.33,1), box-shadow 420ms, background 420ms, border-color 420ms;
 }
 
-.step-icon .material-icons{
-    font-size: 50px;
-    color: var(--white);
+.step-icon .material-icons { font-size: 34px; color: #ffffff; transition: color 420ms; }
+
+.step:hover .step-icon {
+    transform: translateY(-6px) scale(1.04);
+    box-shadow: 0 10px 30px rgba(11,34,68,0.12);
+    background: linear-gradient(135deg, var(--primary-blue), rgba(19,66,148,0.85));
+    border-color: transparent;
 }
+
+.step:hover .step-icon .material-icons { color: #fff; }
 
 .step h3 {
-    margin-bottom: var(--spacing-sm);
+    margin: 0 0 8px;
     color: var(--primary-blue);
+    font-size: 1.05rem;
+    font-weight: 700;
 }
 
 .step p {
-    font-size: var(--font-size-sm);
-    color: var(--gray);
-    line-height: 1.5;
+    margin: 0;
+    color: #475569;
+    font-size: 0.98rem;
+    line-height: 1.6;
+}
+
+@media (max-width: 1000px) {
+    .steps-container { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+    .section-steps { padding: 48px 0; }
+    .steps-container { grid-template-columns: 1fr; gap: 18px; }
+    .step { min-height: auto; padding: 20px; }
 }
 
 /* ============================================================================
@@ -1929,6 +2050,8 @@ table {
 .admin-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
 .mx-2 { margin: 0 10px; display: inline-block; }
 .d-inline { display: inline; }
+.gpu-smooth { transform: translateZ(0); will-change: transform, opacity; backface-visibility: hidden; }
+.interactive-surface { transition: transform 0.25s ease, box-shadow 0.25s ease; }
 
 /* Provinces assignment grid */
 .grid-provinces { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
