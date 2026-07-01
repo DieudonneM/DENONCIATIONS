@@ -341,8 +341,9 @@ a:hover {
 }
 
 /* ============================================================================
-   SECTION HERO
-   ============================================================================ */
+    PAGE: core/home.html
+    Bloc: Hero principal
+    ============================================================================ */
 
 .hero {
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
@@ -449,10 +450,9 @@ a:hover {
 }
 
 /* ============================================================================
-     SECTION MOT DU MINISTRE (améliorée, responsive)
-     - Fournit des alias de classes pour compatibilité avec templates
-     - Design moderne : carte blanche, ombre douce, image profil mise en valeur
-     ============================================================================ */
+    PAGE: core/mot_ministre.html
+    Bloc: Section Mot du Ministre (responsive)
+    ============================================================================ */
 
 .section-mot-ministre {
         background-color: #FAFBFD;
@@ -626,8 +626,9 @@ a:hover {
 
 
 /* ============================================================================
-   SECTION ÉTAPES
-   ============================================================================ */
+    PAGE: core/home.html
+    Bloc: Étapes de dénonciation
+    ============================================================================ */
 
 .section-steps {
     background-color: var(--white);
@@ -706,8 +707,9 @@ a:hover {
 }
 
 /* ============================================================================
-   SECTION FORMULAIRE
-   ============================================================================ */
+    PAGE: core/form_denonciation.html
+    Bloc: Formulaire de dénonciation
+    ============================================================================ */
 
 .section-form {
     background-color: var(--light-gray);
@@ -1033,8 +1035,9 @@ a:hover {
 }
 
 /* ============================================================================
-   PAGE DE SUCCÈS
-   ============================================================================ */
+    PAGE: core/page_succes.html
+    Bloc: Confirmation après soumission
+    ============================================================================ */
 
 .success-container {
     display: flex;
@@ -1503,6 +1506,11 @@ table {
 .alert-error { background: #ffebee; color: #c62828; border-left-color: #f44336; }
 .alert-info { background: #e3f2fd; color: #1565c0; border-left-color: #2196F3; }
 
+/* ============================================================================
+    PAGE: core/contact.html
+    Bloc: Header et formulaire de contact
+    ============================================================================ */
+
 .contact-hero {
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
     color: white;
@@ -1653,6 +1661,11 @@ table {
     }
 }
 
+/* ============================================================================
+    PAGES: core/admin/*.html
+    Bloc: Composants admin partagés
+    ============================================================================ */
+
 /* Admin dashboard metric panels */
 .admin-metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
 .admin-metric { padding: 1.5rem; border-radius: 8px; }
@@ -1695,3 +1708,344 @@ table {
     margin-left: 2.3rem;
     color: #999;
 }
+
+/* ============================================================================
+   PAGE: core/dashboard_admin.html
+   Début des styles spécifiques Dashboard Administrateur
+   ============================================================================ */
+
+.admin-dashboard {
+    background: #f5f7fa;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.admin-dashboard .dashboard-header {
+    margin-bottom: 3rem;
+}
+
+.admin-dashboard .dashboard-header h1 {
+    color: #001f3f;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.admin-dashboard .dashboard-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.admin-dashboard .stats-section {
+    margin-bottom: 4rem;
+}
+
+.admin-dashboard .section-title {
+    font-size: 1.5rem;
+    color: #001f3f;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    border-bottom: 3px solid #001f3f;
+    padding-bottom: 0.75rem;
+}
+
+.admin-dashboard .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.admin-dashboard .stat-card {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 5px solid #001f3f;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-dashboard .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.admin-dashboard .stat-card.stat-nouvelle {
+    border-left-color: #2196f3;
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.05), transparent);
+}
+
+.admin-dashboard .stat-card.stat-analyse {
+    border-left-color: #ff9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.05), transparent);
+}
+
+.admin-dashboard .stat-card.stat-attente {
+    border-left-color: #9c27b0;
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.05), transparent);
+}
+
+.admin-dashboard .stat-card.stat-resolue {
+    border-left-color: #4caf50;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.05), transparent);
+}
+
+.admin-dashboard .stat-card.stat-classee,
+.admin-dashboard .stat-card.stat-classée {
+    border-left-color: #757575;
+    background: linear-gradient(135deg, rgba(117, 117, 117, 0.05), transparent);
+}
+
+.admin-dashboard .stat-value {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #001f3f;
+    margin: 0.5rem 0;
+}
+
+.admin-dashboard .stat-label {
+    color: #666;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.admin-dashboard .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.admin-dashboard .management-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.admin-dashboard .management-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.admin-dashboard .management-header {
+    background: linear-gradient(135deg, #001f3f, #003d66);
+    color: #fff;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-dashboard .management-header h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.admin-dashboard .management-header .count {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.admin-dashboard .management-body {
+    padding: 1.5rem;
+}
+
+.admin-dashboard .item-list {
+    list-style: none;
+}
+
+.admin-dashboard .item-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-dashboard .item-list li:last-child {
+    border-bottom: none;
+}
+
+.admin-dashboard .item-name {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.admin-dashboard .item-meta {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.admin-dashboard .btn-manage {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background: #001f3f;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+
+.admin-dashboard .btn-manage:hover {
+    background: #003d66;
+    transform: translateX(2px);
+}
+
+.admin-dashboard .btn-manage.secondary {
+    background: #666;
+}
+
+.admin-dashboard .btn-manage.secondary:hover {
+    background: #555;
+}
+
+.admin-dashboard .management-footer {
+    padding: 1rem 1.5rem;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+.admin-dashboard .management-footer a {
+    color: #001f3f;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.admin-dashboard .management-footer a:hover {
+    text-decoration: underline;
+}
+
+.admin-dashboard .incidents-section {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.admin-dashboard .incidents-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-dashboard .incidents-header h3 {
+    color: #001f3f;
+    font-size: 1.3rem;
+}
+
+.admin-dashboard .incident-list-table {
+    width: 100%;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    border: 1px solid #e6eff8;
+    background: #fff;
+    box-shadow: 0 16px 30px rgba(23, 56, 101, 0.06);
+}
+
+.admin-dashboard .incident-list-header,
+.admin-dashboard .incident-list-row {
+    display: grid;
+    grid-template-columns: 2fr 2fr 2fr 1.5fr 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.5rem;
+}
+
+.admin-dashboard .incident-list-header {
+    background: #f5f8ff;
+    font-weight: 700;
+    color: #1d3e6f;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.admin-dashboard .incident-list-row {
+    border-top: 1px solid #eef3fb;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.admin-dashboard .incident-list-row:hover {
+    background: #f7fbff;
+    transform: translateY(-1px);
+}
+
+.admin-dashboard .incident-list-row.unassigned {
+    background: #fff8e7;
+}
+
+.admin-dashboard .incident-list-cell {
+    color: #33475b;
+    font-size: 0.95rem;
+}
+
+.admin-dashboard .incident-list-cell.type {
+    font-weight: 600;
+    color: #1d3e6f;
+}
+
+.admin-dashboard .incident-code {
+    color: #134294;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.admin-dashboard .incident-code:hover {
+    text-decoration: underline;
+}
+
+.admin-dashboard .incident-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.admin-dashboard .incident-actions .btn-manage {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .admin-dashboard .stat-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .admin-dashboard .stat-value {
+        font-size: 2rem;
+    }
+
+    .admin-dashboard .management-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-dashboard .incident-list-header,
+    .admin-dashboard .incident-list-row {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+    }
+
+    .admin-dashboard .incident-actions {
+        justify-content: flex-start;
+    }
+}
+
+/* ============================================================================
+   PAGE: core/dashboard_admin.html
+   Fin des styles spécifiques Dashboard Administrateur
+   ============================================================================ */
