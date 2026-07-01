@@ -179,7 +179,7 @@
 
         <!-- Actions -->
         <div class="detail-actions">
-            <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">Retour au dashboard</a>
+            <a href="{% url 'core:dashboard_stats' %}" class="btn btn-secondary">Retour au dashboard</a>
             {% if user_is_admin %}
                 <a href="{% url 'core:incident_detail' incident.code_suivi %}#status-form" class="btn btn-secondary">
                     Modifier le statut

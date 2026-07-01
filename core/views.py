@@ -260,6 +260,128 @@ class DashboardAdminView(LoginRequiredMixin, TemplateView):
         return context
 
 
+class DashboardStatsView(LoginRequiredMixin, TemplateView):
+    """Nouvelle page Statistiques (Tableau de Bord)."""
+    template_name = 'core/dashboard_stats.html'
+    login_url = 'users:login'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('users:login')
+        if not user_is_admin(request.user):
+            return redirect('core:dashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        incidents = Incident.objects.all()
+        # basic lists for filters
+        context['provinces'] = list(Province.objects.values('id', 'nom'))
+        context['types'] = list(Incident.objects.values_list('type_incident', flat=True).distinct())
+        context['secteurs'] = list(Employeur.objects.values_list('secteur', flat=True).distinct())
+        # initial stats
+        context['stats'] = {
+            'total': incidents.count(),
+            'resolu': incidents.filter(statut='resolue').count(),
+            'non_lue': incidents.filter(est_lu=False).count(),
+            'en_cours': incidents.filter(statut='analyse').count(),
+        }
+        return context
+
+
+class DashboardAdminConsoleView(LoginRequiredMixin, TemplateView):
+    """Administration globale (gestion & actions)."""
+    template_name = 'core/dashboard_admin.html'
+    login_url = 'users:login'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('users:login')
+        if not user_is_admin(request.user):
+            return redirect('core:dashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # reuse some data
+        context['total_users'] = User.objects.count()
+        context['total_provinces'] = Province.objects.count()
+        context['total_employeurs'] = Employeur.objects.count()
+        return context
+
+
+def dashboard_stats_data(request):
+    """Endpoint JSON pour récupérer KPIs et datasets filtrés via AJAX."""
+    if not request.user.is_authenticated or not user_is_admin(request.user):
+        return JsonResponse({'error': 'unauthorized'}, status=403)
+
+    status = request.GET.get('status')
+    province = request.GET.get('province')
+    secteur = request.GET.get('secteur')
+    incident_type = request.GET.get('type')
+
+    qs = Incident.objects.all()
+    if status:
+        qs = qs.filter(statut=status)
+    if province:
+        qs = qs.filter(province__id=province)
+    if secteur:
+        qs = qs.filter(employeur__secteur=secteur)
+    if incident_type:
+        qs = qs.filter(type_incident=incident_type)
+
+    # KPIs
+    data = {
+        'kpis': {
+            'total': Incident.objects.count(),
+            'resolu': Incident.objects.filter(statut='resolue').count(),
+            'non_lue': Incident.objects.filter(est_lu=False).count(),
+            'en_cours': Incident.objects.filter(statut='analyse').count(),
+            'anonyme': Incident.objects.filter(est_anonyme=True).count(),
+        }
+    }
+
+    # Chart 1: évolution (group by date)
+    evolution = (
+        qs.extra({'day': "date(date_creation)"})
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+    data['evolution'] = [{'day': e['day'].isoformat() if hasattr(e['day'], 'isoformat') else str(e['day']), 'count': e['count']} for e in evolution]
+
+    # Chart 2: type counts
+    types = (
+        qs.values('type_incident')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    data['types'] = list(types)
+
+    # Chart 3: top 8 provinces
+    provinces = (
+        qs.values('province__nom')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:8]
+    )
+    data['provinces'] = list(provinces)
+
+    # Chart 4: repartition identification (anonyme vs identifié)
+    identified = qs.filter(est_anonyme=False).count()
+    anonymous = qs.filter(est_anonyme=True).count()
+    data['identification'] = {'identified': identified, 'anonymous': anonymous}
+
+    # Chart 5: repartition par secteur (barres verticales)
+    secteurs_qs = (
+        qs.values('employeur__secteur')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    data['secteurs'] = list(secteurs_qs)
+
+    return JsonResponse(data, safe=False)
+
+
 class DashboardAgentView(LoginRequiredMixin, TemplateView):
     """Dashboard agent (vue par province)."""
     

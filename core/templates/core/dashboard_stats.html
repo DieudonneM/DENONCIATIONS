@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Statistiques - Tableau de Bord{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Basic layout for dashboard stats */
+.container > #dashboard-fullbleed { padding: 0; }
+#dashboard-fullbleed { position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; width: 100vw; box-sizing: border-box; }
+.dashboard-wrap { display:flex; gap:24px; align-items:flex-start; }
+.sidebar { width: 260px; background:#0d2e5e; color:#fff; padding:20px; border-radius:8px; min-height:80vh; }
+.sidebar .brand-btn { display:block; background:#ffd700; color:#07203b; text-align:center; padding:10px; border-radius:8px; font-weight:700; margin-bottom:18px; text-decoration:none; }
+.topbar { display:flex; justify-content:space-between; align-items:center; padding:12px 0; }
+.topbar .right-btn { background:#ffd700; color:#07203b; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:700; }
+.content { flex:1; }
+.kpis { display:flex; gap:16px; margin-bottom:18px; }
+.kpi { background:#fff; padding:16px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); cursor:pointer; flex:1; text-align:center; }
+.kpi .value { font-size:1.8rem; font-weight:800; color:#0d2e5e; }
+.filters label { display:block; margin-top:10px; font-weight:600; font-size:0.95rem; }
+.filters select { width:100%; padding:8px; border-radius:6px; border:1px solid #ddd; margin-top:6px; }
+.charts-grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+.chart-card { background:#fff; padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+@media (max-width:900px){ .charts-grid{ grid-template-columns:1fr; } .sidebar{display:none;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <h2>Tableau de Bord — Statistiques</h2>
+    <div>
+        <a href="{% url 'core:dashboard_admin' %}" class="right-btn">Console d'Administration</a>
+        <a href="{% url 'core:dashboard_admin' %}" class="right-btn" style="margin-left:8px;">Tableau Admin</a>
+    </div>
+</div>
+
+<!-- Full-bleed wrapper to cancel base .container padding/margins -->
+<div id="dashboard-fullbleed">
+<div class="dashboard-wrap">
+    <aside class="sidebar">
+        <a href="{% url 'core:dashboard_admin' %}" class="brand-btn">Console d'Administration</a>
+        <div class="filters">
+            <label for="filter-status">Status</label>
+            <select id="filter-status"><option value="">Tous</option><option value="nouvelle">Nouvelle</option><option value="analyse">En Analyse</option><option value="resolue">Résolue</option></select>
+            <label for="filter-province">Province</label>
+            <select id="filter-province"><option value="">Toutes</option>{% for p in provinces %}<option value="{{ p.id }}">{{ p.nom }}</option>{% endfor %}</select>
+            <label for="filter-secteur">Secteur d'activité</label>
+            <select id="filter-secteur"><option value="">Tous</option>{% for s in secteurs %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select>
+            <label for="filter-type">Type de dénonciation</label>
+            <select id="filter-type"><option value="">Tous</option>{% for t in types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select>
+        </div>
+    </aside>
+
+    <main class="content">
+        <div class="kpis" id="kpi-row">
+            <div class="kpi" data-filter=""><div class="label">Total</div><div class="value" id="kpi-total">{{ stats.total }}</div></div>
+            <div class="kpi" data-filter="resolue"><div class="label">Résolu</div><div class="value" id="kpi-resolu">{{ stats.resolu }}</div></div>
+            <div class="kpi" data-filter=""><div class="label">Non Lue</div><div class="value" id="kpi-non-lue">{{ stats.non_lue }}</div></div>
+            <div class="kpi" data-filter="analyse"><div class="label">En Cours</div><div class="value" id="kpi-en-cours">{{ stats.en_cours }}</div></div>
+            <div class="kpi" data-filter=""><div class="label">Anonyme</div><div class="value" id="kpi-anonyme">{{ stats.anonyme|default:0 }}</div></div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card"><h4>Évolution (linéaire)</h4><canvas id="chart-evolution" height="180"></canvas></div>
+            <div class="chart-card"><h4>Type de dénonciation</h4><canvas id="chart-types" height="180"></canvas></div>
+            <div class="chart-card"><h4>Top 8 par Province</h4><canvas id="chart-provinces" height="220"></canvas></div>
+            <div class="chart-card"><h4>Répartition par identification</h4><canvas id="chart-identification" height="220"></canvas></div>
+            <div class="chart-card" style="grid-column:1/-1"><h4>Répartition par Secteur d'Activité</h4><canvas id="chart-secteurs" height="220"></canvas></div>
+        </div>
+    </main>
+</div>
+</div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const apiUrl = "{% url 'core:dashboard_stats_data' %}";
+let charts = {};
+
+async function fetchData(){
+    const params = new URLSearchParams();
+    const status = document.getElementById('filter-status').value;
+    const province = document.getElementById('filter-province').value;
+    const secteur = document.getElementById('filter-secteur').value;
+    const type = document.getElementById('filter-type').value;
+    if(status) params.set('status', status);
+    if(province) params.set('province', province);
+    if(secteur) params.set('secteur', secteur);
+    if(type) params.set('type', type);
+
+    const res = await fetch(apiUrl + '?' + params.toString(), { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    updateKPIs(data.kpis);
+    updateCharts(data);
+}
+
+function updateKPIs(kpis){
+    document.getElementById('kpi-total').textContent = kpis.total;
+    document.getElementById('kpi-resolu').textContent = kpis.resolu;
+    document.getElementById('kpi-non-lue').textContent = kpis.non_lue;
+    document.getElementById('kpi-en-cours').textContent = kpis.en_cours;
+    document.getElementById('kpi-anonyme').textContent = kpis.anonyme;
+}
+
+function initCharts(){
+    const ctxE = document.getElementById('chart-evolution').getContext('2d');
+    charts.evolution = new Chart(ctxE, { type:'line', data:{ labels:[], datasets:[{ label:'Dénonciations', data:[], borderColor:'#0d2e5e', backgroundColor:'rgba(13,46,94,0.06)', tension:0.3 }] }, options:{ responsive:true } });
+
+    const ctxT = document.getElementById('chart-types').getContext('2d');
+    charts.types = new Chart(ctxT, { type:'bar', data:{ labels:[], datasets:[{ label:'Nombre', data:[], backgroundColor:'#1e5bb8' }] }, options:{ indexAxis:'y', responsive:true } });
+
+    const ctxP = document.getElementById('chart-provinces').getContext('2d');
+    charts.provinces = new Chart(ctxP, { type:'bar', data:{ labels:[], datasets:[{ label:'Top Provinces', data:[], backgroundColor:'#134294' }] }, options:{ responsive:true } });
+
+    const ctxI = document.getElementById('chart-identification').getContext('2d');
+    charts.identification = new Chart(ctxI, { type:'doughnut', data:{ labels:['Identifié','Anonyme'], datasets:[{ data:[0,0], backgroundColor:['#1e5bb8','#ffd700'] }] });
+
+    const ctxS = document.getElementById('chart-secteurs').getContext('2d');
+    charts.secteurs = new Chart(ctxS, { type:'bar', data:{ labels:[], datasets:[{ label:'Secteurs', data:[], backgroundColor:'#0d2e5e' }] }, options:{ responsive:true } });
+}
+
+function updateCharts(data){
+    // evolution
+    const evoLabels = data.evolution.map(e=>e.day);
+    const evoData = data.evolution.map(e=>e.count);
+    charts.evolution.data.labels = evoLabels; charts.evolution.data.datasets[0].data = evoData; charts.evolution.update();
+
+    // types
+    const typesLabels = data.types.map(t=>t.type_incident||t.type_incident);
+    const typesData = data.types.map(t=>t.count);
+    charts.types.data.labels = typesLabels; charts.types.data.datasets[0].data = typesData; charts.types.update();
+
+    // provinces
+    const provLabels = data.provinces.map(p=>p.province__nom||p['province__nom']);
+    const provData = data.provinces.map(p=>p.count);
+    charts.provinces.data.labels = provLabels; charts.provinces.data.datasets[0].data = provData; charts.provinces.update();
+
+    // identification
+    charts.identification.data.datasets[0].data = [data.identification.identified, data.identification.anonymous]; charts.identification.update();
+
+    // secteurs
+    const sLabels = data.secteurs.map(s=>s.employeur__secteur||s['employeur__secteur']);
+    const sData = data.secteurs.map(s=>s.count);
+    charts.secteurs.data.labels = sLabels; charts.secteurs.data.datasets[0].data = sData; charts.secteurs.update();
+}
+
+// wire filters
+['filter-status','filter-province','filter-secteur','filter-type'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', ()=> fetchData());
+});
+
+// KPIs clickable
+document.addEventListener('DOMContentLoaded', ()=>{
+    initCharts();
+    fetchData();
+    document.querySelectorAll('.kpi').forEach(k=>{
+        k.addEventListener('click', ()=>{
+            const filter = k.getAttribute('data-filter');
+            const params = new URLSearchParams(); if(filter) params.set('status', filter);
+            window.location.href = "{% url 'denunciations:incidents_list' %}?"+params.toString();
+        });
+    });
+    // ensure filters are applied on load and that full-bleed wrapper cancels container padding
+    const fb = document.getElementById('dashboard-fullbleed');
+    if(fb){
+        fb.style.position = 'relative';
+        fb.style.left = '50%';
+        fb.style.right = '50%';
+        fb.style.marginLeft = '-50vw';
+        fb.style.marginRight = '-50vw';
+        fb.style.width = '100vw';
+        fb.style.boxSizing = 'border-box';
+        fb.style.padding = '0';
+    }
+});
+</script>
+{% endblock %}

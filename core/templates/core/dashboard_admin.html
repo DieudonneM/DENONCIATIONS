@@ -1,14 +1,21 @@
-{% extends 'base.html' %}
+{% extends 'core/admin/base.html' %}
 {% load static %}
 
 {% block title %}Dashboard Admin - MEPT-RDC{% endblock %}
 
-{% block content %}
+{% block admin_content %}
 <div class="admin-dashboard">
     <!-- Header -->
     <div class="dashboard-header">
-        <h1>🎛️ Tableau de Bord Administrateur</h1>
-        <p>Gestion complète de la plateforme de dénonciation</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+            <div>
+                <h1>🎛️ Tableau de Bord Administrateur</h1>
+                <p>Gestion complète de la plateforme de dénonciation</p>
+            </div>
+            <div>
+                <a href="{% url 'core:dashboard_stats' %}" class="btn btn-primary" style="text-transform:none;padding:8px 12px;">Voir Statistiques</a>
+            </div>
+        </div>
     </div>
 
     <!-- SECTION 1: STATISTIQUES PRINCIPALES -->
