@@ -34,16 +34,17 @@
   <h2 class="titre-section">Mot du Ministre</h2>
   <div class="container-bas">
     <div class="partie-profil">
-      <img src="{% static 'img/Min_MASS_PROFILE.png' %}" alt="Photo de profil" class="photo-profil">
-      <h3 class="nom-profil">SEM Férdinand MASSAMBA WA MASSAMBA</h3>
-      <p class="statut-profil">Ministre de l'Emploi et Travail</p>
+            <img src="{% static 'img/Min_MASS_PROFILE.png' %}" alt="Photo de profil" class="photo-profil" id="min-photo">
+            <h3 class="nom-profil">SEM Férdinand MASSAMBA WA MASSAMBA</h3>
+            <p class="statut-profil">Ministre de l'Emploi et Travail</p>
     </div>
 
     <div class="partie-texte">
         <div class="partie-texte-content">
-            <p>Chers travailleurs, employeurs et partenaires sociaux,</p>
-            <p>La République Démocratique du Congo s’est engagée résolument sur la voie de la promotion du travail décent, du respect des droits des travailleurs et du renforcement de la justice sociale.</p>
-            <p>Aucun développement durable ne peut être envisagé dans un environnement où les abus, les discriminations, le harcèlement, l’exploitation ou les violations de la législation du travail demeurent impunis. C’est pourquoi le Ministère de l’Emploi et Travail met à votre disposition cette plateforme numérique de signalement...</p>
+            <div class="typed-wrapper">
+                <span id="typed-text" class="typed-text">Chers travailleurs, employeurs et partenaires sociaux,<br><br>La République Démocratique du Congo s’est engagée résolument sur la voie de la promotion du travail décent, du respect des droits des travailleurs et du renforcement de la justice sociale.<br><br>Aucun développement durable ne peut être envisagé dans un environnement où les abus, les discriminations, le harcèlement, l’exploitation ou les violations de la législation du travail demeurent impunis. C’est pourquoi le Ministère de l'Emploi et Travail met à votre disposition cette plateforme numérique de signalement...</span>
+                <span id="typed-cursor" class="typed-cursor">|</span>
+            </div>
             <p><a href="{% url 'core:mot_ministre' %}" class="btn-lire-suite">Lire la suite</a></p>
         </div>
     </div>
@@ -90,7 +91,7 @@
 </section>
 
 <!-- Section Informations -->
-<section class="section-form section-padded section-muted reveal">
+<section class="section-form section-padded section-muted reveal section-quick-denonciation">
     <div class="container">
         <h2 class="text-center section-subtitle">DÉPOSER UNE DÉNONCIATION RAPIDE</h2>
 

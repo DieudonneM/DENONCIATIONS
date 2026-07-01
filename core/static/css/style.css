@@ -47,6 +47,7 @@
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
     --border-radius: 8px;
+    --step-fill-duration: 1200ms; /* slow fill for .step hover */
     
     /* Compatibilité anciennes variables */
     --primary-color: #134294;
@@ -81,6 +82,9 @@ body {
     color: var(--gray-dark);
     background-color: var(--white);
 }
+
+/* space to accommodate fixed navbar to avoid content being hidden */
+body { padding-top: 72px; }
 
 button,
 input,
@@ -372,10 +376,13 @@ a:hover {
     color: var(--white);
     padding: var(--spacing-md) 0;
     box-shadow: var(--shadow);
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
-    position: relative;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1100;
+    overflow: visible; /* allow decorative bar to sit outside normal flow */
 }
 
 /* Bande colorée decorative 
@@ -473,9 +480,15 @@ a:hover {
 }
 
 .barre-tricolore {
-  display: flex;
-  width: 100%;
-  height: 5px; /* Ajustez l'épaisseur de la ligne ici */
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    width: 100%;
+    height: 6px; /* Ajustez l'épaisseur de la ligne ici */
+    z-index: 1150;
+    border-radius: 0;
 }
 
 /* On divise équitablement les 3 couleurs (1/3 chacune) */
@@ -803,7 +816,7 @@ a:hover {
 .container-texte, .partie-texte {
     background: transparent;
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* start text at top, not vertically centered */
     min-height: 100%;
     
 }
@@ -820,18 +833,20 @@ a:hover {
 .bouton-lire-suite, .btn-lire-suite { /* alias pour compatibilité */
         display: inline-block;
         padding: 12px 24px;
-        background: linear-gradient(90deg, var(--accent-yellow), var(--primary-blue));
-        color: var(--white);
+    background: var(--primary-blue);
+    color: var(--white);
         border-radius: 8px;
         font-weight: 700;
         text-decoration: none;
         box-shadow: 0 6px 20px rgba(19, 66, 148, 0.12);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        transition: box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
+        /* No transform: keep button fixed in final position */
 }
 
 .bouton-lire-suite:hover, .btn-lire-suite:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(19, 66, 148, 0.18);
+    box-shadow: 0 10px 30px rgba(19, 66, 148, 0.18);
+    background: var(--accent-yellow);
+    color: var(--primary-blue);
 }
 
 /* Mobile responsive: empiler et recentrer */
@@ -906,14 +921,22 @@ a:hover {
     ============================================================================ */
 
 .section-steps {
-    background: linear-gradient(180deg, #f8fbfe 0%, #ffffff 100%);
-    padding: 72px 0 84px;
+    /* full-bleed section: remove base container side gaps and set requested background */
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    box-sizing: border-box;
+    background: #b1ceff;
+    padding: 48px 0; /* vertical padding only; horizontal space removed */
 }
 
 .section-steps .container {
     max-width: 1140px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 48px 0; /* remove side padding so content reaches container edges */
 }
 
 .section-steps h2 {
@@ -953,7 +976,7 @@ a:hover {
     padding: 28px;
     border-radius: 14px;
     box-shadow: 0 12px 30px rgba(11, 34, 68, 0.06);
-    transition: transform 420ms cubic-bezier(.22,.65,.33,1), box-shadow 420ms, background 420ms, color 420ms;
+    transition: transform 420ms cubic-bezier(.22,.65,.33,1), box-shadow 420ms, color 420ms;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -972,21 +995,47 @@ a:hover {
     border-radius: 4px;
     transform: scaleX(0);
     transform-origin: left center;
-    transition: transform 420ms cubic-bezier(.22,.65,.33,1), opacity 420ms;
+    transition: transform var(--step-fill-duration) cubic-bezier(.22,.65,.33,1), opacity 420ms;
     pointer-events: none;
     opacity: 0.95;
+}
+
+/* Left-to-right fill overlay */
+.step::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary-blue-dark), var(--primary-blue));
+    transition: width var(--step-fill-duration) cubic-bezier(.22,.65,.33,1);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ensure content sits above the fill overlay */
+.step .step-icon,
+.step h3,
+.step p {
+    position: relative;
+    z-index: 2;
 }
 
 .step:hover {
     transform: translateY(-8px) scale(1.01);
     box-shadow: 0 18px 42px rgba(11, 34, 68, 0.12);
-    background: linear-gradient(180deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
+    /* background is provided by the left-to-right overlay (::after) */
     color: #ffffff;
 }
 
 .step:hover::before {
     transform: scaleX(1);
     opacity: 0.08;
+}
+
+.step:hover::after {
+    width: 100%;
 }
 
 .step:hover h3,
@@ -1065,9 +1114,47 @@ a:hover {
     ============================================================================ */
 
 .section-form {
-    background-color: var(--light-gray);
+    background-color: #b1ceff;
     padding: var(--spacing-2xl) var(--spacing-md);
 }
+
+/* Full-bleed quick denunciation section: no outer gaps, light blue background, centered content */
+.section-quick-denonciation {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, #eaf6ff 0%, #dff2ff 100%); /* light blue gradient */
+    padding: 0; /* remove vertical padding from base */
+    margin-top: 0; /* remove external margins */
+    margin-bottom: 0;
+}
+
+.section-quick-denonciation > .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 16px; /* local inner padding to control whitespace inside the full-bleed area */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center all content horizontally */
+    justify-content: center;
+    text-align: center;
+}
+
+.section-quick-denonciation .card {
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
+    background: transparent; /* keep card background transparent to show section background */
+    box-shadow: none;
+}
+
+.section-quick-denonciation .text-center { text-align: center; }
+
+.section-quick-denonciation .btn-centered { display: inline-flex; justify-content: center; }
 
 .section-form h2 {
     text-align: center;
@@ -1079,6 +1166,21 @@ a:hover {
     margin: 0 auto;
     background-color: var(--white);
     padding: var(--spacing-xl);
+.section-mot-ministre {
+    background: linear-gradient(180deg, #ffffff 0%, #f6f9ff 100%);
+    padding: 56px 0;
+}
+
+.section-mot-ministre .container-bas {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 32px;
+    align-items: center;
+    padding: 0 16px;
+}
+
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
 }
@@ -1087,6 +1189,18 @@ a:hover {
     text-align: center;
     margin-bottom: var(--spacing-xl);
     padding-bottom: var(--spacing-lg);
+.partie-profil {
+    background: linear-gradient(135deg, #ffffff, #f8fbff);
+    padding: 18px;
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(6,18,60,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+}
+
     border-bottom: 2px solid var(--primary-blue);
 }
 
@@ -1096,6 +1210,25 @@ a:hover {
 }
 
 .form-header p {
+.photo-profil {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(6,18,60,0.12);
+    transform-origin: center center;
+    display: block;
+}
+
+/* Subtle continuous slow zoom for minister photo */
+@keyframes slowZoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.03); }
+}
+.photo-profil {
+    animation: slowZoom 28s ease-in-out infinite alternate;
+}
+
     font-size: var(--font-size-lg);
     color: var(--gray);
 }
@@ -1111,10 +1244,21 @@ a:hover {
 .form-section legend {
     font-size: var(--font-size-lg);
     font-weight: 600;
+.partie-texte {
+    padding: 8px 0 8px 8px;
+}
+
+.partie-texte-content {
+    background: transparent;
+    border-radius: 12px;
+    padding: 12px 6px;
+}
+
     color: var(--primary-blue);
     padding: 0 var(--spacing-sm);
     margin-bottom: var(--spacing-md);
 }
+
 
 .form-section h3 {
     font-size: var(--font-size-lg);
@@ -1767,7 +1911,9 @@ table {
 .form-preview-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9fafb; color: #999; }
 .info-box { background-color: #e7f3ff; border-left: 4px solid #134294; padding: 15px; border-radius: 6px; margin-bottom: 30px; color: #004085; }
 .btn-centered { display: inline-block; margin: 0 auto; }
-.section-cta { padding: 60px 20px; color: white; }
+.section-cta { padding: 60px 20px; color: var(--primary-blue); }
+.section-cta, .section-cta * { color: var(--primary-blue); }
+.section-cta a.btn, .section-cta .btn { color: var(--primary-blue); }
 .muted { color: #888; }
 .small { font-size: 0.9rem; }
 .hr-top { border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px; }
