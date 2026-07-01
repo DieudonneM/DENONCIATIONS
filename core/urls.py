@@ -37,6 +37,10 @@ urlpatterns = [
     path('dashboard/admin/', views.DashboardAdminView.as_view(), name='dashboard_admin'),
     path('dashboard/agent/', views.DashboardAgentView.as_view(), name='dashboard_agent'),
     path('dashboard/travailleur/', views.DashboardTravailleurView.as_view(), name='dashboard_travailleur'),
+    # New split dashboards
+    path('dashboard/statistiques/', views.DashboardStatsView.as_view(), name='dashboard_stats'),
+    path('dashboard/administration/', views.DashboardAdminConsoleView.as_view(), name='dashboard_admin_console'),
+    path('dashboard/statistiques/data/', views.dashboard_stats_data, name='dashboard_stats_data'),
     
     # Détail incidents
     path('incident/<str:code>/', views.IncidentDetailView.as_view(), name='incident_detail'),

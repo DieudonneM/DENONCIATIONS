@@ -46,7 +46,7 @@
                     </ul>
                 </li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'core:dashboard' %}">Tableau de bord</a></li>
+                    <li><a href="{% url 'core:dashboard_stats' %}">Tableau de bord</a></li>
                     <li><a href="{% url 'users:logout' %}">Déconnexion</a></li>
                 {% else %}
                     <li><a href="{% url 'users:login' %}">Connexion</a></li>
