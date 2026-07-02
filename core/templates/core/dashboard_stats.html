@@ -111,6 +111,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
+    // server-rendered fallback list of provinces (JSON)
+    window.INITIAL_PROVINCES = {{ initial_provinces_json|safe }} || [];
+</script>
+<script>
 const apiUrl = "{% url 'core:dashboard_stats_data' %}";
 let charts = {};
 
@@ -140,7 +144,7 @@ async function fetchData(){
 
 function populateFilters(data){
     // provinces
-    if(data.all_provinces){
+    if(data.all_provinces && data.all_provinces.length){
         const sel = document.getElementById('filter-province');
         if(sel){
             // remove existing options except the first default one
@@ -149,6 +153,9 @@ function populateFilters(data){
                 const opt = document.createElement('option'); opt.value = String(p.id); opt.textContent = p.nom; sel.appendChild(opt);
             });
         }
+    } else if(window.INITIAL_PROVINCES && window.INITIAL_PROVINCES.length){
+        const sel = document.getElementById('filter-province');
+        if(sel){ while(sel.options.length>1){ sel.remove(1); } window.INITIAL_PROVINCES.forEach(p=>{ const opt=document.createElement('option'); opt.value=String(p.id); opt.textContent=p.nom; sel.appendChild(opt); }); }
     }
     // secteurs (choices as [val,label])
     if(data.all_secteurs){

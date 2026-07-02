@@ -14,6 +14,7 @@ from django.views.generic import View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.db.models import Q, Count
+import json
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.contrib import messages
@@ -279,6 +280,8 @@ class DashboardStatsView(LoginRequiredMixin, TemplateView):
         # basic lists for filters (use model choices where appropriate)
         # provide Province queryset so template can access attributes
         context['provinces'] = Province.objects.order_by('nom')
+        # also provide a JSON-serializable list of provinces as fallback for client
+        context['initial_provinces_json'] = json.dumps(list(Province.objects.order_by('nom').values('id', 'nom')))
         # use choice tuples for display (value, label)
         context['types'] = list(Incident.TYPE_INCIDENT_CHOICES)
         context['secteurs'] = list(Employeur.SECTEUR_CHOICES)
