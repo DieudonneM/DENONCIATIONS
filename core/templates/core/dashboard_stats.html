@@ -40,7 +40,6 @@
     <h2>Tableau de Bord — Statistiques</h2>
     <div>
         <a href="{% url 'core:dashboard_admin' %}" class="right-btn">Console d'Administration</a>
-        <a href="{% url 'core:dashboard_admin' %}" class="right-btn" style="margin-left:8px;">Tableau Admin</a>
     </div>
 </div>
 
@@ -99,7 +98,7 @@
             <div class="chart-card"><h4>Type de dénonciation</h4><canvas id="chart-types" height="180"></canvas></div>
             <div class="chart-card"><h4>Top 10 par Province</h4><canvas id="chart-provinces" height="220"></canvas></div>
             <div class="chart-card"><h4>Répartition par identification</h4><canvas id="chart-identification" height="220"></canvas></div>
-            <div class="chart-card" style="grid-column:1/-1"><h4>Répartition par Secteur d'Activité</h4><canvas id="chart-secteurs" height="220"></canvas></div>
+            <div class="chart-card" style="grid-column:1/-1"><h4>Répartition par Secteur d'Activité</h4><canvas id="chart-secteurs" height="180"></canvas></div>
         </div>
     </main>
 </div>
@@ -143,9 +142,11 @@ function populateFilters(data){
     // provinces
     if(data.all_provinces){
         const sel = document.getElementById('filter-province');
-        if(sel && sel.options.length <= 1){
+        if(sel){
+            // remove existing options except the first default one
+            while(sel.options.length > 1){ sel.remove(1); }
             data.all_provinces.forEach(p=>{
-                const opt = document.createElement('option'); opt.value = p.id; opt.textContent = p.nom; sel.appendChild(opt);
+                const opt = document.createElement('option'); opt.value = String(p.id); opt.textContent = p.nom; sel.appendChild(opt);
             });
         }
     }
@@ -200,7 +201,24 @@ function initCharts(){
     charts.identification = new Chart(ctxI, { type:'doughnut', data:{ labels:['Identifié','Anonyme'], datasets:[{ data:[0,0], backgroundColor:['#1e5bb8','#ffd700'] }] }, options:{ responsive:true, plugins:{ datalabels:{ color:'#07203b', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); if(!sum) return value; return Math.round(value*100/sum) + '%'; } } } } });
 
     const ctxS = document.getElementById('chart-secteurs').getContext('2d');
-    charts.secteurs = new Chart(ctxS, { type:'bar', data:{ labels:[], datasets:[{ label:'Secteurs', data:[], backgroundColor:'#0d2e5e' }] }, options:{ indexAxis:'y', responsive:true, plugins:{ datalabels:{ color:'#ffffff', anchor:'end', align:'end', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); var pct = sum ? Math.round(value*100/sum) : 0; return value + ' (' + pct + '%)'; } } }, scales:{ x:{ beginAtZero:true } } } });
+    charts.secteurs = new Chart(ctxS, {
+        type:'bar',
+        data:{ labels:[], datasets:[{ label:'Secteurs', data:[], backgroundColor:'#0d2e5e', maxBarThickness:48 }] },
+        options:{
+            indexAxis:'y',
+            responsive:true,
+            plugins:{
+                datalabels:{ color:'#ffffff', anchor:'end', align:'end', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); var pct = sum ? Math.round(value*100/sum) : 0; return value + ' (' + pct + '%)'; } }
+            },
+            scales:{ x:{ beginAtZero:true } },
+            datasets: {
+                bar: {
+                    categoryPercentage: 0.95,
+                    barPercentage: 0.95
+                }
+            }
+        }
+    });
 }
 
 function updateCharts(data){
