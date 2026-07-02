@@ -37,9 +37,11 @@
 
 {% block content %}
 <div class="topbar">
-    <h2>Tableau de Bord — Statistiques</h2>
+    <h2>Tableau de Bord — Statistiques</br>
+    {{ user.first_name }} {{ user.last_name }} - Connecté 🟢</h2>
     <div>
-        <a href="{% url 'core:dashboard_admin' %}" class="right-btn">Console d'Administration</a>
+        <!--<a href="{% url 'core:dashboard_admin' %}" class="right-btn">Console d'Administration</a>-->
+        <p>Profil Administrateur</p>
     </div>
 </div>
 
@@ -98,7 +100,7 @@
             <div class="chart-card"><h4>Type de dénonciation</h4><canvas id="chart-types" height="180"></canvas></div>
             <div class="chart-card"><h4>Top 10 par Province</h4><canvas id="chart-provinces" height="220"></canvas></div>
             <div class="chart-card"><h4>Répartition par identification</h4><canvas id="chart-identification" height="220"></canvas></div>
-            <div class="chart-card" style="grid-column:1/-1"><h4>Répartition par Secteur d'Activité</h4><canvas id="chart-secteurs" height="180"></canvas></div>
+            <!-- Secteur chart removed as requested -->
         </div>
     </main>
 </div>
@@ -207,25 +209,7 @@ function initCharts(){
     const ctxI = document.getElementById('chart-identification').getContext('2d');
     charts.identification = new Chart(ctxI, { type:'doughnut', data:{ labels:['Identifié','Anonyme'], datasets:[{ data:[0,0], backgroundColor:['#1e5bb8','#ffd700'] }] }, options:{ responsive:true, plugins:{ datalabels:{ color:'#07203b', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); if(!sum) return value; return Math.round(value*100/sum) + '%'; } } } } });
 
-    const ctxS = document.getElementById('chart-secteurs').getContext('2d');
-    charts.secteurs = new Chart(ctxS, {
-        type:'bar',
-        data:{ labels:[], datasets:[{ label:'Secteurs', data:[], backgroundColor:'#0d2e5e', maxBarThickness:48 }] },
-        options:{
-            indexAxis:'y',
-            responsive:true,
-            plugins:{
-                datalabels:{ color:'#ffffff', anchor:'end', align:'end', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); var pct = sum ? Math.round(value*100/sum) : 0; return value + ' (' + pct + '%)'; } }
-            },
-            scales:{ x:{ beginAtZero:true } },
-            datasets: {
-                bar: {
-                    categoryPercentage: 0.95,
-                    barPercentage: 0.95
-                }
-            }
-        }
-    });
+    // sectors chart removed — no initialization
 }
 
 function updateCharts(data){
@@ -247,10 +231,7 @@ function updateCharts(data){
     // identification
     charts.identification.data.datasets[0].data = [data.identification.identified, data.identification.anonymous]; charts.identification.update();
 
-    // secteurs
-    const sLabels = data.secteurs.map(s=>s.employeur__secteur||s['employeur__secteur']);
-    const sData = data.secteurs.map(s=>s.count);
-    charts.secteurs.data.labels = sLabels; charts.secteurs.data.datasets[0].data = sData; charts.secteurs.update();
+    // secteurs chart removed — nothing to update
 }
 
 // wire filters
