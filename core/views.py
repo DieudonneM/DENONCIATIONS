@@ -14,6 +14,7 @@ from django.views.generic import View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.db.models import Q, Count
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.contrib import messages
 
@@ -276,7 +277,8 @@ class DashboardStatsView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         incidents = Incident.objects.all()
         # basic lists for filters (use model choices where appropriate)
-        context['provinces'] = list(Province.objects.values('id', 'nom'))
+        # provide Province queryset so template can access attributes
+        context['provinces'] = Province.objects.order_by('nom')
         # use choice tuples for display (value, label)
         context['types'] = list(Incident.TYPE_INCIDENT_CHOICES)
         context['secteurs'] = list(Employeur.SECTEUR_CHOICES)
@@ -326,7 +328,12 @@ def dashboard_stats_data(request):
     if status:
         qs = qs.filter(statut=status)
     if province:
-        qs = qs.filter(province__id=province)
+        # accept either numeric id or province name
+        try:
+            pid = int(province)
+            qs = qs.filter(province__id=pid)
+        except (ValueError, TypeError):
+            qs = qs.filter(province__nom__iexact=province)
     if secteur:
         qs = qs.filter(employeur__secteur=secteur)
     if incident_type:
@@ -345,7 +352,7 @@ def dashboard_stats_data(request):
 
     # Chart 1: évolution (group by date)
     evolution = (
-        qs.extra({'day': "date(date_creation)"})
+        qs.annotate(day=TruncDate('date_creation'))
         .values('day')
         .annotate(count=Count('id'))
         .order_by('day')
