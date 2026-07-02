@@ -381,12 +381,15 @@ def dashboard_stats_data(request):
     data['identification'] = {'identified': identified, 'anonymous': anonymous}
 
     # Chart 5: repartition par secteur (barres verticales)
-    secteurs_qs = (
-        qs.values('employeur__secteur')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-    )
-    data['secteurs'] = list(secteurs_qs)
+    # Build full sectors list including zeros using Employeur.SECTEUR_CHOICES
+    secteur_counts_qs = qs.values('employeur__secteur').annotate(count=Count('id'))
+    secteur_counts = {s['employeur__secteur']: s['count'] for s in secteur_counts_qs}
+    secteurs_list = []
+    for val, label in Employeur.SECTEUR_CHOICES:
+        secteurs_list.append({'employeur__secteur': val, 'label': label, 'count': secteur_counts.get(val, 0)})
+    # sort by count desc so chart shows largest first
+    secteurs_list.sort(key=lambda x: x['count'], reverse=True)
+    data['secteurs'] = secteurs_list
 
     # Also provide full lists for filters (unfiltered), so the frontend can populate selects
     data['all_provinces'] = list(Province.objects.values('id', 'nom'))
