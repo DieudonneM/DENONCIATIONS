@@ -275,10 +275,12 @@ class DashboardStatsView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         incidents = Incident.objects.all()
-        # basic lists for filters
+        # basic lists for filters (use model choices where appropriate)
         context['provinces'] = list(Province.objects.values('id', 'nom'))
-        context['types'] = list(Incident.objects.values_list('type_incident', flat=True).distinct())
-        context['secteurs'] = list(Employeur.objects.values_list('secteur', flat=True).distinct())
+        # use choice tuples for display (value, label)
+        context['types'] = list(Incident.TYPE_INCIDENT_CHOICES)
+        context['secteurs'] = list(Employeur.SECTEUR_CHOICES)
+        context['statuses'] = list(Incident.STATUT_CHOICES)
         # initial stats
         context['stats'] = {
             'total': incidents.count(),
@@ -362,7 +364,7 @@ def dashboard_stats_data(request):
     provinces = (
         qs.values('province__nom')
         .annotate(count=Count('id'))
-        .order_by('-count')[:8]
+        .order_by('-count')[:10]
     )
     data['provinces'] = list(provinces)
 
@@ -378,6 +380,12 @@ def dashboard_stats_data(request):
         .order_by('-count')
     )
     data['secteurs'] = list(secteurs_qs)
+
+    # Also provide full lists for filters (unfiltered), so the frontend can populate selects
+    data['all_provinces'] = list(Province.objects.values('id', 'nom'))
+    data['all_secteurs'] = list(Employeur.SECTEUR_CHOICES)
+    data['all_types'] = list(Incident.TYPE_INCIDENT_CHOICES)
+    data['all_statuses'] = list(Incident.STATUT_CHOICES)
 
     return JsonResponse(data, safe=False)
 
