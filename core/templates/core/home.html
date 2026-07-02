@@ -245,7 +245,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function restartLoop() {
         clearInterval(changeTimer);
-        changeTimer = setInterval(nextHero, 8000);
+        // Set carousel interval to 13 seconds (13000 ms)
+        changeTimer = setInterval(nextHero, 13000);
     }
 
     renderDots();
