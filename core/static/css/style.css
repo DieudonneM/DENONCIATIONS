@@ -458,7 +458,8 @@ a:hover {
     border-radius: 6px;
     padding: 10px 0;
     min-width: 220px;
-    z-index: 300;
+    /* Ensure dropdown appears above decorative tricolor bar (z-index:1150) */
+    z-index: 1200;
 }
 .nav-dropdown .dropdown li { list-style: none; }
 .nav-dropdown .dropdown li a { display: block; padding: 8px 18px; color: var(--primary-blue); }
