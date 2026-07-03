@@ -78,12 +78,12 @@ class IncidentForm(forms.ModelForm):
             }),
         }
         labels = {
-            'type_incident': 'Type d\'incident *',
-            'ville': 'Ville *',
-            'province': 'Province *',
-            'ville': 'Ville *',
-            'province': 'Province *',
-            'description': 'Description détaillée *',
+            'type_incident': 'Type d\'incident ',
+            'ville': 'Ville ',
+            'province': 'Province ',
+            'ville': 'Ville ',
+            'province': 'Province ',
+            'description': 'Description détaillée ',
             'email_contact_anonyme': 'Email (optionnel)',
             'telephone_contact_anonyme': 'Téléphone (optionnel)',
         }
@@ -91,7 +91,7 @@ class IncidentForm(forms.ModelForm):
     # Remplacer le champ employeur (FK) par un champ texte libre
     employeur = forms.CharField(
         required=True,
-        label='Employeur *',
+        label='Employeur Fautif',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Nom de l\'employeur ou entreprise',

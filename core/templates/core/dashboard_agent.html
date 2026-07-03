@@ -283,9 +283,13 @@
 
 <section class="dashboard-page">
     <div class="dashboard-header">
-        <h1>🕵️ Tableau de Bord Agent</h1>
-        <p>Suivi et gestion des dénonciations de votre/vos province(s)</p>
+        <h1>Tableau de Bord Agent</h1>
+        {% if user.is_authenticated %}
+            <h2 class="account-name" style="max-width:1200px;margin:0 auto 1rem;color:#33475b;font-size:1.1rem;">{{ user.first_name }} {{ user.last_name }} - Connecté 🟢</h2>
+        {% endif %}
     </div>
+
+    
 
     <div class="dashboard-grid">
         <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card">

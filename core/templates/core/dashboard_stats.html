@@ -37,10 +37,11 @@
 
 {% block content %}
 <div class="topbar">
-    <h2>Tableau de Bord — Statistiques</h2>
+    <h2>Tableau de Bord — Statistiques</br>
+    {{ user.first_name }} {{ user.last_name }} - Connecté 🟢</h2>
     <div>
-        <a href="{% url 'core:dashboard_admin' %}" class="right-btn">Console d'Administration</a>
-        <a href="{% url 'core:dashboard_admin' %}" class="right-btn" style="margin-left:8px;">Tableau Admin</a>
+        <!--<a href="{% url 'core:dashboard_admin' %}" class="right-btn">Console d'Administration</a>-->
+        <p>Profil Administrateur</p>
     </div>
 </div>
 
@@ -99,7 +100,7 @@
             <div class="chart-card"><h4>Type de dénonciation</h4><canvas id="chart-types" height="180"></canvas></div>
             <div class="chart-card"><h4>Top 10 par Province</h4><canvas id="chart-provinces" height="220"></canvas></div>
             <div class="chart-card"><h4>Répartition par identification</h4><canvas id="chart-identification" height="220"></canvas></div>
-            <div class="chart-card" style="grid-column:1/-1"><h4>Répartition par Secteur d'Activité</h4><canvas id="chart-secteurs" height="220"></canvas></div>
+            <!-- Secteur chart removed as requested -->
         </div>
     </main>
 </div>
@@ -111,6 +112,10 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+    // server-rendered fallback list of provinces (JSON)
+    window.INITIAL_PROVINCES = {{ initial_provinces_json|safe }} || [];
+</script>
 <script>
 const apiUrl = "{% url 'core:dashboard_stats_data' %}";
 let charts = {};
@@ -141,13 +146,18 @@ async function fetchData(){
 
 function populateFilters(data){
     // provinces
-    if(data.all_provinces){
+    if(data.all_provinces && data.all_provinces.length){
         const sel = document.getElementById('filter-province');
-        if(sel && sel.options.length <= 1){
+        if(sel){
+            // remove existing options except the first default one
+            while(sel.options.length > 1){ sel.remove(1); }
             data.all_provinces.forEach(p=>{
-                const opt = document.createElement('option'); opt.value = p.id; opt.textContent = p.nom; sel.appendChild(opt);
+                const opt = document.createElement('option'); opt.value = String(p.id); opt.textContent = p.nom; sel.appendChild(opt);
             });
         }
+    } else if(window.INITIAL_PROVINCES && window.INITIAL_PROVINCES.length){
+        const sel = document.getElementById('filter-province');
+        if(sel){ while(sel.options.length>1){ sel.remove(1); } window.INITIAL_PROVINCES.forEach(p=>{ const opt=document.createElement('option'); opt.value=String(p.id); opt.textContent=p.nom; sel.appendChild(opt); }); }
     }
     // secteurs (choices as [val,label])
     if(data.all_secteurs){
@@ -199,8 +209,7 @@ function initCharts(){
     const ctxI = document.getElementById('chart-identification').getContext('2d');
     charts.identification = new Chart(ctxI, { type:'doughnut', data:{ labels:['Identifié','Anonyme'], datasets:[{ data:[0,0], backgroundColor:['#1e5bb8','#ffd700'] }] }, options:{ responsive:true, plugins:{ datalabels:{ color:'#07203b', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); if(!sum) return value; return Math.round(value*100/sum) + '%'; } } } } });
 
-    const ctxS = document.getElementById('chart-secteurs').getContext('2d');
-    charts.secteurs = new Chart(ctxS, { type:'bar', data:{ labels:[], datasets:[{ label:'Secteurs', data:[], backgroundColor:'#0d2e5e' }] }, options:{ indexAxis:'y', responsive:true, plugins:{ datalabels:{ color:'#ffffff', anchor:'end', align:'end', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); var pct = sum ? Math.round(value*100/sum) : 0; return value + ' (' + pct + '%)'; } } }, scales:{ x:{ beginAtZero:true } } } });
+    // sectors chart removed — no initialization
 }
 
 function updateCharts(data){
@@ -222,10 +231,7 @@ function updateCharts(data){
     // identification
     charts.identification.data.datasets[0].data = [data.identification.identified, data.identification.anonymous]; charts.identification.update();
 
-    // secteurs
-    const sLabels = data.secteurs.map(s=>s.employeur__secteur||s['employeur__secteur']);
-    const sData = data.secteurs.map(s=>s.count);
-    charts.secteurs.data.labels = sLabels; charts.secteurs.data.datasets[0].data = sData; charts.secteurs.update();
+    // secteurs chart removed — nothing to update
 }
 
 // wire filters

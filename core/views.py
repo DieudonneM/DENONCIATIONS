@@ -14,6 +14,7 @@ from django.views.generic import View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.db.models import Q, Count
+import json
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.contrib import messages
@@ -279,6 +280,8 @@ class DashboardStatsView(LoginRequiredMixin, TemplateView):
         # basic lists for filters (use model choices where appropriate)
         # provide Province queryset so template can access attributes
         context['provinces'] = Province.objects.order_by('nom')
+        # also provide a JSON-serializable list of provinces as fallback for client
+        context['initial_provinces_json'] = json.dumps(list(Province.objects.order_by('nom').values('id', 'nom')))
         # use choice tuples for display (value, label)
         context['types'] = list(Incident.TYPE_INCIDENT_CHOICES)
         context['secteurs'] = list(Employeur.SECTEUR_CHOICES)
@@ -381,12 +384,15 @@ def dashboard_stats_data(request):
     data['identification'] = {'identified': identified, 'anonymous': anonymous}
 
     # Chart 5: repartition par secteur (barres verticales)
-    secteurs_qs = (
-        qs.values('employeur__secteur')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-    )
-    data['secteurs'] = list(secteurs_qs)
+    # Build full sectors list including zeros using Employeur.SECTEUR_CHOICES
+    secteur_counts_qs = qs.values('employeur__secteur').annotate(count=Count('id'))
+    secteur_counts = {s['employeur__secteur']: s['count'] for s in secteur_counts_qs}
+    secteurs_list = []
+    for val, label in Employeur.SECTEUR_CHOICES:
+        secteurs_list.append({'employeur__secteur': val, 'label': label, 'count': secteur_counts.get(val, 0)})
+    # sort by count desc so chart shows largest first
+    secteurs_list.sort(key=lambda x: x['count'], reverse=True)
+    data['secteurs'] = secteurs_list
 
     # Also provide full lists for filters (unfiltered), so the frontend can populate selects
     data['all_provinces'] = list(Province.objects.values('id', 'nom'))
