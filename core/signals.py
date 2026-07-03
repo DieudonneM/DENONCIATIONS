@@ -59,6 +59,18 @@ def incident_status_changed(sender, instance, **kwargs):
                 nouvelle_valeur=instance.agent_assigné.username
             )
 
+    # Vérifier si un département a été assigné
+    if getattr(old_instance, 'department_assigné', None) != getattr(instance, 'department_assigné', None):
+        if getattr(instance, 'department_assigné', None):
+            dept = instance.department_assigné
+            LogAudit.objects.create(
+                incident=instance,
+                utilisateur=None,
+                action='assignation_departement',
+                description=f'Assigné au département {dept.nom}',
+                nouvelle_valeur=dept.nom
+            )
+
 
 @receiver(post_save, sender=Commentaire)
 def commentaire_created(sender, instance, created, **kwargs):

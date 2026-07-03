@@ -27,6 +27,9 @@ from denunciations.forms import (
 )
 from .utils import get_incidents_by_user_role, check_user_can_view_incident
 from users.auth_backends import user_is_agent, user_is_admin, user_is_travailleur
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Department
 
 
 # ============================================================================
@@ -528,12 +531,16 @@ class IncidentDetailView(LoginRequiredMixin, View):
             commentaires = incident.commentaires.all()
         
         available_agents = []
-        if user_is_admin(request.user) and incident.province:
-            available_agents = User.objects.filter(
-                role='agent',
-                is_active=True,
-                provinces=incident.province
-            ).distinct().order_by('first_name', 'last_name', 'id')
+        available_departments = []
+        if user_is_admin(request.user):
+            if incident.province:
+                available_agents = User.objects.filter(
+                    role='agent',
+                    is_active=True,
+                    provinces=incident.province
+                ).distinct().order_by('first_name', 'last_name', 'id')
+            # Provide departments for assignment
+            available_departments = Department.objects.all().order_by('nom')
 
         context = {
             'incident': incident,
@@ -541,6 +548,7 @@ class IncidentDetailView(LoginRequiredMixin, View):
             'pieces_jointes': incident.pieces_jointes.all(),
             'form': CommentaireForm() if (user_is_agent(request.user) or user_is_admin(request.user)) else None,
             'available_agents': available_agents,
+            'available_departments': available_departments,
             'user_can_edit': user_is_agent(request.user) or user_is_admin(request.user),
             'user_is_admin': user_is_admin(request.user),
             'user_can_comment': user_is_agent(request.user) or user_is_admin(request.user),
@@ -630,20 +638,49 @@ class AssignIncidentView(LoginRequiredMixin, View):
         if not user_is_admin(request.user):
             return JsonResponse({'error': 'Permission refusée'}, status=403)
         
+        # allow assigning to a department (preferred) or to an agent
+        dept_id = request.POST.get('department')
         agent_id = request.POST.get('agent')
-        
-        if not agent_id:
-            messages.error(request, 'Veuillez sélectionner un agent.')
-            return redirect('core:incident_detail', code=code)
 
-        try:
-            agent = User.objects.get(id=agent_id, role='agent')
-            incident.agent_assigné = agent
-            incident.save()
-            
-            messages.success(request, f'Incident assigné à {agent.get_full_name()}.')
-        except User.DoesNotExist:
-            messages.error(request, 'Agent non trouvé.')
+        if dept_id:
+            try:
+                dept = Department.objects.get(id=dept_id)
+                incident.department_assigné = dept
+                # optional: clear specific agent when assigning to department
+                incident.agent_assigné = None
+                incident.save()
+
+                # send email notification to the department if an email is configured
+                if dept.email:
+                    subject = f"Nouvelle dénonciation assignée: {incident.code_suivi}"
+                    message = (
+                        f"Une nouvelle dénonciation a été assignée au département {dept.nom}.\n\n"
+                        f"Code: {incident.code_suivi}\n"
+                        f"Employeur: {incident.employeur.nom}\n"
+                        f"Province: {incident.province}\n"
+                        f"Type: {incident.get_type_incident_display()}\n\n"
+                        "Veuillez vous connecter au tableau de bord pour plus de détails."
+                    )
+                    try:
+                        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [dept.email], fail_silently=False)
+                        messages.success(request, f'Incident assigné au département {dept.nom} et email envoyé.')
+                    except Exception as e:
+                        messages.warning(request, f"Incident assigné au département {dept.nom}, mais l'envoi d'email a échoué: {e}")
+                else:
+                    messages.success(request, f'Incident assigné au département {dept.nom}.')
+            except Department.DoesNotExist:
+                messages.error(request, 'Département non trouvé.')
+        elif agent_id:
+            try:
+                agent = User.objects.get(id=agent_id, role='agent')
+                incident.agent_assigné = agent
+                incident.department_assigné = None
+                incident.save()
+                messages.success(request, f'Incident assigné à {agent.get_full_name()}.')
+            except User.DoesNotExist:
+                messages.error(request, 'Agent non trouvé.')
+        else:
+            messages.error(request, 'Veuillez sélectionner un département ou un agent.')
         
         return redirect('core:incident_detail', code=code)
 

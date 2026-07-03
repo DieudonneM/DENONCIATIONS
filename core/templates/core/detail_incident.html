@@ -106,12 +106,21 @@
         <!-- Formulaire d'assignation (Admin) -->
         {% if user_is_admin %}
             <div class="detail-section assign-section">
-                <h2>Assigner à un agent</h2>
+                <h2>Assigner à un département</h2>
                 <form method="post" action="{% url 'core:assign_incident' incident.code_suivi %}" class="assign-form">
                     {% csrf_token %}
                     <div class="form-group">
-                        <label for="agent">Sélectionner un agent</label>
-                        <select name="agent" id="agent" required>
+                        <label for="department">Sélectionner un département</label>
+                        <select name="department" id="department">
+                            <option value="">-- Sélectionner un département --</option>
+                            {% for dept in available_departments %}
+                                <option value="{{ dept.id }}">{{ dept.nom }}{% if dept.email %} — {{ dept.email }}{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="agent">Ou sélectionner un agent (optionnel)</label>
+                        <select name="agent" id="agent">
                             <option value="">-- Sélectionner un agent --</option>
                             {% for agent in available_agents %}
                                 <option value="{{ agent.id }}">{{ agent.get_full_name }} - {{ agent.provinces.all|join:", " }}</option>

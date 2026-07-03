@@ -165,6 +165,15 @@ class Incident(models.Model):
         related_name='incidents_assignés',
         limit_choices_to={'role': 'agent'}
     )
+
+    # Département assigné (optionnel)
+    department_assigné = models.ForeignKey(
+        'core.Department',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='incidents_assignés_dept'
+    )
     
     # Informations anonyme
     est_anonyme = models.BooleanField(default=True)
