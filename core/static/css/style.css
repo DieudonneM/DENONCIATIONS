@@ -559,7 +559,7 @@ a:hover {
 
 .btn-primary {
     background-color: var(--accent-yellow);
-    color: var(--white);
+    color: var(--primary-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-size: var(--font-size-sm);
@@ -1156,9 +1156,12 @@ a:hover {
 
 .section-quick-denonciation .btn-centered { display: inline-flex; justify-content: center; }
 
-.section-form h2 {
+.section-form .container h2 {
     text-align: center;
     margin-bottom: var(--spacing-xl);
+    font-size: 1.7rem;
+    color: var(--primary-blue);
+    font-weight: 700;
 }
 
 .form-container {
@@ -1914,6 +1917,7 @@ table {
 .section-cta { padding: 60px 20px; color: var(--primary-blue); }
 .section-cta, .section-cta * { color: var(--primary-blue); }
 .section-cta a.btn, .section-cta .btn { color: var(--primary-blue); }
+.section-cta .container h2 { color: var(--primary-blue); font-weight: 700; font-size: 1.7rem; margin-bottom: 20px; }
 .muted { color: #888; }
 .small { font-size: 0.9rem; }
 .hr-top { border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px; }
