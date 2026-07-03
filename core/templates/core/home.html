@@ -93,7 +93,7 @@
 <!-- Section Informations -->
 <section class="section-form section-padded section-muted reveal section-quick-denonciation">
     <div class="container">
-        <h2 class="text-center section-subtitle">DÉPOSER UNE DÉNONCIATION RAPIDE</h2>
+        <h2>DÉPOSER UNE DÉNONCIATION RAPIDE</h2>
 
         <!-- Preview du formulaire avec lien vers la page complète -->
         <div class="max-w-900">
@@ -136,7 +136,7 @@
 <!-- Section CTA -->
 <section class="section-cta reveal">
     <div class="container text-center">
-        <h2 class="section-subtitle">Besoin d'aide?</h2>
+        <h2>Besoin d'aide?</h2>
         <p class="small mb-4">Contactez-nous pour toute question concernant votre dénonciation.</p>
         <a href="{% url 'core:about' %}" class="btn btn-primary btn-large">EN SAVOIR PLUS</a>
     </div>
@@ -169,9 +169,9 @@ document.addEventListener('DOMContentLoaded', function () {
             description: "Déposez votre signalement, joignez vos preuves et suivez l’évolution de votre dossier avec une expérience numérique claire et professionnelle."
         },
         {
-            title: "VOS DROITS, NOTRE PRIORITÉ",
+            title: "VOS MEILLEURES CONDITIONS AU TRAVAIL, NOTRE PRIORITÉ",
             highlight: "NOTRE PRIORITÉ",
-            description: "Le Ministère modernise l’accès au signalement pour protéger les travailleurs, accélérer les traitements et renforcer la confiance institutionnelle."
+            description: "Sous l'impulsion du Président de la République Félix-Antoine TSHISEKEDI TSHILOMBO, chaque Congolais doit travailler dans la dignité, sécurité et le respect de ses droits."
         }
     ];
 
@@ -245,7 +245,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function restartLoop() {
         clearInterval(changeTimer);
-        changeTimer = setInterval(nextHero, 8000);
+        // Set carousel interval to 13 seconds (13000 ms)
+        changeTimer = setInterval(nextHero, 13000);
     }
 
     renderDots();
