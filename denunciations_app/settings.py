@@ -158,34 +158,50 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-    },
-    "staticfiles": {
-        #"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage", 
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
-
-# Cloudinary storage configuration
+# Cloudinary / storage configuration
 # Enable cloud storage by setting `USE_CLOUDINARY=True` or providing `CLOUDINARY_URL`.
 USE_CLOUDINARY = config('USE_CLOUDINARY', default=False, cast=bool)
 CLOUDINARY_URL = config('CLOUDINARY_URL', default=None)
 
-# Individual Cloudinary credentials (optional if you provide CLOUDINARY_URL)
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
-}
+# Read individual Cloudinary credentials from environment (optional)
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default=None)
+CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default=None)
+CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default=None)
 
-# When cloudinary is enabled, use its storage backend for uploaded media
+# If credentials are present but no CLOUDINARY_URL, build it so libraries can consume it.
+if not CLOUDINARY_URL and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    CLOUDINARY_URL = f"cloudinary://{CLOUDINARY_API_KEY}:{CLOUDINARY_API_SECRET}@{CLOUDINARY_CLOUD_NAME}"
+
+# When cloudinary is enabled, use its storage backend for uploaded media.
+# Otherwise fall back to local FileSystem storage.
 if USE_CLOUDINARY or CLOUDINARY_URL:
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            #"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME or '',
+        'API_KEY': CLOUDINARY_API_KEY or '',
+        'API_SECRET': CLOUDINARY_API_SECRET or '',
+    }
+
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    # When using cloud storage we don't use a local MEDIA_ROOT
     MEDIA_ROOT = None
-    # MEDIA_URL can remain as is; Cloudinary will serve media URLs directly.
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
