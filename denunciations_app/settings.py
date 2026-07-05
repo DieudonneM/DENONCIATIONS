@@ -163,8 +163,8 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
-        #"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage", 
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",  
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage", 
+        #"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",  
     },
 }
 
