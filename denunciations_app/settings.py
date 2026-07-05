@@ -168,6 +168,25 @@ STORAGES = {
     },
 }
 
+# Cloudinary storage configuration
+# Enable cloud storage by setting `USE_CLOUDINARY=True` or providing `CLOUDINARY_URL`.
+USE_CLOUDINARY = config('USE_CLOUDINARY', default=False, cast=bool)
+CLOUDINARY_URL = config('CLOUDINARY_URL', default=None)
+
+# Individual Cloudinary credentials (optional if you provide CLOUDINARY_URL)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+}
+
+# When cloudinary is enabled, use its storage backend for uploaded media
+if USE_CLOUDINARY or CLOUDINARY_URL:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    # When using cloud storage we don't use a local MEDIA_ROOT
+    MEDIA_ROOT = None
+    # MEDIA_URL can remain as is; Cloudinary will serve media URLs directly.
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
