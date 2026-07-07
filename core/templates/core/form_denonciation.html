@@ -447,15 +447,74 @@
                     </div>
                 </div>
             </div>
+
+            <!-- SECTION: Identité du dénonciateur si non-anonyme -->
+            {% if not user.is_authenticated %}
+            <div id="identitySection" class="mt-4" style="display: none;">
+                <p class="muted text-strong mb-3">Si vous ne souhaitez pas rester anonyme, renseignez vos informations ci-dessous. Un compte sera créé automatiquement.</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.submitter_first_name.id_for_label }}">{{ form.submitter_first_name.label }}</label>
+                        {{ form.submitter_first_name }}
+                        {% if form.submitter_first_name.errors %}
+                            {% for error in form.submitter_first_name.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.submitter_last_name.id_for_label }}">{{ form.submitter_last_name.label }}</label>
+                        {{ form.submitter_last_name }}
+                        {% if form.submitter_last_name.errors %}
+                            {% for error in form.submitter_last_name.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.submitter_email.id_for_label }}">{{ form.submitter_email.label }}</label>
+                        {{ form.submitter_email }}
+                        {% if form.submitter_email.errors %}
+                            {% for error in form.submitter_email.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.submitter_telephone.id_for_label }}">{{ form.submitter_telephone.label }}</label>
+                        {{ form.submitter_telephone }}
+                        {% if form.submitter_telephone.errors %}
+                            {% for error in form.submitter_telephone.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="info-box mt-3">
+                Vous êtes connecté en tant que <strong>{{ user.get_full_name|default:user.email }}</strong> — vos informations de compte seront utilisées si vous choisissez de ne pas rester anonyme.
+            </div>
+            {% endif %}
             
             <!-- Acceptation confidentialité -->
             <div class="mt-2 hr-top">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="confirmAnonymous" name="confirm_anonymous" required>
-                    <label for="confirmAnonymous">
-                        J'accepte que mes données personnelles soient traitées conformément à la politique de confidentialité
-                    </label>
-                </div>
+                    <div class="checkbox-group">
+                        {{ form.confirm_anonymous }}
+                        <label for="{{ form.confirm_anonymous.id_for_label }}">
+                            J'accepte que mes données personnelles soient traitées conformément à la politique de confidentialité
+                        </label>
+                        {% if form.confirm_anonymous.errors %}
+                            {% for error in form.confirm_anonymous.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
             </div>
         </div>
         
@@ -525,17 +584,34 @@
         // Gestion de l'anonymat
         const anonymousCheckbox = document.querySelector('input[name="est_anonyme"]');
         const contactSection = document.getElementById('contactSection');
-        
+        const identitySection = document.getElementById('identitySection');
+
         function toggleContactSection() {
+            // Lorsque l'utilisateur choisit d'être anonyme, on demande au moins
+            // un moyen de contact (validation côté serveur). L'interface
+            // laisse les champs de contact visibles dans les deux cas.
             if (anonymousCheckbox.checked) {
-                contactSection.style.opacity = '0.6';
-                contactSection.style.pointerEvents = 'none';
+                // masquer la section d'identité
+                if (identitySection) identitySection.style.display = 'none';
+                // garder contactSection visible mais moins proéminent
+                if (contactSection) contactSection.style.opacity = '1';
+                // retirer l'obligation des champs d'identité
+                ['submitter_first_name','submitter_last_name','submitter_email'].forEach(name=>{
+                    const el = document.querySelector(`[name="${name}"]`);
+                    if (el) el.required = false;
+                });
             } else {
-                contactSection.style.opacity = '1';
-                contactSection.style.pointerEvents = 'auto';
+                // afficher la section d'identité pour renseigner prénom/nom/email
+                if (identitySection) identitySection.style.display = 'block';
+                if (contactSection) contactSection.style.opacity = '1';
+                // rendre obligatoires les champs d'identité
+                ['submitter_first_name','submitter_last_name','submitter_email'].forEach(name=>{
+                    const el = document.querySelector(`[name="${name}"]`);
+                    if (el) el.required = true;
+                });
             }
         }
-        
+
         anonymousCheckbox.addEventListener('change', toggleContactSection);
         toggleContactSection();
 

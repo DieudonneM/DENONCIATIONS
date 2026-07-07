@@ -36,6 +36,10 @@ class User(AbstractUser):
     
     # Status du compte
     est_actif = models.BooleanField(default=True)
+    # Indique que l'utilisateur doit changer son mot de passe au prochain login
+    must_change_password = models.BooleanField(default=False)
+    # Date/heure de création du mot de passe temporaire (si applicable)
+    temp_password_set_at = models.DateTimeField(null=True, blank=True)
     
     # USERNAME_FIELD = 'email'  # Utilise email au lieu de username pour l'authentification
     # REQUIRED_FIELDS = ['username']  # username toujours requis pour createsuperuser

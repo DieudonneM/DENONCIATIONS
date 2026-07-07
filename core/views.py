@@ -18,6 +18,7 @@ import json
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.contrib import messages
+from django.contrib.auth import login
 
 from users.models import User
 from .models import Province, Employeur
@@ -30,6 +31,7 @@ from users.auth_backends import user_is_agent, user_is_admin, user_is_travailleu
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import Department
+from django.utils.crypto import get_random_string
 
 
 # ============================================================================
@@ -44,7 +46,7 @@ class IncidentPublicFormView(View):
     
     def get(self, request):
         """Afficher le formulaire vide."""
-        form = self.form_class()
+        form = self.form_class(user=request.user)
         context = {
             'form': form,
             'page_title': 'Dénoncer un incident de travail',
@@ -55,18 +57,92 @@ class IncidentPublicFormView(View):
     
     def post(self, request):
         """Traiter la soumission du formulaire."""
-        form = self.form_class(request.POST, request.FILES)
+        form = self.form_class(request.POST, request.FILES, user=request.user)
         
         if form.is_valid():
             # Créer l'incident
             incident = form.save(commit=False)
             incident.statut = 'nouvelle'
             incident.est_lu = False
-            
-            # Gérer l'anonymat
+
+            redirect_after_password_change = False
+
+            # Gérer l'identité du dénonciateur
             if form.cleaned_data.get('est_anonyme'):
                 incident.travailleur = None
-            
+            else:
+                # Si un utilisateur est connecté, on prend directement ses infos
+                if request.user.is_authenticated:
+                    incident.travailleur = request.user
+                else:
+                    # Créer ou récupérer un utilisateur à partir de l'email fourni
+                    submitter_email = form.cleaned_data.get('submitter_email')
+                    submitter_first = form.cleaned_data.get('submitter_first_name')
+                    submitter_last = form.cleaned_data.get('submitter_last_name')
+                    submitter_tel = form.cleaned_data.get('submitter_telephone')
+
+                    user = None
+                    if submitter_email:
+                        try:
+                            user = User.objects.get(email=submitter_email)
+                        except User.DoesNotExist:
+                            # Générer un username unique à partir de l'email
+                            email_prefix = submitter_email.split('@')[0]
+                            username = email_prefix
+                            counter = 1
+                            while User.objects.filter(username=username).exists():
+                                username = f"{email_prefix}{counter}"
+                                counter += 1
+
+                            # Créer l'utilisateur avec mot de passe temporaire
+                            temp_pw = get_random_string(10)
+                            user = User(
+                                username=username,
+                                email=submitter_email,
+                                first_name=submitter_first or '',
+                                last_name=submitter_last or '',
+                                telephone=submitter_tel or '',
+                                role='travailleur',
+                                is_active=True,
+                                must_change_password=True,
+                            )
+                            user.set_password(temp_pw)
+                            # record timestamp for temporary password
+                            user.temp_password_set_at = timezone.now()
+                            user.save()
+
+                            # stocker le mot de passe temporaire en session pour affichage
+                            try:
+                                request.session['post_submission_temp_pw'] = temp_pw
+                            except Exception:
+                                pass
+
+                            # Envoyer un email informant du compte créé et du mot de passe temporaire
+                            try:
+                                send_mail(
+                                    subject='Votre compte sur la plateforme de dénonciation',
+                                    message=(
+                                        f"Bonjour {user.first_name or user.email},\n\n"
+                                        "Un compte a été créé pour vous suite à votre dénonciation.\n"
+                                        f"Identifiant : {user.email}\n"
+                                        f"Mot de passe temporaire : {temp_pw}\n\n"
+                                        "Pour des raisons de sécurité, veuillez vous connecter et changer votre mot de passe immédiatement."
+                                    ),
+                                    from_email=settings.DEFAULT_FROM_EMAIL,
+                                    recipient_list=[user.email],
+                                    fail_silently=True,
+                                )
+                            except Exception:
+                                # Ne pas bloquer la soumission si l'email échoue
+                                pass
+
+                    incident.travailleur = user
+
+                    # Si un compte vient d'être créé et nécessite un changement de mot de passe,
+                    # on préparer la redirection après avoir sauvegardé l'incident.
+                    if user and getattr(user, 'must_change_password', False):
+                        redirect_after_password_change = True
+
             incident.save()
             
             # Gérer les fichiers joints
@@ -81,6 +157,16 @@ class IncidentPublicFormView(View):
                 )
             
             # Rediriger vers la page de succès
+            # Si nous devons inviter l'utilisateur à changer son mot de passe, faire la connexion
+            # et rediriger vers la page de changement de mot de passe (qui redirigera ensuite vers le succès).
+            if redirect_after_password_change and user:
+                try:
+                    login(request, user, backend='users.auth_backends.EmailBackend')
+                    request.session['post_submission_incident_code'] = incident.code_suivi
+                    return redirect('users:password_change')
+                except Exception:
+                    pass
+
             return redirect('core:incident_success', code=incident.code_suivi)
         
         context = {

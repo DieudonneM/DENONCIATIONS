@@ -5,6 +5,7 @@ Formulaires pour l'application denunciations.
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Incident, Commentaire, PieceJointe, Employeur
+from django.utils import timezone
 
 
 class MultipleFileInput(forms.FileInput):
@@ -34,6 +35,13 @@ class IncidentForm(forms.ModelForm):
         help_text='Si coché, votre identité ne sera jamais visible pour les agents'
     )
     
+    # Confirmation de la politique (preuve côté serveur)
+    confirm_anonymous = forms.BooleanField(
+        required=False,
+        label="J'accepte la politique de confidentialité",
+        widget=forms.CheckboxInput()
+    )
+    
     class Meta:
         model = Incident
         fields = [
@@ -46,6 +54,7 @@ class IncidentForm(forms.ModelForm):
             'est_anonyme',
             'le_fautif'
         ]
+
         widgets = {
             'type_incident': forms.Select(attrs={
                 'class': 'form-control',
@@ -98,6 +107,43 @@ class IncidentForm(forms.ModelForm):
         })
     )
 
+    # Champs pour le dénonciateur non-anonyme (inspirés du formulaire d'inscription)
+    submitter_first_name = forms.CharField(
+        required=False,
+        label='Prénom',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Prénom',
+        })
+    )
+
+    submitter_last_name = forms.CharField(
+        required=False,
+        label='Nom',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nom',
+        })
+    )
+
+    submitter_email = forms.EmailField(
+        required=False,
+        label='Email',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'exemple@email.com',
+        })
+    )
+
+    submitter_telephone = forms.CharField(
+        required=False,
+        label='Téléphone',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+243 123 456 789',
+        })
+    )
+
     # Champ pour préciser le type si 'autre' est choisi
     autre_type_incident = forms.CharField(
         required=False,
@@ -128,11 +174,18 @@ class IncidentForm(forms.ModelForm):
     def clean(self):
         """Validation supplémentaire."""
         cleaned_data = super().clean()
+        # Si la form a été initialisée avec un user connecté, on peut s'en servir
+        user = getattr(self, 'user', None)
         
         # Si anonyme, au moins un contact optionnel est recommandé
         est_anonyme = cleaned_data.get('est_anonyme')
         email = cleaned_data.get('email_contact_anonyme')
         telephone = cleaned_data.get('telephone_contact_anonyme')
+        # Champs pour le dénonciateur non-anonyme
+        s_first = cleaned_data.get('submitter_first_name')
+        s_last = cleaned_data.get('submitter_last_name')
+        s_email = cleaned_data.get('submitter_email')
+        s_tel = cleaned_data.get('submitter_telephone')
         
         # Au moins un type d'incident
         if not cleaned_data.get('type_incident'):
@@ -154,6 +207,25 @@ class IncidentForm(forms.ModelForm):
         if not cleaned_data.get('description') or len(cleaned_data.get('description', '').strip()) < 10:
             raise ValidationError('La description doit contenir au moins 10 caractères.')
         
+        # Règles liées à l'anonymat / identité du dénonciateur
+        if est_anonyme:
+            # Lorsque la personne souhaite rester anonyme, elle doit fournir au moins
+            # un moyen de contact : email_contact_anonyme OU telephone_contact_anonyme
+            if not (email or telephone):
+                raise ValidationError('Si vous choisissez de rester anonyme, indiquez au moins un moyen de contact (email et/ou téléphone).')
+        else:
+            # Si non-anonyme et que l'utilisateur est connecté, on prendra ses informations
+            if user and getattr(user, 'is_authenticated', False):
+                pass
+            else:
+                # Si non-anonyme et pas connecté, il faut renseigner les informations minimales du profil
+                if not (s_first and s_last and s_email):
+                    raise ValidationError('Si vous ne souhaitez pas rester anonyme, renseignez votre prénom, nom et adresse email.')
+
+        # Vérifier l'acceptation de la politique de confidentialité
+        confirm = cleaned_data.get('confirm_anonymous')
+        if not confirm:
+            self.add_error('confirm_anonymous', 'Vous devez accepter la politique de confidentialité pour soumettre une dénonciation.')
         return cleaned_data
 
     def save(self, commit=True):
@@ -174,8 +246,16 @@ class IncidentForm(forms.ModelForm):
         incident.le_fautif = fautif or ''
 
         if commit:
+            # marquer l'acceptation de la politique si cochée
+            incident.accepted_privacy = True
+            incident.accepted_privacy_at = timezone.now()
             incident.save()
         return incident
+
+    def __init__(self, *args, **kwargs):
+        # accept an optional 'user' kwarg (request.user)
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
 
 
 class CommentaireForm(forms.ModelForm):

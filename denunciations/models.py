@@ -179,6 +179,9 @@ class Incident(models.Model):
     est_anonyme = models.BooleanField(default=True)
     email_contact_anonyme = models.EmailField(blank=True)
     telephone_contact_anonyme = models.CharField(max_length=20, blank=True)
+    # Acceptation de la politique de confidentialité / preuve
+    accepted_privacy = models.BooleanField(default=False)
+    accepted_privacy_at = models.DateTimeField(null=True, blank=True)
     
     # Dates
     date_creation = models.DateTimeField(auto_now_add=True, db_index=True)
