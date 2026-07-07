@@ -107,6 +107,33 @@ class IncidentForm(forms.ModelForm):
         })
     )
 
+    employeur_address = forms.CharField(
+        required=False,
+        label="Adresse complète de l'Entreprise",
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': "Numéro, rue, quartier, quartier administratif, code postal (si disponible)",
+            'rows': 3,
+        })
+    )
+
+    # Secteur d'activité (dropdown) + option 'autre' pour précision
+    secteur = forms.ChoiceField(
+        required=True,
+        label="Secteur d'activité",
+        choices=[('', '-- Sélectionnez --')] + list(Employeur.SECTEUR_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    autre_secteur = forms.CharField(
+        required=False,
+        label='Précisez le secteur (si Autre)',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Décrivez le secteur d\'activité',
+        })
+    )
+
     # Champs pour le dénonciateur non-anonyme (inspirés du formulaire d'inscription)
     submitter_first_name = forms.CharField(
         required=False,
@@ -238,6 +265,22 @@ class IncidentForm(forms.ModelForm):
 
         if employeur_nom:
             emp, created = Employeur.objects.get_or_create(nom=employeur_nom)
+            # enregistrer l'adresse complète si fournie
+            adresse_val = self.cleaned_data.get('employeur_address')
+            if adresse_val:
+                emp.adresse_complete = adresse_val
+            # assigner le secteur choisi
+            secteur_val = self.cleaned_data.get('secteur')
+            autre_secteur_val = self.cleaned_data.get('autre_secteur')
+            if secteur_val:
+                emp.secteur = secteur_val
+                # si l'utilisateur a précisé un secteur librement, l'enregistrer dans la description
+                if secteur_val == 'autre' and autre_secteur_val:
+                    if emp.description:
+                        emp.description = f"{emp.description}\nSecteur précisé: {autre_secteur_val}"
+                    else:
+                        emp.description = f"Secteur précisé: {autre_secteur_val}"
+            emp.save()
             incident.employeur = emp
 
         if incident.type_incident == 'autre' and autre:

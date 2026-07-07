@@ -306,6 +306,15 @@
                             {% endfor %}
                         {% endif %}
                     </div>
+                    <div class="mt-2">
+                        <label for="{{ form.employeur_address.id_for_label }}">{{ form.employeur_address.label }}</label>
+                        {{ form.employeur_address }}
+                        {% if form.employeur_address.errors %}
+                            {% for error in form.employeur_address.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -356,6 +365,28 @@
                     {% endif %}
                 </div>
             </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.secteur.id_for_label }}">{{ form.secteur.label }} <span class="required">*</span></label>
+                        {{ form.secteur }}
+                        {% if form.secteur.errors %}
+                            {% for error in form.secteur.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group" id="autreSecteurWrapper" style="display: none;">
+                        <label for="{{ form.autre_secteur.id_for_label }}">{{ form.autre_secteur.label }}</label>
+                        {{ form.autre_secteur }}
+                        {% if form.autre_secteur.errors %}
+                            {% for error in form.autre_secteur.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
         </div>
         
         <!-- SECTION 2: DÉTAILS DE L'INCIDENT -->
@@ -639,6 +670,31 @@
             typeSelect.addEventListener('change', toggleAutreField);
             // initial state
             toggleAutreField();
+        }
+
+        // Gestion du champ 'Secteur' et affichage du champ 'Autre' pour le secteur
+        const secteurSelect = document.querySelector('select[name="secteur"]');
+        const autreSecteurWrapper = document.getElementById('autreSecteurWrapper');
+        const autreSecteurInput = document.querySelector('input[name="autre_secteur"]');
+
+        function toggleAutreSecteur() {
+            if (!secteurSelect) return;
+            const val = secteurSelect.value;
+            if (val === 'autre') {
+                autreSecteurWrapper.style.display = 'block';
+                if (autreSecteurInput) autreSecteurInput.required = true;
+            } else {
+                autreSecteurWrapper.style.display = 'none';
+                if (autreSecteurInput) {
+                    autreSecteurInput.required = false;
+                    autreSecteurInput.value = '';
+                }
+            }
+        }
+
+        if (secteurSelect) {
+            secteurSelect.addEventListener('change', toggleAutreSecteur);
+            toggleAutreSecteur();
         }
     });
 </script>

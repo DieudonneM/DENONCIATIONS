@@ -15,13 +15,13 @@ class ProvinceAdmin(admin.ModelAdmin):
 
 @admin.register(Employeur)
 class EmployeurAdmin(admin.ModelAdmin):
-    list_display = ['nom', 'secteur', 'province', 'date_creation']
+    list_display = ['nom', 'secteur', 'province', 'adresse_complete', 'date_creation']
     list_filter = ['secteur', 'province', 'date_creation']
     search_fields = ['nom', 'email', 'telephone']
     readonly_fields = ['date_creation', 'date_modification']
     fieldsets = (
         ('Informations générales', {
-            'fields': ('nom', 'secteur', 'description')
+            'fields': ('nom', 'secteur', 'description', 'adresse_complete')
         }),
         ('Localisation', {
             'fields': ('ville', 'province')
@@ -38,8 +38,8 @@ class EmployeurAdmin(admin.ModelAdmin):
 
 @admin.register(Incident)
 class IncidentAdmin(admin.ModelAdmin):
-    list_display = ['code_suivi', 'type_incident', 'statut', 'employeur', 'date_creation']
-    list_filter = ['statut', 'type_incident', 'province', 'est_anonyme', 'date_creation']
+    list_display = ['code_suivi', 'type_incident', 'statut', 'employeur', 'employeur_secteur', 'accepted_privacy', 'accepted_privacy_at', 'date_creation']
+    list_filter = ['statut', 'type_incident', 'province', 'est_anonyme', 'accepted_privacy', 'date_creation']
     search_fields = ['code_suivi', 'employeur__nom', 'description']
     readonly_fields = ['code_suivi', 'date_creation', 'date_modification']
     fieldsets = (
@@ -59,6 +59,10 @@ class IncidentAdmin(admin.ModelAdmin):
             'fields': ('email_contact_anonyme', 'telephone_contact_anonyme'),
             'classes': ('collapse',)
         }),
+        ('Preuve d\'acceptation', {
+            'fields': ('accepted_privacy', 'accepted_privacy_at'),
+            'classes': ('collapse',)
+        }),
         ('Suivi', {
             'fields': ('est_lu', 'date_creation', 'date_modification'),
             'classes': ('collapse',)
@@ -69,6 +73,12 @@ class IncidentAdmin(admin.ModelAdmin):
         if obj:  # Editing an existing object
             return self.readonly_fields + ['travailleur', 'employeur', 'type_incident']
         return self.readonly_fields
+
+    def employeur_secteur(self, obj):
+        if obj.employeur:
+            return obj.employeur.secteur
+        return ''
+    employeur_secteur.short_description = 'Secteur Employeur'
 
 
 @admin.register(Commentaire)
