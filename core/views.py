@@ -22,7 +22,7 @@ from django.contrib.auth import login
 
 from users.models import User
 from .models import Province, Employeur
-from denunciations.models import Incident, Commentaire, PieceJointe
+from denunciations.models import Incident, Commentaire, PieceJointe, LogAudit
 from denunciations.forms import (
     IncidentForm, CommentaireForm, SearchIncidentForm, FilterIncidentForm
 )
@@ -378,9 +378,13 @@ class DashboardStatsView(LoginRequiredMixin, TemplateView):
         # initial stats
         context['stats'] = {
             'total': incidents.count(),
+            'nouvelle': incidents.filter(statut='nouvelle').count(),
+            'analyse': incidents.filter(statut='analyse').count(),
+            'attente': incidents.filter(statut='attente').count(),
             'resolu': incidents.filter(statut='resolue').count(),
+            'classee': incidents.filter(statut='classée').count(),
             'non_lue': incidents.filter(est_lu=False).count(),
-            'en_cours': incidents.filter(statut='analyse').count(),
+            'anonyme': incidents.filter(est_anonyme=True).count(),
         }
         return context
 
@@ -435,9 +439,12 @@ def dashboard_stats_data(request):
     data = {
         'kpis': {
             'total': Incident.objects.count(),
+            'nouvelle': Incident.objects.filter(statut='nouvelle').count(),
+            'analyse': Incident.objects.filter(statut='analyse').count(),
+            'attente': Incident.objects.filter(statut='attente').count(),
             'resolu': Incident.objects.filter(statut='resolue').count(),
+            'classee': Incident.objects.filter(statut='classée').count(),
             'non_lue': Incident.objects.filter(est_lu=False).count(),
-            'en_cours': Incident.objects.filter(statut='analyse').count(),
             'anonyme': Incident.objects.filter(est_anonyme=True).count(),
         }
     }
@@ -605,10 +612,28 @@ class IncidentDetailView(LoginRequiredMixin, View):
         if not check_user_can_view_incident(request.user, incident):
             return render(request, 'core/error_403.html', status=403)
         
-        # Marquer comme lu si c'est un agent
-        if user_is_agent(request.user) and not incident.est_lu:
+        # Marquer comme lu et mettre en "En cours d'analyse" si c'est un agent ou un admin
+        if (user_is_agent(request.user) or user_is_admin(request.user)) and not incident.est_lu:
             incident.est_lu = True
-            incident.save()
+            # Si c'est une nouvelle dénonciation, passer automatiquement en cours d'analyse
+            if incident.statut == 'nouvelle':
+                ancienne = incident.statut
+                incident.statut = 'analyse'
+                incident.save()
+                try:
+                    LogAudit.objects.create(
+                        incident=incident,
+                        utilisateur=request.user,
+                        action='modification_statut',
+                        description=f'Statut changé automatiquement de {ancienne} à analyse lors de l\'ouverture par {request.user}.',
+                        ancienne_valeur=ancienne,
+                        nouvelle_valeur='analyse'
+                    )
+                except Exception:
+                    # Ne pas bloquer l'affichage si le log échoue
+                    pass
+            else:
+                incident.save()
         
         # Récupérer les commentaires (publics pour travailleur, tous pour agent/admin)
         if request.user.role == 'travailleur':
@@ -657,7 +682,40 @@ class IncidentDetailView(LoginRequiredMixin, View):
             commentaire.incident = incident
             commentaire.auteur = request.user
             commentaire.save()
-            
+
+            # Lorsqu'un agent ou admin ajoute un commentaire, passer en attente d'informations
+            try:
+                ancienne = incident.statut
+                if incident.statut != 'attente':
+                    incident.statut = 'attente'
+                    incident.save()
+                    try:
+                        LogAudit.objects.create(
+                            incident=incident,
+                            utilisateur=request.user,
+                            action='modification_statut',
+                            description=f'Statut changé automatiquement de {ancienne} à attente après ajout de commentaire par {request.user}.',
+                            ancienne_valeur=ancienne,
+                            nouvelle_valeur='attente'
+                        )
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+            # Log d'ajout de commentaire
+            try:
+                LogAudit.objects.create(
+                    incident=incident,
+                    utilisateur=request.user,
+                    action='ajout_commentaire',
+                    description=f'Commentaire ajouté par {request.user}: {commentaire.texte[:200]}',
+                    ancienne_valeur='',
+                    nouvelle_valeur=commentaire.texte[:200]
+                )
+            except Exception:
+                pass
+
             messages.success(request, 'Commentaire ajouté avec succès.')
             return redirect('core:incident_detail', code=code)
         

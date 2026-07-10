@@ -9,7 +9,8 @@
     <div class="dashboard-header">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
             <div>
-                <h1>🎛️ Tableau de Bord Administrateur</h1>
+                <h1>Tableau de Bord Administrateur</h1>
+                <h2>{{ user.get_full_name }} - Connecté 🟢</h2>
                 <p>Gestion complète de la plateforme de dénonciation</p>
             </div>
             <div>
@@ -18,62 +19,8 @@
         </div>
     </div>
 
-    <!-- SECTION 1: STATISTIQUES PRINCIPALES -->
-    <div class="stats-section">
-        <div class="section-title">📊 Statistiques Principales</div>
-        
-        <div class="stats-grid">
-            <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card">
-                <div class="stat-icon">📋</div>
-                <div class="stat-value">{{ stats.total }}</div>
-                <div class="stat-label">Total Dénonciations</div>
-            </a>
-            
-            <a href="{% url 'denunciations:incidents_list' %}?statut=nouvelle" class="stat-card stat-nouvelle">
-                <div class="stat-icon">✨</div>
-                <div class="stat-value">{{ stats.nouvelle }}</div>
-                <div class="stat-label">Nouvelles</div>
-            </a>
-            
-            <a href="{% url 'denunciations:incidents_list' %}?statut=analyse" class="stat-card stat-analyse">
-                <div class="stat-icon">🔍</div>
-                <div class="stat-value">{{ stats.analyse }}</div>
-                <div class="stat-label">En Analyse</div>
-            </a>
-            
-            <a href="{% url 'denunciations:incidents_list' %}?statut=attente" class="stat-card stat-attente">
-                <div class="stat-icon">⏳</div>
-                <div class="stat-value">{{ stats.attente }}</div>
-                <div class="stat-label">En Attente</div>
-            </a>
-            
-            <a href="{% url 'denunciations:incidents_list' %}?statut=resolue" class="stat-card stat-resolue">
-                <div class="stat-icon">✅</div>
-                <div class="stat-value">{{ stats.resolue }}</div>
-                <div class="stat-label">Résolues</div>
-            </a>
-            
-            <a href="{% url 'denunciations:incidents_list' %}?statut=classée" class="stat-card stat-classee">
-                <div class="stat-icon">📦</div>
-                <div class="stat-value">{{ stats.classée }}</div>
-                <div class="stat-label">Classées</div>
-            </a>
-            
-            <a href="{% url 'denunciations:incidents_list' %}?" class="stat-card">
-                <div class="stat-icon">👤</div>
-                <div class="stat-value">{{ stats.anonyme }}</div>
-                <div class="stat-label">Anonymes</div>
-            </a>
-            
-            <a href="{% url 'denunciations:incidents_list' %}?statut=nouvelle&search=" class="stat-card">
-                <div class="stat-icon">🔴</div>
-                <div class="stat-value">{{ stats.non_lu }}</div>
-                <div class="stat-label">Non Lues</div>
-            </a>
-        </div>
-    </div>
 
-    <!-- SECTION 2: GESTION DES UTILISATEURS -->
+    <!-- SECTION 1: GESTION DES UTILISATEURS -->
     <div class="stats-section">
         <div class="section-title">👥 Gestion des Utilisateurs</div>
         
@@ -155,7 +102,7 @@
         </div>
     </div>
 
-    <!-- SECTION 3: GESTION ADMINISTRATIVE -->
+    <!-- SECTION 2: GESTION ADMINISTRATIVE -->
     <div class="stats-section">
         <div class="section-title">⚙️ Gestion Administrative</div>
         
@@ -187,35 +134,6 @@
                 </div>
             </div>
 
-            <!-- Entreprises -->
-            <div class="management-card">
-                <div class="management-header">
-                    <div>
-                        <h3>🏢 Entreprises</h3>
-                    </div>
-                    <div class="count">{{ total_employeurs }}</div>
-                </div>
-                <div class="management-body">
-                    {% if recent_employeurs %}
-                        <ul class="item-list">
-                            {% for employeur in recent_employeurs %}
-                                <li>
-                                    <div>
-                                        <div class="item-name">{{ employeur.nom }}</div>
-                                        <div class="item-meta">{{ employeur.get_secteur_display }}</div>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="no-data">Aucune entreprise</p>
-                    {% endif %}
-                </div>
-                <div class="management-footer">
-                    <a href="{% url 'core:admin_employeurs_list' %}">Gérer les Entreprises →</a>
-                </div>
-            </div>
-
             <!-- Actions Rapides -->
             <div class="management-card">
                 <div class="management-header">
@@ -233,41 +151,6 @@
                 <div class="management-footer">
                     <a href="{% url 'core:admin_dashboard' %}">Accéder au Panel Admin →</a>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SECTION 4: DÉNONCIATIONS RÉCENTES -->
-    <div class="stats-section">
-        <div class="incidents-section">
-            <div class="incidents-header">
-                <h3>📝 Dénonciations Récentes</h3>
-            </div>
-                    <div class="incident-list-table">
-                <div class="incident-list-header">
-                    <div>Type</div>
-                    <div>Entreprise</div>
-                    <div>Ville / Province</div>
-                    <div>Status</div>
-                    <div>Action</div>
-                </div>
-                {% if recent_incidents %}
-                    {% for incident in recent_incidents %}
-                        <div class="incident-list-row {% if not incident.agent_assigné %}unassigned{% endif %}">
-                            <div class="incident-list-cell type">
-                                <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">{{ incident.get_type_incident_display }}</a>
-                            </div>
-                            <div class="incident-list-cell">{{ incident.employeur.nom }}</div>
-                            <div class="incident-list-cell">{{ incident.ville }}, {{ incident.province.nom }}</div>
-                            <div class="incident-list-cell"><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
-                            <div class="incident-list-cell incident-actions">
-                                <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-manage">Consulter</a>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="no-data">Aucune dénonciation</div>
-                {% endif %}
             </div>
         </div>
     </div>

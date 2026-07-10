@@ -4,7 +4,7 @@ Formulaires pour l'application denunciations.
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Incident, Commentaire, PieceJointe, Employeur
+from .models import Incident, Commentaire, PieceJointe, Employeur, Province
 from django.utils import timezone
 
 
@@ -374,6 +374,24 @@ class FilterIncidentForm(forms.Form):
         label='Type d\'incident',
         required=False,
         choices=TYPE_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+        })
+    )
+    
+    province = forms.ModelChoiceField(
+        label='Province',
+        required=False,
+        queryset=Province.objects.all(),
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+        })
+    )
+
+    secteur = forms.ChoiceField(
+        label="Secteur d'activité",
+        required=False,
+        choices=[('', '-- Tous les secteurs --')] + list(Employeur.SECTEUR_CHOICES),
         widget=forms.Select(attrs={
             'class': 'form-control',
         })
