@@ -31,10 +31,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'users',          # Gestion des utilisateurs
     'denunciations',  # Gestion des dénonciations
     'core',           # Application principale
+    'cloudinary_storage',
+    'cloudinary',
+    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
@@ -155,6 +157,35 @@ STATICFILES_DIRS = [
 # Media files (Uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary (production) configuration
+# When `ENVIRONMENT=production`, uploaded media files will be stored in Cloudinary.
+# Provide the Cloudinary credentials via the `CLOUDINARY_URL` environment variable.
+if IS_PRODUCTION:
+    # In production we require CLOUDINARY_URL to be set as an environment variable.
+    # Do NOT store secrets in source code or commit them to version control.
+    try:
+        CLOUDINARY_URL = config('CLOUDINARY_URL')
+    except Exception:
+        raise RuntimeError('CLOUDINARY_URL must be set in the environment when ENVIRONMENT=production')
+
+    # Configure django-cloudinary-storage as the default media storage
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    CLOUDINARY_STORAGE = {
+        'CLOUDINARY_URL': CLOUDINARY_URL,
+        'UPLOAD_OPTIONS': {'resource_type': 'auto'},
+    }
+
+    # Configure cloudinary library (safe import fallback)
+    try:
+        import cloudinary
+        cloudinary.config(cloudinary_url=CLOUDINARY_URL, secure=True)
+    except Exception:
+        # If cloudinary is not importable here, let the app raise later when used.
+        pass
+else:
+    # Keep default filesystem storage locally
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
