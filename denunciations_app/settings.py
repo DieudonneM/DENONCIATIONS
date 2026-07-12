@@ -151,6 +151,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'users' / 'static',
     BASE_DIR / 'denunciations' / 'static',
     BASE_DIR / 'core' / 'static',
+    BASE_DIR / 'static',
 ]
 
 # En production utiliser Whitenoise pour servir les fichiers statiques
