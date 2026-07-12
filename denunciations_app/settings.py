@@ -158,9 +158,9 @@ STATICFILES_DIRS = [
 if IS_PRODUCTION:
     # Utiliser la version compressée + manifest pour garantir que les fichiers
     # statiques sont correctement collectés et servis avec des noms hachés.
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
     # Ne pas échouer si un fichier référencé dans le manifest est manquant
-    WHITENOISE_MANIFEST_STRICT = False
+    # WHITENOISE_MANIFEST_STRICT = False
 
 # Media files (Uploads)
 MEDIA_URL = '/media/'
