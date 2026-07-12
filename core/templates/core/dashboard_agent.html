@@ -351,38 +351,6 @@
         </div>
     </div>
 
-    <div class="section-title">📊 Statistiques</div>
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">Total</div>
-        </div>
-        <div class="stat-card stat-nouvelle">
-            <div class="stat-value">{{ stats.nouvelle }}</div>
-            <div class="stat-label">Nouvelles</div>
-        </div>
-        <div class="stat-card stat-analyse">
-            <div class="stat-value">{{ stats.analyse }}</div>
-            <div class="stat-label">En analyse</div>
-        </div>
-        <div class="stat-card stat-attente">
-            <div class="stat-value">{{ stats.attente }}</div>
-            <div class="stat-label">En attente</div>
-        </div>
-        <div class="stat-card stat-resolue">
-            <div class="stat-value">{{ stats.resolue }}</div>
-            <div class="stat-label">Résolues</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ stats.anonyme }}</div>
-            <div class="stat-label">Anonymes</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ stats.non_lu }}</div>
-            <div class="stat-label">Non lues</div>
-        </div>
-    </div>
-
     <div class="filter-section">
         <div class="section-title">🔎 Filtrer les dénonciations</div>
         <form method="get">
@@ -394,6 +362,14 @@
                 <div class="form-group">
                     {{ filter_form.type_incident.label_tag }}
                     {{ filter_form.type_incident }}
+                </div>
+                <div class="form-group">
+                    {{ filter_form.province.label_tag }}
+                    {{ filter_form.province }}
+                </div>
+                <div class="form-group">
+                    {{ filter_form.secteur.label_tag }}
+                    {{ filter_form.secteur }}
                 </div>
                 <div class="form-group">
                     {{ filter_form.search.label_tag }}
@@ -414,109 +390,106 @@
             const params = new URLSearchParams();
             const statut = document.querySelector('[name="statut"]').value;
             const type_incident = document.querySelector('[name="type_incident"]').value;
+            const province = (document.querySelector('[name="province"]') || {}).value || '';
+            const secteur = (document.querySelector('[name="secteur"]') || {}).value || '';
             const search = document.querySelector('[name="search"]').value;
             if (statut) params.append('statut', statut);
             if (type_incident) params.append('type_incident', type_incident);
+            if (province) params.append('province', province);
+            if (secteur) params.append('secteur', secteur);
             if (search) params.append('search', search);
             const url = '{% url "denunciations:export_incidents_xlsx" %}?' + params.toString();
             window.location.href = url;
         });
     </script>
 
-    <div class="incidents-section">
-        <div class="incidents-header">
-            <h3>👤 Mes Dénonciations Assignées</h3>
-        </div>
-        {% if my_incidents %}
-            <div class="incident-list-table">
-                <div class="incident-list-header">
-                    <div>Type</div>
-                    <div>Entreprise</div>
-                    <div>Ville / Province</div>
-                    <div>Status</div>
-                    <div>Action</div>
-                </div>
-                {% for incident in my_incidents %}
-                    <div class="incident-list-row">
-                        <div class="incident-list-cell type">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">{{ incident.get_type_incident_display }}</a>
-                        </div>
-                        <div class="incident-list-cell">{{ incident.employeur.nom }}</div>
-                        <div class="incident-list-cell">{{ incident.ville }}, {{ incident.province.nom }}</div>
-                        <div class="incident-list-cell"><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
-                        <div class="incident-list-cell incident-actions">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-manage">Consulter</a>
-                        </div>
-                    </div>
-                {% endfor %}
+    <!-- Conteneur pour le rendu dynamique des incidents (rempli par AJAX) -->
+    <div class="dashboard-grid">
+        <div class="management-card" style="width:100%">
+            <div class="management-header">
+                <h3>📝 Dénonciations (résultats filtrés)</h3>
             </div>
-        {% else %}
-            <div class="no-data">Aucune dénonciation assignée à vous pour le moment.</div>
-        {% endif %}
+            <div class="management-body">
+                <div id="incidentsFragment">
+                    <div class="no-data">Chargement des dénonciations…</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="incidents-section">
-        <div class="incidents-header">
-            <h3>⚠️ Dénonciations Non Assignées</h3>
-        </div>
-        {% if unassigned_incidents %}
-            <div class="incident-list-table">
-                <div class="incident-list-header">
-                    <div>Type</div>
-                    <div>Entreprise</div>
-                    <div>Ville / Province</div>
-                    <div>Status</div>
-                    <div>Action</div>
-                </div>
-                {% for incident in unassigned_incidents %}
-                    <div class="incident-list-row unassigned">
-                        <div class="incident-list-cell type">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">{{ incident.get_type_incident_display }}</a>
-                        </div>
-                        <div class="incident-list-cell">{{ incident.employeur.nom }}</div>
-                        <div class="incident-list-cell">{{ incident.ville }}, {{ incident.province.nom }}</div>
-                        <div class="incident-list-cell"><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
-                        <div class="incident-list-cell incident-actions">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-manage">Consulter</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-data">Toutes les dénonciations sont assignées.</div>
-        {% endif %}
-    </div>
+    <script>
+        // Debounce helper
+        function debounce(fn, delay) {
+            let t;
+            return function(...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
 
-    <div class="incidents-section">
-        <div class="incidents-header">
-            <h3>📝 Dénonciations Récentes</h3>
-        </div>
-        {% if recent_incidents %}
-            <div class="incident-list-table">
-                <div class="incident-list-header">
-                    <div>Type</div>
-                    <div>Entreprise</div>
-                    <div>Ville / Province</div>
-                    <div>Status</div>
-                    <div>Action</div>
-                </div>
-                {% for incident in recent_incidents %}
-                    <div class="incident-list-row {% if not incident.agent_assigné %}unassigned{% endif %}">
-                        <div class="incident-list-cell type">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="incident-code">{{ incident.get_type_incident_display }}</a>
-                        </div>
-                        <div class="incident-list-cell">{{ incident.employeur.nom }}</div>
-                        <div class="incident-list-cell">{{ incident.ville }}, {{ incident.province.nom }}</div>
-                        <div class="incident-list-cell"><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
-                        <div class="incident-list-cell incident-actions">
-                            <a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn-manage">Consulter</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-data">Aucune dénonciation dans votre/vos province(s).</div>
-        {% endif %}
-    </div>
+        const incidentsUrl = '{% url "denunciations:incidents_list" %}';
+
+        function buildParams(extra = {}) {
+            const params = new URLSearchParams();
+            const statut = document.querySelector('[name="statut"]').value;
+            const type_incident = document.querySelector('[name="type_incident"]').value;
+            const province = (document.querySelector('[name="province"]') || {}).value || '';
+            const secteur = (document.querySelector('[name="secteur"]') || {}).value || '';
+            const search = document.querySelector('[name="search"]').value;
+            if (statut) params.append('statut', statut);
+            if (type_incident) params.append('type_incident', type_incident);
+            if (province) params.append('province', province);
+            if (secteur) params.append('secteur', secteur);
+            if (search) params.append('search', search);
+            Object.keys(extra).forEach(k => params.append(k, extra[k]));
+            // mark as ajax so server returns fragment
+            params.append('ajax', '1');
+            return params;
+        }
+
+        async function fetchIncidents(extra = {}) {
+            const params = buildParams(extra);
+            const url = incidentsUrl + '?' + params.toString();
+            try {
+                const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!res.ok) throw new Error('Réseau');
+                const data = await res.json();
+                document.getElementById('incidentsFragment').innerHTML = data.html;
+                // attach pagination handlers inside returned fragment
+                attachPaginationHandlers();
+            } catch (e) {
+                document.getElementById('incidentsFragment').innerHTML = '<div class="no-data">Impossible de charger les données.</div>';
+                console.error(e);
+            }
+        }
+
+        const debouncedFetch = debounce(() => fetchIncidents(), 300);
+
+        // Attach change listeners to filter inputs
+        document.querySelectorAll('.filter-section select, .filter-section input').forEach(el => {
+            el.addEventListener('change', debouncedFetch);
+            el.addEventListener('input', debouncedFetch);
+        });
+
+        // Intercept the filter form submit to use AJAX
+        document.querySelector('.filter-section form').addEventListener('submit', function(ev) {
+            ev.preventDefault();
+            fetchIncidents();
+        });
+
+        function attachPaginationHandlers() {
+            document.querySelectorAll('#incidentsFragment .ajax-page').forEach(btn => {
+                btn.addEventListener('click', function(ev) {
+                    ev.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    fetchIncidents({ page });
+                });
+            });
+        }
+
+        // Initial load
+        fetchIncidents();
+    </script>
+
 </section>
 {% endblock %}

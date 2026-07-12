@@ -26,17 +26,17 @@ USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
 
 # Application definition
 INSTALLED_APPS = [
-    'cloudinary_storage',
-    'cloudinary',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'users',          # Gestion des utilisateurs
     'denunciations',  # Gestion des dénonciations
     'core',           # Application principale
+    'cloudinary_storage',
+    'cloudinary',
+    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
@@ -157,51 +157,13 @@ STATICFILES_DIRS = [
 # Media files (Uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# Cloudinary / storage configuration
-# Enable cloud storage by setting `USE_CLOUDINARY=True` or providing `CLOUDINARY_URL`.
-USE_CLOUDINARY = config('USE_CLOUDINARY', default=False, cast=bool)
-CLOUDINARY_URL = config('CLOUDINARY_URL', default=None)
-
-# Read individual Cloudinary credentials from environment (optional)
-CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default=None)
-CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default=None)
-CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default=None)
-
-# If credentials are present but no CLOUDINARY_URL, build it so libraries can consume it.
-if not CLOUDINARY_URL and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
-    CLOUDINARY_URL = f"cloudinary://{CLOUDINARY_API_KEY}:{CLOUDINARY_API_SECRET}@{CLOUDINARY_CLOUD_NAME}"
-
-# When cloudinary is enabled, use its storage backend for uploaded media.
-# Otherwise fall back to local FileSystem storage.
-if USE_CLOUDINARY or CLOUDINARY_URL:
-    STORAGES = {
-        "default": {
-            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-        },
-        "staticfiles": {
-            #"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-        },
-    }
-
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME or '',
-        'API_KEY': CLOUDINARY_API_KEY or '',
-        'API_SECRET': CLOUDINARY_API_SECRET or '',
-    }
-
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_ROOT = None
-else:
-    STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-        },
-    }
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -285,4 +247,23 @@ IMAP_PORT = config('IMAP_PORT', default=993, cast=int)
 IMAP_USE_SSL = config('IMAP_USE_SSL', default=True, cast=bool)
 IMAP_USER = config('IMAP_USER', default=EMAIL_HOST_USER)
 IMAP_PASSWORD = config('IMAP_PASSWORD', default=EMAIL_HOST_PASSWORD)
+
+# Cloudinary configuration (reads from .env)
+import cloudinary
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+}
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+    secure=True,
+)
+
+# Use Cloudinary for default file storage
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 

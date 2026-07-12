@@ -4,7 +4,8 @@ Formulaires pour l'application denunciations.
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Incident, Commentaire, PieceJointe, Employeur
+from .models import Incident, Commentaire, PieceJointe, Employeur, Province
+from django.utils import timezone
 
 
 class MultipleFileInput(forms.FileInput):
@@ -34,6 +35,13 @@ class IncidentForm(forms.ModelForm):
         help_text='Si coché, votre identité ne sera jamais visible pour les agents'
     )
     
+    # Confirmation de la politique (preuve côté serveur)
+    confirm_anonymous = forms.BooleanField(
+        required=False,
+        label="J'accepte la politique de confidentialité",
+        widget=forms.CheckboxInput()
+    )
+    
     class Meta:
         model = Incident
         fields = [
@@ -46,6 +54,7 @@ class IncidentForm(forms.ModelForm):
             'est_anonyme',
             'le_fautif'
         ]
+
         widgets = {
             'type_incident': forms.Select(attrs={
                 'class': 'form-control',
@@ -98,6 +107,70 @@ class IncidentForm(forms.ModelForm):
         })
     )
 
+    employeur_address = forms.CharField(
+        required=False,
+        label="Adresse complète de l'Entreprise",
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': "Numéro, rue, quartier, quartier administratif, code postal (si disponible)",
+            'rows': 3,
+        })
+    )
+
+    # Secteur d'activité (dropdown) + option 'autre' pour précision
+    secteur = forms.ChoiceField(
+        required=True,
+        label="Secteur d'activité",
+        choices=[('', '-- Sélectionnez --')] + list(Employeur.SECTEUR_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    autre_secteur = forms.CharField(
+        required=False,
+        label='Précisez le secteur (si Autre)',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Décrivez le secteur d\'activité',
+        })
+    )
+
+    # Champs pour le dénonciateur non-anonyme (inspirés du formulaire d'inscription)
+    submitter_first_name = forms.CharField(
+        required=False,
+        label='Prénom',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Prénom',
+        })
+    )
+
+    submitter_last_name = forms.CharField(
+        required=False,
+        label='Nom',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nom',
+        })
+    )
+
+    submitter_email = forms.EmailField(
+        required=False,
+        label='Email',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'exemple@email.com',
+        })
+    )
+
+    submitter_telephone = forms.CharField(
+        required=False,
+        label='Téléphone',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+243 123 456 789',
+        })
+    )
+
     # Champ pour préciser le type si 'autre' est choisi
     autre_type_incident = forms.CharField(
         required=False,
@@ -124,15 +197,55 @@ class IncidentForm(forms.ModelForm):
         if email and not email.strip():
             return ''
         return email
+
+    def clean_pieces_jointes(self):
+        """Valider les fichiers joints (extensions autorisées et taille maximale)."""
+        # Récupérer les fichiers téléchargés (supporte input multiple)
+        files = []
+        try:
+            files = self.files.getlist('pieces_jointes')
+        except Exception:
+            files = []
+
+        MAX_MB = 50
+        allowed_exts = [ext.lower() for ext in PieceJointe.EXTENSIONS_AUTORISEES]
+        invalid = []
+        oversize = []
+
+        for f in files:
+            name = getattr(f, 'name', '')
+            ext = name.rsplit('.', 1)[-1].lower() if '.' in name else ''
+            if ext and ext not in allowed_exts:
+                invalid.append(name)
+            if hasattr(f, 'size') and f.size > MAX_MB * 1024 * 1024:
+                oversize.append(name)
+
+        if invalid or oversize:
+            messages = []
+            if invalid:
+                messages.append(f"Format non autorisé pour: {', '.join(invalid)}. Formats autorisés: {', '.join(allowed_exts)}.")
+            if oversize:
+                messages.append(f"Taille dépassée (> {MAX_MB} MB) pour: {', '.join(oversize)}.")
+            raise ValidationError(' '.join(messages))
+
+        # Retourner la valeur du champ (peut être None ou le fichier unique selon l'input)
+        return self.cleaned_data.get('pieces_jointes')
     
     def clean(self):
         """Validation supplémentaire."""
         cleaned_data = super().clean()
+        # Si la form a été initialisée avec un user connecté, on peut s'en servir
+        user = getattr(self, 'user', None)
         
         # Si anonyme, au moins un contact optionnel est recommandé
         est_anonyme = cleaned_data.get('est_anonyme')
         email = cleaned_data.get('email_contact_anonyme')
         telephone = cleaned_data.get('telephone_contact_anonyme')
+        # Champs pour le dénonciateur non-anonyme
+        s_first = cleaned_data.get('submitter_first_name')
+        s_last = cleaned_data.get('submitter_last_name')
+        s_email = cleaned_data.get('submitter_email')
+        s_tel = cleaned_data.get('submitter_telephone')
         
         # Au moins un type d'incident
         if not cleaned_data.get('type_incident'):
@@ -154,6 +267,25 @@ class IncidentForm(forms.ModelForm):
         if not cleaned_data.get('description') or len(cleaned_data.get('description', '').strip()) < 10:
             raise ValidationError('La description doit contenir au moins 10 caractères.')
         
+        # Règles liées à l'anonymat / identité du dénonciateur
+        if est_anonyme:
+            # Lorsque la personne souhaite rester anonyme, elle doit fournir au moins
+            # un moyen de contact : email_contact_anonyme OU telephone_contact_anonyme
+            if not (email or telephone):
+                raise ValidationError('Si vous choisissez de rester anonyme, indiquez au moins un moyen de contact (email et/ou téléphone).')
+        else:
+            # Si non-anonyme et que l'utilisateur est connecté, on prendra ses informations
+            if user and getattr(user, 'is_authenticated', False):
+                pass
+            else:
+                # Si non-anonyme et pas connecté, il faut renseigner les informations minimales du profil
+                if not (s_first and s_last and s_email):
+                    raise ValidationError('Si vous ne souhaitez pas rester anonyme, renseignez votre prénom, nom et adresse email.')
+
+        # Vérifier l'acceptation de la politique de confidentialité
+        confirm = cleaned_data.get('confirm_anonymous')
+        if not confirm:
+            self.add_error('confirm_anonymous', 'Vous devez accepter la politique de confidentialité pour soumettre une dénonciation.')
         return cleaned_data
 
     def save(self, commit=True):
@@ -166,6 +298,22 @@ class IncidentForm(forms.ModelForm):
 
         if employeur_nom:
             emp, created = Employeur.objects.get_or_create(nom=employeur_nom)
+            # enregistrer l'adresse complète si fournie
+            adresse_val = self.cleaned_data.get('employeur_address')
+            if adresse_val:
+                emp.adresse_complete = adresse_val
+            # assigner le secteur choisi
+            secteur_val = self.cleaned_data.get('secteur')
+            autre_secteur_val = self.cleaned_data.get('autre_secteur')
+            if secteur_val:
+                emp.secteur = secteur_val
+                # si l'utilisateur a précisé un secteur librement, l'enregistrer dans la description
+                if secteur_val == 'autre' and autre_secteur_val:
+                    if emp.description:
+                        emp.description = f"{emp.description}\nSecteur précisé: {autre_secteur_val}"
+                    else:
+                        emp.description = f"Secteur précisé: {autre_secteur_val}"
+            emp.save()
             incident.employeur = emp
 
         if incident.type_incident == 'autre' and autre:
@@ -174,8 +322,16 @@ class IncidentForm(forms.ModelForm):
         incident.le_fautif = fautif or ''
 
         if commit:
+            # marquer l'acceptation de la politique si cochée
+            incident.accepted_privacy = True
+            incident.accepted_privacy_at = timezone.now()
             incident.save()
         return incident
+
+    def __init__(self, *args, **kwargs):
+        # accept an optional 'user' kwarg (request.user)
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
 
 
 class CommentaireForm(forms.ModelForm):
@@ -251,6 +407,24 @@ class FilterIncidentForm(forms.Form):
         label='Type d\'incident',
         required=False,
         choices=TYPE_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+        })
+    )
+    
+    province = forms.ModelChoiceField(
+        label='Province',
+        required=False,
+        queryset=Province.objects.all(),
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+        })
+    )
+
+    secteur = forms.ChoiceField(
+        label="Secteur d'activité",
+        required=False,
+        choices=[('', '-- Tous les secteurs --')] + list(Employeur.SECTEUR_CHOICES),
         widget=forms.Select(attrs={
             'class': 'form-control',
         })

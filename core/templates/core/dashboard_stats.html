@@ -89,9 +89,12 @@
     <main class="content">
         <div class="kpis" id="kpi-row">
             <div class="kpi" data-filter=""><div class="label">Total</div><div class="value" id="kpi-total">{{ stats.total }}</div></div>
+            <div class="kpi" data-filter="nouvelle"><div class="label">Nouvelle</div><div class="value" id="kpi-nouvelle">{{ stats.nouvelle }}</div></div>
+            <div class="kpi" data-filter="analyse"><div class="label">En Cours</div><div class="value" id="kpi-analyse">{{ stats.analyse }}</div></div>
+            <div class="kpi" data-filter="attente"><div class="label">En Attente</div><div class="value" id="kpi-attente">{{ stats.attente }}</div></div>
             <div class="kpi" data-filter="resolue"><div class="label">Résolu</div><div class="value" id="kpi-resolu">{{ stats.resolu }}</div></div>
+            <div class="kpi" data-filter="classée"><div class="label">Classée</div><div class="value" id="kpi-classee">{{ stats.classee }}</div></div>
             <div class="kpi" data-filter=""><div class="label">Non Lue</div><div class="value" id="kpi-non-lue">{{ stats.non_lue }}</div></div>
-            <div class="kpi" data-filter="analyse"><div class="label">En Cours</div><div class="value" id="kpi-en-cours">{{ stats.en_cours }}</div></div>
             <div class="kpi" data-filter=""><div class="label">Anonyme</div><div class="value" id="kpi-anonyme">{{ stats.anonyme|default:0 }}</div></div>
         </div>
 
@@ -190,9 +193,12 @@ function populateFilters(data){
 
 function updateKPIs(kpis){
     document.getElementById('kpi-total').textContent = kpis.total;
+    if(document.getElementById('kpi-nouvelle')) document.getElementById('kpi-nouvelle').textContent = kpis.nouvelle;
+    if(document.getElementById('kpi-analyse')) document.getElementById('kpi-analyse').textContent = kpis.analyse;
+    if(document.getElementById('kpi-attente')) document.getElementById('kpi-attente').textContent = kpis.attente;
     document.getElementById('kpi-resolu').textContent = kpis.resolu;
+    if(document.getElementById('kpi-classee')) document.getElementById('kpi-classee').textContent = kpis.classee;
     document.getElementById('kpi-non-lue').textContent = kpis.non_lue;
-    document.getElementById('kpi-en-cours').textContent = kpis.en_cours;
     document.getElementById('kpi-anonyme').textContent = kpis.anonyme;
 }
 

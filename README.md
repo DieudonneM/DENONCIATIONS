@@ -292,6 +292,28 @@ DATABASE_URL=sqlite:///db.sqlite3
 TIME_ZONE=Africa/Kinshasa
 ```
 
+### Stockage des fichiers en production (Cloudinary)
+
+Pour stocker les fichiers médias sur Cloudinary en production, définissez la variable d'environnement `CLOUDINARY_URL` sur votre URL Cloudinary (ne la commitez jamais).
+
+- Exemple (shell / CI / plateforme d'hébergement) :
+
+```bash
+export CLOUDINARY_URL='cloudinary://<api_key>:<api_secret>@dh5quluo'
+export ENVIRONMENT=production
+```
+
+- Exemple (PowerShell session) :
+
+```powershell
+$env:CLOUDINARY_URL = 'cloudinary://<api_key>:<api_secret>@dh5quluo'
+$env:ENVIRONMENT = 'production'
+```
+
+Le projet utilise `django-cloudinary-storage` en production lorsque `ENVIRONMENT=production`. Assurez-vous que `CLOUDINARY_URL` est défini sur la plateforme (Render, Heroku, Azure, etc.) ou dans votre environnement CI/CD.
+
+Ne stockez jamais la clé API dans le dépôt. Utilisez les variables d'environnement ou un service de secrets.
+
 ## Notes de Sécurité
 
 - ✅ Custom User Model pour sécurité renforcée
