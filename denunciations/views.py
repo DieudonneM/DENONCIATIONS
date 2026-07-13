@@ -52,7 +52,7 @@ class ExportIncidentsExcel(LoginRequiredMixin, View):
 
     def get(self, request):
         # Filtrer selon paramètres GET simples
-        qs = Incident.objects.all().select_related('employeur', 'province')
+        qs = get_incidents_by_user_role(request.user).select_related('employeur', 'province')
         statut = request.GET.get('statut')
         ttype = request.GET.get('type_incident')
         search = request.GET.get('search')

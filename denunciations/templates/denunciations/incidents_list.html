@@ -15,7 +15,7 @@
       <button type="submit" class="btn btn-primary">Filtrer</button>
     </div>
     <div>
-      <a class="btn btn-secondary export-xlsx" href="{% url 'denunciations:export_incidents_xlsx' %}?{{ request.GET.urlencode }}">Exporter XLSX</a>
+      <a class="btn btn-secondary export-xlsx" href="{% url 'core:export_incidents_xlsx' %}?{{ request.GET.urlencode }}">Exporter XLSX</a>
     </div>
   </form>
 
@@ -48,7 +48,7 @@
               // update export link if present
               const exportBtn = document.querySelector('.export-xlsx');
               if(exportBtn){
-                exportBtn.href = '{% url "denunciations:export_incidents_xlsx" %}?' + buildQuery(params);
+                exportBtn.href = '{% url "core:export_incidents_xlsx" %}?' + buildQuery(params);
               }
             })
             .catch(err => console.error('Erreur AJAX:', err));

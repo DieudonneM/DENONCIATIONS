@@ -13,6 +13,7 @@ Routes :
 from django.urls import path
 from . import views
 from . import admin_views
+from denunciations import views as denunciations_views
 
 app_name = 'core'
 
@@ -46,6 +47,18 @@ urlpatterns = [
     path('incident/<str:code>/', views.IncidentDetailView.as_view(), name='incident_detail'),
     path('incident/<str:code>/statut/', views.UpdateIncidentStatusView.as_view(), name='update_status'),
     path('incident/<str:code>/assigner/', views.AssignIncidentView.as_view(), name='assign_incident'),
+    path(
+        'incident/comment/<int:comment_id>/toggle-visibility/',
+        denunciations_views.ToggleCommentVisibility.as_view(),
+        name='toggle_comment_visibility',
+    ),
+    path('dashboard/incidents/', denunciations_views.IncidentsListView.as_view(), name='incidents_list'),
+    path('export/incidents/xlsx/', denunciations_views.ExportIncidentsExcel.as_view(), name='export_incidents_xlsx'),
+    path(
+        'export/incident/<str:code>/xlsx/',
+        denunciations_views.ExportIncidentExcel.as_view(),
+        name='export_incident_xlsx',
+    ),
     
     # ============================================================================
     #                    ADMIN PERSONNALISÉ

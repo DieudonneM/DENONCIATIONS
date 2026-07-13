@@ -168,7 +168,7 @@
                                     {% if comment.type_commentaire == 'public' %}Public{% else %}Interne{% endif %}
                                 </span>
                                     {% if user_is_agent or user_is_admin %}
-                                        <form method="post" action="{% url 'denunciations:toggle_comment_visibility' comment.id %}" class="inline-form ml-2">
+                                        <form method="post" action="{% url 'core:toggle_comment_visibility' comment.id %}" class="inline-form ml-2">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-small">Basculer visibilité</button>
                                         </form>
@@ -194,7 +194,7 @@
                     Modifier le statut
                 </a>
             {% endif %}
-            <a href="{% url 'denunciations:export_incident_xlsx' incident.code_suivi %}" class="btn btn-primary">Exporter cette publication (Excel)</a>
+            <a href="{% url 'core:export_incident_xlsx' incident.code_suivi %}" class="btn btn-primary">Exporter cette publication (Excel)</a>
         </div>
 
     </div>

@@ -5,7 +5,8 @@ Tests pour les modèles et fonctionnalités de base.
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from denunciations.models import Province, Employeur, Incident, Commentaire, PieceJointe
+from core.models import Province, Employeur
+from denunciations.models import Incident, Commentaire, PieceJointe
 
 User = get_user_model()
 

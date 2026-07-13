@@ -5,7 +5,7 @@ Formulaires personnalisés pour l'administration (gestion des utilisateurs, prov
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from users.models import User
-from denunciations.models import Province, Employeur
+from .models import Province, Employeur
 
 
 class AdminUserCreateForm(UserCreationForm):

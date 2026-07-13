@@ -4,7 +4,8 @@ Formulaires pour l'application denunciations.
 
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Incident, Commentaire, PieceJointe, Employeur, Province
+from .models import Incident, Commentaire, PieceJointe
+from core.models import Employeur, Province
 from django.utils import timezone
 
 
@@ -297,7 +298,11 @@ class IncidentForm(forms.ModelForm):
         incident = super().save(commit=False)
 
         if employeur_nom:
-            emp, created = Employeur.objects.get_or_create(nom=employeur_nom)
+            emp, created = Employeur.objects.get_or_create(
+                nom=employeur_nom,
+                province=incident.province,
+                defaults={'secteur': self.cleaned_data['secteur']},
+            )
             # enregistrer l'adresse complète si fournie
             adresse_val = self.cleaned_data.get('employeur_address')
             if adresse_val:

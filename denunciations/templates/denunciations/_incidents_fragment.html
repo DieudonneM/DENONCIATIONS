@@ -10,11 +10,11 @@
 
   {% for incident in incidents_page %}
     <div class="incident-row">
-      <div><a href="{% url 'denunciations:incident_detail' incident.code_suivi %}">{{ incident.code_suivi }}</a></div>
+      <div><a href="{% url 'core:incident_detail' incident.code_suivi %}">{{ incident.code_suivi }}</a></div>
       <div>{{ incident.employeur.nom }}</div>
       <div>{{ incident.ville }}, {{ incident.province.nom }}</div>
       <div><span class="badge badge-{{ incident.statut }}">{{ incident.get_statut_display }}</span></div>
-      <div><a href="{% url 'denunciations:incident_detail' incident.code_suivi %}" class="btn btn-manage">Voir</a></div>
+      <div><a href="{% url 'core:incident_detail' incident.code_suivi %}" class="btn btn-manage">Voir</a></div>
     </div>
   {% empty %}
     <div class="no-data">Aucune dénonciation trouvée.</div>

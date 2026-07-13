@@ -3,37 +3,7 @@ Admin pour l'application denunciations.
 """
 
 from django.contrib import admin
-from .models import Province, Employeur, Incident, PieceJointe, Commentaire, LogAudit
-
-
-@admin.register(Province)
-class ProvinceAdmin(admin.ModelAdmin):
-    list_display = ['nom', 'code', 'date_creation']
-    search_fields = ['nom', 'code']
-    readonly_fields = ['date_creation']
-
-
-@admin.register(Employeur)
-class EmployeurAdmin(admin.ModelAdmin):
-    list_display = ['nom', 'secteur', 'province', 'adresse_complete', 'date_creation']
-    list_filter = ['secteur', 'province', 'date_creation']
-    search_fields = ['nom', 'email', 'telephone']
-    readonly_fields = ['date_creation', 'date_modification']
-    fieldsets = (
-        ('Informations générales', {
-            'fields': ('nom', 'secteur', 'description', 'adresse_complete')
-        }),
-        ('Localisation', {
-            'fields': ('ville', 'province')
-        }),
-        ('Contact', {
-            'fields': ('email', 'telephone')
-        }),
-        ('Dates', {
-            'fields': ('date_creation', 'date_modification'),
-            'classes': ('collapse',)
-        }),
-    )
+from .models import Incident, PieceJointe, Commentaire, LogAudit
 
 
 @admin.register(Incident)

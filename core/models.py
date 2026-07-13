@@ -64,6 +64,7 @@ class Employeur(models.Model):
     # Contact
     email = models.EmailField(blank=True)
     telephone = models.CharField(max_length=20, blank=True)
+    adresse_complete = models.TextField(blank=True)
     
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)

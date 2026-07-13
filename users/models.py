@@ -23,7 +23,7 @@ class User(AbstractUser):
     
     # Provinces assignées pour les agents
     provinces = models.ManyToManyField(
-        'denunciations.Province',
+        'core.Province',
         blank=True,
         related_name='agents',
         help_text='Provinces assignées à cet agent'

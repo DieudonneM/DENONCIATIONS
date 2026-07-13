@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 
 from users.models import User
-from denunciations.models import Province, Employeur
+from .models import Province, Employeur
 from .admin_forms import (
     AdminUserCreateForm, AdminUserEditForm, AdminAgentProvinceForm,
     ProvinceForm, EmployeurForm, UserSearchForm, ProvinceSearchForm, EmployeurSearchForm

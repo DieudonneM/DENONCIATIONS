@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand
 from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password
 from users.models import User
-from denunciations.models import Province
+from core.models import Province
 
 
 class Command(BaseCommand):

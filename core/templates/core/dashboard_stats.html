@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         k.addEventListener('click', ()=>{
             const filter = k.getAttribute('data-filter');
             const params = new URLSearchParams(); if(filter) params.set('status', filter);
-            window.location.href = "{% url 'denunciations:incidents_list' %}?"+params.toString();
+            window.location.href = "{% url 'core:incidents_list' %}?"+params.toString();
         });
     });
     // reset filters button
