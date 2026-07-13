@@ -209,45 +209,35 @@ LOGGING = {
 WHITENOISE_MANIFEST_STRICT = False
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.hostinger.com' 
-EMAIL_PORT = 465 
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-
-# Vos identifiants de domaine
-EMAIL_HOST_USER = 'contact@denonciation-abus-rdc.net' 
-EMAIL_HOST_PASSWORD = 'MHDkdeGBH66@@' 
-
-# L'adresse qui s'affichera par défaut chez le destinataire
-DEFAULT_FROM_EMAIL = "Ministère d'Emploi et Travail <contact@denonciation-abus-rdc.net>"
+# ==============================================================================
+# EMAIL CONFIGURATION
+# ==============================================================================
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.hostinger.com')
-# Choose port according to provider: 587 for STARTTLS, 465 for SSL
+# 587 pour STARTTLS, 465 pour SSL
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='contact@denonciation-abus-rdc.net')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-# Use TLS (STARTTLS) by default for port 587; set EMAIL_USE_SSL True if using port 465
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
 
-# Defaults for sender addresses and server errors
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default="Ministère d'Emploi et Travail <contact@denonciation-abus-rdc.net>")
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
-# Admins that receive server error emails (500)
 ADMINS = tuple(config('ADMINS', default='', cast=Csv()))
 
-# IMAP/POP settings (for receiving/fetching mails from an external mailbox)
-# These are optional and used by any custom mail polling/processing scripts you run.
+# IMAP/POP settings (Optionnel)
 IMAP_HOST = config('IMAP_HOST', default='imap.hostinger.com')
 IMAP_PORT = config('IMAP_PORT', default=993, cast=int)
 IMAP_USE_SSL = config('IMAP_USE_SSL', default=True, cast=bool)
 IMAP_USER = config('IMAP_USER', default=EMAIL_HOST_USER)
 IMAP_PASSWORD = config('IMAP_PASSWORD', default=EMAIL_HOST_PASSWORD)
 
-# Cloudinary configuration (reads from .env)
+
+# ==============================================================================
+# CLOUDINARY CONFIGURATION
+# ==============================================================================
 import cloudinary
 
 CLOUDINARY_STORAGE = {
@@ -263,17 +253,29 @@ cloudinary.config(
     secure=True,
 )
 
-# Use Cloudinary storage only when credentials are provided; otherwise use
-# local filesystem storage for development to avoid upload failures.
+
+# ==============================================================================
+# STORAGES CONFIGURATION (Django 4.2+ & Modern Production Setup)
+# ==============================================================================
+WHITENOISE_MANIFEST_STRICT = False
+
+# Détermination du backend pour les fichiers médias (Cloudinary en prod, Local en dev)
 if CLOUDINARY_STORAGE.get('CLOUD_NAME'):
-    DEFAULT_FILE_STORAGE = 'core.cloudinary_storage.CustomMediaCloudinaryStorage'
+    media_backend = 'core.cloudinary_storage.CustomMediaCloudinaryStorage'
 else:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    media_backend = 'django.core.files.storage.FileSystemStorage'
 
-# Static files storage in production: use Whitenoise compressed manifest so
-# Render's collectstatic can build hashed static files and Whitenoise serves them.
+# Détermination du backend pour les fichiers statiques (WhiteNoise en prod, Local en dev)
 if IS_PRODUCTION:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    WHITENOISE_MANIFEST_STRICT = False
+    static_backend = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    static_backend = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
-
+STORAGES = {
+    "default": {
+        "BACKEND": media_backend,
+    },
+    "staticfiles": {
+        "BACKEND": static_backend,
+    },
+}
