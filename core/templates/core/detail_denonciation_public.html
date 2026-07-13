@@ -15,20 +15,56 @@
         <div class="detail-section">
             <h2>Informations</h2>
             <dl class="details-grid">
+                <dt>Code de suivi</dt>
+                <dd>{{ incident.code_suivi }}</dd>
+
                 <dt>Employeur</dt>
-                <dd>{{ incident.employeur.nom }}</dd>
+                <dd>{% if incident.employeur %}{{ incident.employeur.nom }}{% else %}Non précisé{% endif %}</dd>
 
                 <dt>Province</dt>
-                <dd>{{ incident.province.nom }}</dd>
+                <dd>{% if incident.province %}{{ incident.province.nom }}{% else %}Non précisé{% endif %}</dd>
 
                 <dt>Ville</dt>
-                <dd>{{ incident.ville }}</dd>
+                <dd>{{ incident.ville|default:'Non précisé' }}</dd>
 
-                <dt>Date de dénonciation</dt>
-                <dd>{{ incident.date_creation|date:"d/m/Y H:i" }}</dd>
+                <dt>Type d'incident</dt>
+                <dd>{{ incident.get_type_incident_display }}</dd>
+
+                <dt>Autre (précision)</dt>
+                <dd>{{ incident.type_incident_autre|default:'—' }}</dd>
+
+                <dt>Le fautif</dt>
+                <dd>{{ incident.le_fautif|default:'Non précisé' }}</dd>
 
                 <dt>Statut</dt>
                 <dd>{{ incident.get_statut_display }}</dd>
+
+                <dt>Agent assigné</dt>
+                <dd>{% if incident.agent_assigné %}{{ incident.agent_assigné.get_full_name|default:incident.agent_assigné.username }}{% else %}Non assigné{% endif %}</dd>
+
+                <dt>Département assigné</dt>
+                <dd>{% if incident.department_assigné %}{{ incident.department_assigné.nom }}{% else %}—{% endif %}</dd>
+
+                <dt>Anonyme</dt>
+                <dd>{% if incident.est_anonyme %}Oui{% else %}Non{% endif %}</dd>
+
+                <dt>Email de contact (anonyme)</dt>
+                <dd>{{ incident.email_contact_anonyme|default:'—' }}</dd>
+
+                <dt>Téléphone de contact (anonyme)</dt>
+                <dd>{{ incident.telephone_contact_anonyme|default:'—' }}</dd>
+
+                <dt>Acceptation de la confidentialité</dt>
+                <dd>{% if incident.accepted_privacy %}Oui (le {{ incident.accepted_privacy_at|date:"d/m/Y H:i" }}){% else %}Non{% endif %}</dd>
+
+                <dt>Date de création</dt>
+                <dd>{{ incident.date_creation|date:"d/m/Y H:i" }}</dd>
+
+                <dt>Dernière modification</dt>
+                <dd>{{ incident.date_modification|date:"d/m/Y H:i" }}</dd>
+
+                <dt>Date de résolution</dt>
+                <dd>{% if incident.date_resolution %}{{ incident.date_resolution|date:"d/m/Y H:i" }}{% else %}—{% endif %}</dd>
             </dl>
         </div>
 

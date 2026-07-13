@@ -29,7 +29,7 @@ from denunciations.forms import (
 )
 from .utils import get_incidents_by_user_role, check_user_can_view_incident
 from users.auth_backends import user_is_agent, user_is_admin, user_is_travailleur
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 from .models import Department
 from django.utils.crypto import get_random_string
@@ -886,6 +886,64 @@ def contact_view(request):
     context = {
         'page_title': 'Contact',
     }
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip() or 'Message depuis la page Contact'
+        contact_type = request.POST.get('type', '').strip()
+        message_body = request.POST.get('message', '').strip()
+
+        # Validation minimale
+        errors = []
+        if not name:
+            errors.append('Votre nom est requis.')
+        if not email:
+            errors.append("Votre adresse email est requise.")
+        if not message_body:
+            errors.append('Le message ne peut pas être vide.')
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+            return render(request, 'core/contact.html', context)
+
+        # Construire le contenu de l'email
+        full_subject = f"[Contact site] {subject}"
+        if contact_type:
+            full_subject = f"{full_subject} ({contact_type})"
+
+        full_message = (
+            f"Nom: {name}\n"
+            f"Email: {email}\n"
+            f"Type: {contact_type or 'non précisé'}\n\n"
+            f"Message:\n{message_body}\n\n"
+            f"---\n"
+            f"IP: {request.META.get('REMOTE_ADDR', '')}\n"
+            f"Agent: {request.META.get('HTTP_USER_AGENT', '')}\n"
+        )
+
+        try:
+            msg = EmailMessage(
+                subject=full_subject,
+                body=full_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[settings.EMAIL_HOST_USER],
+                reply_to=[email],
+            )
+            msg.send(fail_silently=False)
+            messages.success(request, 'Votre message a été envoyé. Nous vous répondrons depuis notre boîte de contact.')
+            return redirect('core:contact')
+        except Exception as exc:
+            # Ne pas exposer d'erreurs techniques à l'utilisateur
+            messages.error(request, "Une erreur est survenue lors de l'envoi du message. Réessayez plus tard.")
+            # Optionnel: journaliser l'erreur via logging
+            try:
+                import logging
+                logging.getLogger(__name__).exception('Erreur envoi email contact: %s', exc)
+            except Exception:
+                pass
+
     return render(request, 'core/contact.html', context)
 
 def mot_ministre(request):
