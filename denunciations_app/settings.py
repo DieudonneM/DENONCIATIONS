@@ -164,14 +164,6 @@ STATICFILES_DIRS = [
 # Media files (Uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-}
-
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -271,6 +263,17 @@ cloudinary.config(
     secure=True,
 )
 
-# Use Cloudinary for default file storage
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# Use Cloudinary storage only when credentials are provided; otherwise use
+# local filesystem storage for development to avoid upload failures.
+if CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+    DEFAULT_FILE_STORAGE = 'core.cloudinary_storage.CustomMediaCloudinaryStorage'
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+# Static files storage in production: use Whitenoise compressed manifest so
+# Render's collectstatic can build hashed static files and Whitenoise serves them.
+if IS_PRODUCTION:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    WHITENOISE_MANIFEST_STRICT = False
+
 
