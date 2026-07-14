@@ -5,117 +5,71 @@
 
 {% block content %}
 <section class="container py-5">
-    <div class="incident-detail-container">
-        
-        <!-- En-tête -->
-        <div class="detail-header">
-            <div class="header-left">
+    <div class="incident-detail-container modern">
+
+        <!-- Card header -->
+        <header class="card-header">
+            <div class="card-title">
                 <h1>{{ incident.code_suivi }}</h1>
-                <p>{{ incident.get_type_incident_display }} • {{ incident.date_creation|date:"d/m/Y" }}</p>
+                <p class="muted">{{ incident.get_type_incident_display }} • {{ incident.date_creation|date:"d/m/Y" }}</p>
             </div>
-            <div class="header-right">
-                <span class="badge badge-{{ incident.statut }} badge-large">
-                    {{ incident.get_statut_display }}
-                </span>
+            <div class="card-actions">
+                <a href="{% url 'core:dashboard_stats' %}" class="btn btn-tertiary small">← Statistiques</a>
+                <span class="status-pill status-{{ incident.statut }}">{{ incident.get_statut_display }}</span>
             </div>
-        </div>
+        </header>
 
-        <!-- Informations principales -->
-        <div class="detail-section">
-            <h2>Informations</h2>
-            <dl class="details-grid">
-                <dt>Code de suivi</dt>
-                <dd>{{ incident.code_suivi }}</dd>
+        <div class="grid">
+            <!-- Left: main details -->
+            <main class="main-col">
+                <section class="card">
+                    <h2 class="card-heading">Résumé & Informations</h2>
+                    <ul class="info-list">
+                        <li><strong>Type d'incident:</strong> {{ incident.get_type_incident_display }}{% if incident.type_incident_autre %} — {{ incident.type_incident_autre }}{% endif %}</li>
+                        <li><strong>Employeur:</strong> {% if incident.employeur %}{{ incident.employeur.nom }}{% else %}—{% endif %}</li>
+                        <li><strong>Adresse employeur:</strong> {{ incident.employeur_address|default:'—' }}</li>
+                        <li><strong>Secteur:</strong> {{ incident.secteur|default:'—' }}{% if incident.autre_secteur %} — {{ incident.autre_secteur }}{% endif %}</li>
+                        <li><strong>Le fautif:</strong> {{ incident.le_fautif|default:'—' }}</li>
+                        <li><strong>Province / Ville:</strong> {% if incident.province %}{{ incident.province.nom }}{% else %}—{% endif %} / {{ incident.ville|default:'—' }}</li>
+                    </ul>
+                </section>
 
-                <dt>Type d'incident</dt>
-                <dd>{{ incident.get_type_incident_display }}</dd>
+                <section class="card">
+                    <h2 class="card-heading">Détails de l'incident</h2>
+                    <div class="description-box">
+                        {{ incident.description|linebreaks }}
+                    </div>
+                </section>
 
-                <dt>Autre (précision)</dt>
-                <dd>{{ incident.type_incident_autre|default:'—' }}</dd>
-
-                <dt>Employeur</dt>
-                <dd>{% if incident.employeur %}{{ incident.employeur.nom }}{% else %}Non précisé{% endif %}</dd>
-
-                <dt>Province</dt>
-                <dd>{% if incident.province %}{{ incident.province.nom }}{% else %}Non précisé{% endif %}</dd>
-
-                <dt>Ville</dt>
-                <dd>{{ incident.ville|default:'Non précisé' }}</dd>
-
-                <dt>Le fautif</dt>
-                <dd>{{ incident.le_fautif|default:'Non précisé' }}</dd>
-
-                <dt>Statut</dt>
-                <dd>
-                    <span class="badge badge-{{ incident.statut }}">
-                        {{ incident.get_statut_display }}
-                    </span>
-                </dd>
-
-                <dt>Agent assigné</dt>
-                <dd>{% if incident.agent_assigné %}{{ incident.agent_assigné.get_full_name|default:incident.agent_assigné.username }}{% else %}Non assigné{% endif %}</dd>
-
-                <dt>Département assigné</dt>
-                <dd>{% if incident.department_assigné %}{{ incident.department_assigné.nom }}{% else %}—{% endif %}</dd>
-
-                <dt>Anonyme</dt>
-                <dd>{% if incident.est_anonyme %}Oui{% else %}Non{% endif %}</dd>
-
-                <dt>Email contact (anonyme)</dt>
-                <dd>{{ incident.email_contact_anonyme|default:'—' }}</dd>
-
-                <dt>Téléphone contact (anonyme)</dt>
-                <dd>{{ incident.telephone_contact_anonyme|default:'—' }}</dd>
-
-                <dt>Acceptation confidentialité</dt>
-                <dd>{% if incident.accepted_privacy %}Oui{% else %}Non{% endif %}</dd>
-
-                <dt>Date de création</dt>
-                <dd>{{ incident.date_creation|date:"d/m/Y H:i" }}</dd>
-
-                <dt>Dernière modification</dt>
-                <dd>{{ incident.date_modification|date:"d/m/Y H:i" }}</dd>
-
-                <dt>Date de résolution</dt>
-                <dd>{% if incident.date_resolution %}{{ incident.date_resolution|date:"d/m/Y H:i" }}{% else %}—{% endif %}</dd>
-            </dl>
-        </div>
-
-        <!-- Description -->
-        <div class="detail-section">
-            <h2>Description</h2>
-            <div class="description-box">
-                {{ incident.description|linebreaks }}
-            </div>
-        </div>
-
-        <!-- Pièces jointes -->
-        {% if incident.pieces_jointes.all %}
-            <div class="detail-section">
-                <h2>Pièces jointes</h2>
-                <div class="attachments-list">
-                    {% for piece in incident.pieces_jointes.all %}
+                {% if incident.pieces_jointes.all %}
+                <section class="card">
+                    <h2 class="card-heading">Pièces jointes</h2>
+                    <div class="attachments-list modern-list">
+                        {% for piece in incident.pieces_jointes.all %}
                         <div class="attachment-item">
-                            <a href="{{ piece.fichier.url }}" download class="attachment-link">
-                                📎 {{ piece.fichier.name|slice:"-50:" }}
-                            </a>
-                            <span class="file-size">{{ piece.fichier.size|filesizeformat }}</span>
+                            <a href="{{ piece.fichier.url }}" download class="attachment-link">📎 {{ piece.fichier.name|slice:"-60:" }}</a>
+                            <span class="file-meta">{{ piece.fichier.size|filesizeformat }}</span>
                         </div>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
 
-        <!-- Formulaire de mise à jour du statut (Agent/Admin) -->
-        {% if user_can_edit %}
-            <div class="detail-section update-section">
-                <h2>Mise à jour du statut</h2>
-                <div class="status-note">
-                    Sélectionnez un statut dans la liste ci-dessous, puis cliquez sur <strong>Mettre à jour</strong> pour enregistrer la modification.
+                <div class="card">
+                    <h3 class="sidebar-title">Confidentialité & contact</h3>
+                    <ul class="info-list">
+                        <li><strong>Anonyme:</strong> {% if incident.est_anonyme %}Oui{% else %}Non{% endif %}</li>
+                        <li><strong>Email contact (anonyme):</strong> {{ incident.email_contact_anonyme|default:'—' }}</li>
+                        <li><strong>Téléphone contact (anonyme):</strong> {{ incident.telephone_contact_anonyme|default:'—' }}</li>
+                        <li><strong>Acceptation confidentialité:</strong> {% if incident.accepted_privacy %}Oui{% else %}Non{% endif %}</li>
+                    </ul>
                 </div>
-                <form id="status-form" method="post" action="{% url 'core:update_status' incident.code_suivi %}" class="status-form">
-                    {% csrf_token %}
-                    <div class="form-group">
+
+                {% if user_can_edit %}
+                <div class="card actions-card">
+                    <h3 class="sidebar-title">Actions</h3>
+                    <form id="status-form" method="post" action="{% url 'core:update_status' incident.code_suivi %}">
+                        {% csrf_token %}
                         <label for="statut">Nouveau statut</label>
                         <select name="statut" id="statut" required>
                             <option value="">-- Sélectionner --</option>
@@ -125,105 +79,92 @@
                             <option value="resolue">Résolue</option>
                             <option value="classee">Classée</option>
                         </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
-                </form>
-            </div>
-        {% endif %}
+                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                    </form>
+                </div>
+                {% endif %}
 
-        <!-- Formulaire d'assignation (Admin) -->
-        {% if user_is_admin %}
-            <div class="detail-section assign-section">
-                <h2>Assigner à un département</h2>
-                <form method="post" action="{% url 'core:assign_incident' incident.code_suivi %}" class="assign-form">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="department">Sélectionner un département</label>
+                <div class="card">
+                    <div class="actions-inline">
+                        <a href="{% url 'core:export_incident_xlsx' incident.code_suivi %}" class="btn btn-primary">Exporter (Excel)</a>
+                        <a href="{% url 'core:incidents_list' %}" class="btn btn-secondary">← Retour à la liste des dénonciations</a>
+                        <a href="{% url 'core:dashboard_stats' %}" class="btn btn-secondary">Retour au dashboard</a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Right: sidebar summary & metadata -->
+            <aside class="side-col">
+                <div class="card sticky">
+                    <h3 class="sidebar-title">Détails rapides</h3>
+                    <dl class="meta-list">
+                        <dt>Code</dt>
+                        <dd>{{ incident.code_suivi }}</dd>
+
+                        <dt>Statut</dt>
+                        <dd>{{ incident.get_statut_display }}</dd>
+
+                        <dt>Agent assigné</dt>
+                        <dd>{% if incident.agent_assigné %}{{ incident.agent_assigné.get_full_name|default:incident.agent_assigné.username }}{% else %}—{% endif %}</dd>
+
+                        <dt>Département</dt>
+                        <dd>{% if incident.department_assigné %}{{ incident.department_assigné.nom }}{% else %}—{% endif %}</dd>
+
+                        <dt>Créé</dt>
+                        <dd>{{ incident.date_creation|date:"d/m/Y H:i" }}</dd>
+
+                        <dt>Dernière modif.</dt>
+                        <dd>{{ incident.date_modification|date:"d/m/Y H:i" }}</dd>
+
+                        <dt>Résolution</dt>
+                        <dd>{% if incident.date_resolution %}{{ incident.date_resolution|date:"d/m/Y H:i" }}{% else %}—{% endif %}</dd>
+                    </dl>
+                </div>
+
+                
+
+                <div class="card">
+                    <h3 class="sidebar-title">Identité du dénonciateur</h3>
+                    <ul class="info-list">
+                        <li><strong>Prénom:</strong> {{ incident.submitter_first_name|default:'—' }}</li>
+                        <li><strong>Nom:</strong> {{ incident.submitter_last_name|default:'—' }}</li>
+                        <li><strong>Email:</strong> {{ incident.submitter_email|default:'—' }}</li>
+                        <li><strong>Téléphone:</strong> {{ incident.submitter_phone|default:'—' }}</li>
+                    </ul>
+                </div>
+
+            
+
+                {% if user_is_admin %}
+                <div class="card actions-card">
+                    <form method="post" action="{% url 'core:assign_incident' incident.code_suivi %}">
+                        {% csrf_token %}
+                        <label for="department">Assigner département</label>
                         <select name="department" id="department">
-                            <option value="">-- Sélectionner un département --</option>
+                            <option value="">-- Sélectionner --</option>
                             {% for dept in available_departments %}
                                 <option value="{{ dept.id }}">{{ dept.nom }}{% if dept.email %} — {{ dept.email }}{% endif %}</option>
                             {% endfor %}
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="agent">Ou sélectionner un agent (optionnel)</label>
+                        <label for="agent">Assigner agent (optionnel)</label>
                         <select name="agent" id="agent">
-                            <option value="">-- Sélectionner un agent --</option>
+                            <option value="">-- Sélectionner --</option>
                             {% for agent in available_agents %}
                                 <option value="{{ agent.id }}">{{ agent.get_full_name }} - {{ agent.provinces.all|join:", " }}</option>
                             {% endfor %}
                         </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Assigner</button>
-                </form>
-            </div>
-        {% endif %}
-
-        <!-- Commentaires -->
-        <div class="detail-section">
-            <h2>Commentaires</h2>
-
-            <!-- Ajouter un commentaire (Agent/Admin) -->
-            {% if user_can_comment %}
-                <div class="add-comment-box">
-                    <h3>Ajouter un commentaire</h3>
-                    <form method="post" class="comment-form">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            {{ form.type_commentaire.label_tag }}
-                            {{ form.type_commentaire }}
-                        </div>
-                        <div class="form-group">
-                            {{ form.texte.label_tag }}
-                            {{ form.texte }}
-                        </div>
-                        <button type="submit" name="action" value="add_comment" class="btn btn-primary">
-                            Ajouter le commentaire
-                        </button>
+                        <button type="submit" class="btn btn-primary">Assigner</button>
                     </form>
                 </div>
-            {% endif %}
+                {% endif %}
 
-            <!-- Liste des commentaires -->
-            {% if comments %}
-                <div class="comments-list">
-                    {% for comment in comments %}
-                        <div class="comment-item">
-                            <div class="comment-meta">
-                                <strong>{{ comment.get_auteur_display }}</strong>
-                                <span class="badge-small badge-{{ comment.type_commentaire }}">
-                                    {% if comment.type_commentaire == 'public' %}Public{% else %}Interne{% endif %}
-                                </span>
-                                    {% if user_is_agent or user_is_admin %}
-                                        <form method="post" action="{% url 'core:toggle_comment_visibility' comment.id %}" class="inline-form ml-2">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-small">Basculer visibilité</button>
-                                        </form>
-                                    {% endif %}
-                                <span class="comment-date">{{ comment.date_creation|date:"d/m/Y H:i" }}</span>
-                            </div>
-                            <div class="comment-body">
-                                {{ comment.texte|linebreaks }}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="no-comments">Aucun commentaire pour le moment</p>
-            {% endif %}
+                
+            </aside>
+
         </div>
 
-        <!-- Actions -->
-        <div class="detail-actions">
-            <a href="{% url 'core:dashboard_stats' %}" class="btn btn-secondary">Retour au dashboard</a>
-            {% if user_is_admin %}
-                <a href="{% url 'core:incident_detail' incident.code_suivi %}#status-form" class="btn btn-secondary">
-                    Modifier le statut
-                </a>
-            {% endif %}
-            <a href="{% url 'core:export_incident_xlsx' incident.code_suivi %}" class="btn btn-primary">Exporter cette publication (Excel)</a>
-        </div>
+        
 
     </div>
 </section>
@@ -237,6 +178,68 @@
     max-width: 1000px;
     margin: 0 auto;
 }
+
+/* Modern layout styles */
+.incident-detail-container.modern {
+    max-width: 1200px;
+    padding: 1rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    background: linear-gradient(90deg,#ffffff,#f8fbff);
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(19,66,148,0.06);
+    margin-bottom: 1.25rem;
+}
+
+.card-title h1 { margin: 0; color: #0f2e5c; font-size: 1.6rem; }
+.card-title .muted { color: #556; margin: 0; }
+
+.status-pill { padding: .5rem 1rem; border-radius: 999px; font-weight:600; color: white; }
+.status-pill.status-nouvelle { background: #6c757d; }
+.status-pill.status-analyse { background: #0d6efd; }
+.status-pill.status-attente { background: #ffc107; color: #111; }
+.status-pill.status-resolue { background: #28a745; }
+.status-pill.status-classee { background: #6f42c1; }
+
+.grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem; align-items: start; }
+.main-col { min-width: 0; }
+.side-col { }
+
+.card { background: white; border-radius: 10px; padding: 1rem; box-shadow: 0 2px 10px rgba(15,46,92,0.04); margin-bottom: 1rem; }
+.card-heading { margin: 0 0 .75rem 0; color: #0f2e5c; font-size: 1.05rem; border-bottom: 1px solid #f0f4fb; padding-bottom: .5rem; }
+.info-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
+.info-list li { color: #333; }
+
+.description-box { background: #fbfdff; padding: 1rem; border-radius: 6px; border-left: 4px solid #0f2e5c; color: #233; }
+
+.attachments-list.modern-list { display: grid; gap: .5rem; }
+.attachment-item { display:flex; justify-content:space-between; align-items:center; padding:.5rem .75rem; background:#fbfdff; border-radius:6px; }
+.attachment-link { color:#0f2e5c; text-decoration:none; }
+.file-meta { color:#666; font-size:.9rem; }
+
+.meta-list { display:grid; gap:.5rem; margin:0; padding:0; }
+.meta-list dt { font-weight:600; color:#333; }
+.meta-list dd { margin:0 0 .5rem 0; color:#555; }
+
+.sticky { position:sticky; top:1rem; }
+.actions-card .block { display:block; width:100%; text-align:center; margin-bottom:.5rem; }
+.btn.block { display:block; width:100%; text-align:center; margin-bottom:.5rem; }
+
+/* Small tertiary button in header */
+.btn-tertiary { display:inline-block; padding:.4rem .65rem; border-radius:6px; background:#eef3ff; color:#0f2e5c; text-decoration:none; margin-right:.5rem; border:1px solid #dbe9ff; font-weight:600; }
+.btn-tertiary.small { font-size:0.85rem; padding:.35rem .6rem; }
+
+.actions-inline { display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
+.actions-inline .btn { display:inline-flex; }
+
+@media (max-width: 992px) { .grid { grid-template-columns: 1fr; } .sticky{position:static;} }
+
 
 .detail-header {
     display: flex;
