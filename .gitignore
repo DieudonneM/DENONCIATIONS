@@ -15,3 +15,31 @@ db.sqlite3
 # Media and static files
 media/
 staticfiles/
+
+
+# Fichiers d'environnement
+.env
+*.env
+*.env.local
+*.env.production
+.env.*
+
+# Fichiers de configuration sensibles
+settings_local.py
+local_settings.py
+secrets.py
+config.py
+
+# Fichiers Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
