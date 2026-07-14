@@ -1,0 +1,17 @@
+# Ignore environment files with secrets
+.env
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+venv\
+
+# SQLite database
+db.sqlite3
+
+# Media and static files
+media/
+staticfiles/
