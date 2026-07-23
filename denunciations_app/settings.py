@@ -31,12 +31,13 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
     'users',          # Gestion des utilisateurs
     'denunciations',  # Gestion des dénonciations
     'core',           # Application principale
     'cloudinary_storage',
     'cloudinary',
-    'django.contrib.staticfiles',
+    
 
     'rest_framework', 
     'corsheaders',
