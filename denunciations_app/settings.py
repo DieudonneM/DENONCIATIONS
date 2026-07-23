@@ -269,12 +269,10 @@ else:
     media_backend = 'django.core.files.storage.FileSystemStorage'
 
 # Détermination du backend pour les fichiers statiques (WhiteNoise en prod, Local en dev)
-#if IS_PRODUCTION:
-#    static_backend = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-#else:
-#    static_backend = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-
-static_backend = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+if IS_PRODUCTION:
+    static_backend = 'whitenoise.storage.CompressedStaticFilesStorage'
+else:
+    static_backend = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 STORAGES = {
     "default": {
