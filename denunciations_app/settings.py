@@ -275,9 +275,10 @@ else:
 #    static_backend = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 if IS_PRODUCTION:
-    static_backend = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+    static_backend = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
     static_backend = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
 
 STORAGES = {
     "default": {
