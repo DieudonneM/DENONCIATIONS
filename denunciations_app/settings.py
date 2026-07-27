@@ -3,11 +3,11 @@ Django settings for denunciations_app project.
 """
 
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
-from decouple import config
-import os
-from decouple import Csv
+from decouple import Csv, config
 import dj_database_url
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,9 +20,14 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-rdc-ministry-work-inc
 
 DEBUG = config('DEBUG', default=not IS_PRODUCTION, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='denonciation-abus-rdc.net', cast=Csv())
-
-USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
+if DEBUG:
+    ALLOWED_HOSTS = config(
+        'ALLOWED_HOSTS',
+        default='127.0.0.1,localhost,denonciation-abus-rdc.net',
+        cast=Csv(),
+    )
+else:
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='denonciation-abus-rdc.net', cast=Csv())
 
 # Application definition
 INSTALLED_APPS = [
@@ -82,34 +87,39 @@ TEMPLATES = [
 WSGI_APPLICATION = 'denunciations_app.wsgi.application'
 
 # Database Configuration
-USE_SQLITE = config('USE_SQLITE', default=not IS_PRODUCTION, cast=bool)
+LOCAL_DATABASE_PATH = BASE_DIR / 'db.sqlite3'
+DATABASE_URL = config('DATABASE_URL', default='').strip()
+RENDER_DATABASE_URL = config('RENDER_DATABASE_URL', default='').strip()
 
-# 1. Si on est sur Render avec une base PostgreSQL configurée
-if os.environ.get('DATABASE_URL'):
+if IS_PRODUCTION:
+    database_url = RENDER_DATABASE_URL or DATABASE_URL
+    if not database_url:
+        raise ImproperlyConfigured(
+            'RENDER_DATABASE_URL (ou DATABASE_URL) est obligatoire en production.'
+        )
+
     DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600
+        'default': dj_database_url.parse(
+            database_url,
+            conn_max_age=600,
+            ssl_require=True,
         )
     }
-# 2. Sinon, on utilise la configuration locale (SQLite ou Postgres local)
-elif USE_SQLITE:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='denunciations_app'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='db'),
-            'PORT': config('DB_PORT', default='5432'),
+    if DATABASE_URL:
+        DATABASES = {
+            'default': dj_database_url.parse(
+                DATABASE_URL,
+                conn_max_age=600,
+            )
         }
-    }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': LOCAL_DATABASE_PATH,
+            }
+        }
 
 # Security settings for production
 if IS_PRODUCTION:
@@ -213,19 +223,18 @@ LOGGING = {
 
 WHITENOISE_MANIFEST_STRICT = False
 
-# CORS – during development allow all origins to simplify local testing (disable in production)
-if DEBUG:
-    CORS_ALLOWED_ORIGINS = config(
-        'CORS_ALLOWED_ORIGINS',
-        default='https://denonciation-abus-rdc.net',
-        cast=Csv(),
-    )
-else:
-    CORS_ALLOWED_ORIGINS = config(
-        'CORS_ALLOWED_ORIGINS',
-        default='https://denonciation-abus-rdc.net',
-        cast=Csv(),
-    )
+# CORS
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='https://denonciation-abus-rdc.net',
+    cast=Csv(),
+)
+
+# Autorise les origines locales (ports dynamiques de Flutter Web en debug)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https?://localhost(:\d+)?$',
+    r'^https?://127\.0\.0\.1(:\d+)?$',
+]
 
 
 # ==============================================================================

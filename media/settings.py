@@ -3,6 +3,7 @@ Django settings for denunciations_app project.
 """
 
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 from decouple import config
 import os
@@ -20,9 +21,14 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-rdc-ministry-work-inc
 
 DEBUG = config('DEBUG', default=not IS_PRODUCTION, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='denonciation-abus-rdc.net', cast=Csv())
-
-USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
+if DEBUG:
+    ALLOWED_HOSTS = config(
+        'ALLOWED_HOSTS',
+        default='127.0.0.1,localhost,denonciation-abus-rdc.net',
+        cast=Csv(),
+    )
+else:
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='denonciation-abus-rdc.net', cast=Csv())
 
 # Application definition
 INSTALLED_APPS = [
@@ -75,35 +81,23 @@ TEMPLATES = [
 WSGI_APPLICATION = 'denunciations_app.wsgi.application'
 
 # Database Configuration
-USE_SQLITE = config('USE_SQLITE', default=not IS_PRODUCTION, cast=bool)
+RENDER_DATABASE_URL = config(
+    'RENDER_DATABASE_URL',
+    default=config('DATABASE_URL', default=''),
+).strip()
 
-# 1. Si on est sur Render avec une base PostgreSQL configurée
-if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-# 2. Sinon, on utilise la configuration locale (SQLite ou Postgres local)
-elif USE_SQLITE:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='denunciations_app'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='db'),
-            'PORT': config('DB_PORT', default='5432'),
-        }
-    }
+if not RENDER_DATABASE_URL:
+    raise ImproperlyConfigured(
+        'RENDER_DATABASE_URL (ou DATABASE_URL) est obligatoire: la base Render est requise pour tous les environnements.'
+    )
+
+DATABASES = {
+    'default': dj_database_url.parse(
+        RENDER_DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True,
+    )
+}
 
 # Security settings for production
 if IS_PRODUCTION:
