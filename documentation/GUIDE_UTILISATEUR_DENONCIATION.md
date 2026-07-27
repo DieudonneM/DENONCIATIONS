@@ -11,7 +11,7 @@ La plateforme de dénonciation permet à **tout travailleur ou demandeur d'emplo
 ### Étape 1: Accéder au Formulaire
 
 #### Option A - Depuis la Page d'Accueil
-1. Visitez **http://127.0.0.1:8000** (local) ou l'URL de production
+1. Visitez **https://denonciation-abus-rdc.net** (local) ou l'URL de production
 2. Faites défiler jusqu'à la section **"DÉPOSER UNE DÉNONCIATION RAPIDE"**
 3. Cliquez sur le bouton bleu **"ACCÉDER AU FORMULAIRE COMPLET"**
 
@@ -275,7 +275,8 @@ Vous en aurez besoin pour suivre votre dossier
 
 Vous pouvez commencer à déposer une dénonciation:
 
-👉 **[Accéder au Formulaire](http://127.0.0.1:8000/denoncier/)**
+👉 **[Accéder au Formulaire](https://denonciation-abus-rdc.net/denoncier/)**
 
 Merci d'utiliser cette plateforme pour défendre vos droits! 🙏
+
 

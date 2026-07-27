@@ -204,15 +204,15 @@ if __name__ == "__main__":
   3. python manage.py init_data
   4. python manage.py runserver
   
-  Accéder à : http://localhost:8000/
+  Accéder à : https://denonciation-abus-rdc.net/
   
   Compte admin : admin / admin123
   
   Routes à tester :
-  • GET  http://localhost:8000/              (accueil)
-  • GET  http://localhost:8000/denoncier/    (formulaire)
-  • POST http://localhost:8000/denoncier/    (soumettre)
-  • GET  http://localhost:8000/consulter/    (suivi)
+  • GET  https://denonciation-abus-rdc.net/              (accueil)
+  • GET  https://denonciation-abus-rdc.net/denoncier/    (formulaire)
+  • POST https://denonciation-abus-rdc.net/denoncier/    (soumettre)
+  • GET  https://denonciation-abus-rdc.net/consulter/    (suivi)
 
 📝 PROCHAINES ÉTAPES (Étape 3) :
 
@@ -228,3 +228,4 @@ Répondre avec : "Étape 3 - Templates et Dashboards" pour continuer
 
 ═══════════════════════════════════════════════════════════════════════════
     """)
+

@@ -230,6 +230,7 @@ else:
 print("\n" + "=" * 80)
 print("Prochaines étapes :")
 print("  1. python manage.py runserver")
-print("  2. Accéder à http://localhost:8000/admin/")
+print("  2. Accéder à https://denonciation-abus-rdc.net/admin/")
 print("  3. Se connecter avec admin / admin123")
 print("=" * 80 + "\n")
+

@@ -123,7 +123,7 @@ Fichier: core/templates/core/dashboard_agent.html, ligne 646
 #### 1. Dashboard Admin ✅
 ```
 Connecté avec: admin@mept-rdc.com / Admin@123456
-Route: http://127.0.0.1:8000/dashboard/admin/
+Route: https://denonciation-abus-rdc.net/dashboard/admin/
 
 ✅ Titre: "🎛️ Tableau de Bord Administrateur"
 ✅ Statistiques: 8 cartes (Total, Nouvelle, Analyse, Attente, Résolue, Classée, Anonyme, Non-lu)
@@ -136,7 +136,7 @@ Route: http://127.0.0.1:8000/dashboard/admin/
 #### 2. Dashboard Agent ✅
 ```
 Connecté avec: agent.kinshasa@mept-rdc.com / Agent@123456
-Route: http://127.0.0.1:8000/dashboard/agent/
+Route: https://denonciation-abus-rdc.net/dashboard/agent/
 
 ✅ Titre: "🕵️ Tableau de Bord Agent"
 ✅ Info Agent: "Jean Mpiana, Province: Kinshasa"
@@ -207,13 +207,13 @@ python manage.py create_demo_accounts
 python manage.py create_demo_accounts --reset
 
 # Accéder à l'admin
-http://127.0.0.1:8000/admin/
+https://denonciation-abus-rdc.net/admin/
 Admin: admin@mept-rdc.com / Admin@123456
 
 # Dashboards
-Dashboard Admin: http://127.0.0.1:8000/dashboard/admin/
-Dashboard Agent: http://127.0.0.1:8000/dashboard/agent/
-Dashboard Travailleur: http://127.0.0.1:8000/dashboard/travailleur/
+Dashboard Admin: https://denonciation-abus-rdc.net/dashboard/admin/
+Dashboard Agent: https://denonciation-abus-rdc.net/dashboard/agent/
+Dashboard Travailleur: https://denonciation-abus-rdc.net/dashboard/travailleur/
 ```
 
 ---
@@ -266,3 +266,4 @@ de démo peuvent être créés facilement pour les tests.
 **Status Final:** ✅ SUCCESS
 
 ================================================================================
+

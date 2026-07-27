@@ -20,7 +20,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-rdc-ministry-work-inc
 
 DEBUG = config('DEBUG', default=not IS_PRODUCTION, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='denonciation-abus-rdc.net', cast=Csv())
 
 USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -105,7 +106,7 @@ else:
             'NAME': config('DB_NAME', default='denunciations_app'),
             'USER': config('DB_USER', default='postgres'),
             'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='127.0.0.1'),
+            'HOST': config('DB_HOST', default='db'),
             'PORT': config('DB_PORT', default='5432'),
         }
     }
@@ -211,6 +212,20 @@ LOGGING = {
 
 
 WHITENOISE_MANIFEST_STRICT = False
+
+# CORS – during development allow all origins to simplify local testing (disable in production)
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = config(
+        'CORS_ALLOWED_ORIGINS',
+        default='https://denonciation-abus-rdc.net',
+        cast=Csv(),
+    )
+else:
+    CORS_ALLOWED_ORIGINS = config(
+        'CORS_ALLOWED_ORIGINS',
+        default='https://denonciation-abus-rdc.net',
+        cast=Csv(),
+    )
 
 
 # ==============================================================================

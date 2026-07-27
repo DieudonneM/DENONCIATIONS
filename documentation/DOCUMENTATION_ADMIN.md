@@ -320,16 +320,16 @@ messages.info(request, 'Opération en cours')
 
 ```bash
 # Accéder au dashboard d'administration
-curl http://localhost:8000/dashboard/admin/
+curl https://denonciation-abus-rdc.net/dashboard/admin/
 
 # Accéder à la liste des utilisateurs
-curl http://localhost:8000/admin/users/
+curl https://denonciation-abus-rdc.net/admin/users/
 
 # Accéder au formulaire de création
-curl http://localhost:8000/admin/users/create/
+curl https://denonciation-abus-rdc.net/admin/users/create/
 
 # Créer un utilisateur (POST)
-curl -X POST http://localhost:8000/admin/users/create/ \
+curl -X POST https://denonciation-abus-rdc.net/admin/users/create/ \
   -d "email=test@example.com&first_name=Test&last_name=User&role=agent"
 ```
 
@@ -400,4 +400,5 @@ curl -X POST http://localhost:8000/admin/users/create/ \
 - **100% couverture** des opérations CRUD
 - **Responsive design** pour mobile/tablet
 - **Sécurité:** Permissions basées sur rôle
+
 

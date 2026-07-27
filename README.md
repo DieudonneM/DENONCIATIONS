@@ -87,7 +87,7 @@ python manage.py runserver
 
 ### Accès Admin
 
-- URL : http://localhost:8000/admin/
+- URL : https://denonciation-abus-rdc.net/admin/
 - Username : admin
 - Password : admin123
 
@@ -287,7 +287,7 @@ Créer un fichier `.env` à la racine du projet :
 ```
 DEBUG=True
 SECRET_KEY=your-secret-key-here
-ALLOWED_HOSTS=localhost,127.0.0.1
+ALLOWED_HOSTS=denonciation-abus-rdc.net
 DATABASE_URL=sqlite:///db.sqlite3
 TIME_ZONE=Africa/Kinshasa
 ```
@@ -336,3 +336,4 @@ Ne stockez jamais la clé API dans le dépôt. Utilisez les variables d'environn
 **Version** : 1.0 - Étape 1 ✓  
 **Dernière mise à jour** : 2024  
 **Licence** : Propriétaire MEPT-RDC
+

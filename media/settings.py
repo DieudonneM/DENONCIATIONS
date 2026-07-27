@@ -20,7 +20,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-rdc-ministry-work-inc
 
 DEBUG = config('DEBUG', default=not IS_PRODUCTION, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='denonciation-abus-rdc.net', cast=Csv())
 
 USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
 
@@ -100,7 +100,7 @@ else:
             'NAME': config('DB_NAME', default='denunciations_app'),
             'USER': config('DB_USER', default='postgres'),
             'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='127.0.0.1'),
+            'HOST': config('DB_HOST', default='db'),
             'PORT': config('DB_PORT', default='5432'),
         }
     }

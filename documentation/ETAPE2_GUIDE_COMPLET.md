@@ -74,11 +74,11 @@ python manage.py runserver
 ```
 
 ### 3. Accéder l'application
-- Accueil: http://localhost:8000/
-- Admin: http://localhost:8000/admin/
-- Formulaire: http://localhost:8000/denoncier/
-- Connexion: http://localhost:8000/auth/login/
-- Dashboard: http://localhost:8000/dashboard/
+- Accueil: https://denonciation-abus-rdc.net/
+- Admin: https://denonciation-abus-rdc.net/admin/
+- Formulaire: https://denonciation-abus-rdc.net/denoncier/
+- Connexion: https://denonciation-abus-rdc.net/auth/login/
+- Dashboard: https://denonciation-abus-rdc.net/dashboard/
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -163,7 +163,7 @@ denunciations_app/
 ## ✅ FLUX D'UTILISATION PAR RÔLE
 
 ### 👤 Travailleur (Non authentifié)
-1. Accède à http://localhost:8000/
+1. Accède à https://denonciation-abus-rdc.net/
 2. Clique "Soumettre une dénonciation"
 3. Remplit le formulaire (peut rester anonyme)
 4. Reçoit un code de suivi
@@ -349,3 +349,4 @@ A: Éditer les CSS variables dans core/static/css/style.css
 Prêt pour les étapes suivantes!
 
 ═══════════════════════════════════════════════════════════════════════════════
+

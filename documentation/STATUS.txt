@@ -168,9 +168,9 @@ CONFIGURATION
     python manage.py runserver
 
 5️⃣  TESTER L'APPLICATION
-    - http://localhost:8000/auth/register/  (inscription)
-    - http://localhost:8000/auth/login/     (connexion)
-    - http://localhost:8000/admin/          (admin Django)
+    - https://denonciation-abus-rdc.net/auth/register/  (inscription)
+    - https://denonciation-abus-rdc.net/auth/login/     (connexion)
+    - https://denonciation-abus-rdc.net/admin/          (admin Django)
 
 ================================================================================
                      DOCUMENTATION À LIRE
@@ -219,3 +219,4 @@ Statut : ✅ COMPLET ET VÉRIFIÉE
 Prêt à : Créer les migrations et démarrer l'application
 
 ================================================================================
+

@@ -126,7 +126,7 @@ Le formulaire utilise correctement:
 python manage.py runserver
 
 # Visiter
-http://127.0.0.1:8000/denoncier/
+https://denonciation-abus-rdc.net/denoncier/
 ```
 
 ### Tester les Fonctionnalités
@@ -229,3 +229,4 @@ Votre formulaire de dénonciation est maintenant:
 - ✅ Responsif (mobile)
 - ✅ Sécurisé
 - ✅ Prêt pour la production
+

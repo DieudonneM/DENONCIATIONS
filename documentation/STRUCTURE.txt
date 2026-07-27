@@ -123,7 +123,7 @@ COMMANDES DE DÉMARRAGE
    > python manage.py runserver
 
 7. Accéder à l'interface admin :
-   http://localhost:8000/admin/
+   https://denonciation-abus-rdc.net/admin/
    Username : admin
    Password : admin123
 
@@ -208,3 +208,4 @@ Le projet est maintenant structuré et prêt pour :
 - Implémentation des Étapes 2, 3, 4
 
 ════════════════════════════════════════════════════════════════════════
+

@@ -381,7 +381,7 @@ Apps: 3 ✅
 ================================================================================
 
 Documentation: Consulter README.md, COMMENCER.md
-Admin Django: http://localhost:8000/admin/
+Admin Django: https://denonciation-abus-rdc.net/admin/
 Démo Accounts: python manage.py create_demo_accounts
 
 Status: 🟡 FUNCIONAL MAIS INCOMPLET - Les comptes de démo fonctionnent,
@@ -390,3 +390,4 @@ Status: 🟡 FUNCIONAL MAIS INCOMPLET - Les comptes de démo fonctionnent,
         complètement intégrés dans l'interface.
 
 ================================================================================
+

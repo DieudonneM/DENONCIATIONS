@@ -152,7 +152,7 @@ print("""
    $ python manage.py runserver
 
 7. Accéder à l'interface admin
-   → http://localhost:8000/admin/
+   → https://denonciation-abus-rdc.net/admin/
    → username: admin | password: admin123
 
 
@@ -324,3 +324,4 @@ Répondre avec le code de l'Étape 2 pour commencer :
 ════════════════════════════════════════════════════════════════════════════
 
 """)
+

@@ -92,17 +92,17 @@ python manage.py runserver
 ```
 
 **Tester les URL** :
-- http://localhost:8000/ → Home
-- http://localhost:8000/admin/ → Admin (avec votre compte)
-- http://localhost:8000/auth/login/ → Connexion
-- http://localhost:8000/auth/register/ → Inscription
+- https://denonciation-abus-rdc.net/ → Home
+- https://denonciation-abus-rdc.net/admin/ → Admin (avec votre compte)
+- https://denonciation-abus-rdc.net/auth/login/ → Connexion
+- https://denonciation-abus-rdc.net/auth/register/ → Inscription
 
 ---
 
 ## 🔐 Tester l'Authentification par Email
 
 ### Test 1 : Inscription
-1. Allez à http://localhost:8000/auth/register/
+1. Allez à https://denonciation-abus-rdc.net/auth/register/
 2. Remplissez le formulaire avec :
    - Email : `test@example.com`
    - Prénom : `Jean`
@@ -118,7 +118,7 @@ python manage.py runserver
 
 ### Test 2 : Connexion par Email
 1. Déconnectez-vous
-2. Allez à http://localhost:8000/auth/login/
+2. Allez à https://denonciation-abus-rdc.net/auth/login/
 3. Email : `test@example.com`
 4. Mot de passe : (celui créé plus haut)
 5. Cliquez sur "Se connecter"
@@ -137,8 +137,8 @@ python manage.py runserver
 Visitez ces pages et vérifiez les couleurs :
 
 1. **Boutons** (doit être bleu #134294)
-   - http://localhost:8000/auth/login/
-   - http://localhost:8000/auth/register/
+   - https://denonciation-abus-rdc.net/auth/login/
+   - https://denonciation-abus-rdc.net/auth/register/
 
 2. **Arrière-plans** (doit être gris clair #fafafa)
    - Pages publiques
@@ -339,3 +339,4 @@ python manage.py runserver
 
 **Dernière mise à jour** : [Date de cette restructuration]
 **Statut** : ✅ Prêt pour la production
+

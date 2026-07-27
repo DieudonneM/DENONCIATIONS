@@ -275,6 +275,7 @@ python manage.py runserver
 ```
 
 Accès:
-- http://localhost:8000/
-- Admin: http://localhost:8000/admin/
-- Login: http://localhost:8000/auth/login/
+- https://denonciation-abus-rdc.net/
+- Admin: https://denonciation-abus-rdc.net/admin/
+- Login: https://denonciation-abus-rdc.net/auth/login/
+

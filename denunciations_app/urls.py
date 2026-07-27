@@ -9,6 +9,7 @@ from django.urls import path, include
 urlpatterns = [
     path('', include('core.urls')),
     path('auth/', include('users.urls')),
+    path('api/', include('api.urls')),
     path('', include('denunciations.urls')),
 ]
 

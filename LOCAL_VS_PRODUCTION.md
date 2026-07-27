@@ -8,7 +8,7 @@ Assurez-vous que votre `.env` local contient :
 ENVIRONMENT=local
 DEBUG=True
 SECRET_KEY=any-key-for-local-testing
-ALLOWED_HOSTS=127.0.0.1,localhost
+ALLOWED_HOSTS=denonciation-abus-rdc.net
 USE_SQLITE=True
 ```
 
@@ -20,7 +20,7 @@ source venv/Scripts/activate  # Windows
 # Exécutez
 python manage.py runserver
 
-# Visitez http://127.0.0.1:8000
+# Visitez https://denonciation-abus-rdc.net
 ```
 
 ### Données
@@ -67,7 +67,7 @@ Automatique via Render (no manual action needed)
 | **Sécurité SSL** | Non | Oui (HTTPS) |
 | **Performance** | Bonne pour dev | Optimisée pour production |
 | **Capacité** | Limitée | Scalable |
-| **Accès Admin** | http://127.0.0.1:8000/admin | https://app.onrender.com/admin |
+| **Accès Admin** | https://denonciation-abus-rdc.net/admin | https://denonciation-abus-rdc.net/admin |
 
 ---
 
@@ -156,3 +156,4 @@ git push origin main
 ```
 
 **C'est tout !** ✨
+

@@ -117,7 +117,7 @@ OPTION B - MANUEL
    python manage.py runserver
 
 6. Tester :
-   http://localhost:8000/auth/register/
+   https://denonciation-abus-rdc.net/auth/register/
 
 ═══════════════════════════════════════════════════════════════════════════════
                           📚 DOCUMENTATION RAPIDE
@@ -216,3 +216,4 @@ Pour toute question, consultez les fichiers de documentation.
 BON DÉVELOPPEMENT ! 🚀
 
 ═══════════════════════════════════════════════════════════════════════════════
+

@@ -61,10 +61,10 @@ python manage.py runserver
 ```
 
 ### 5. Tester
-- http://localhost:8000/ → Accueil
-- http://localhost:8000/auth/register/ → Inscription
-- http://localhost:8000/auth/login/ → Connexion
-- http://localhost:8000/admin/ → Admin
+- https://denonciation-abus-rdc.net/ → Accueil
+- https://denonciation-abus-rdc.net/auth/register/ → Inscription
+- https://denonciation-abus-rdc.net/auth/login/ → Connexion
+- https://denonciation-abus-rdc.net/admin/ → Admin
 
 ---
 
@@ -148,3 +148,4 @@ R: Dans `core/static/css/style.css` aux variables CSS.
 ---
 
 **Prêt à démarrer ? Exécutez `python manage.py makemigrations` ! 🚀**
+

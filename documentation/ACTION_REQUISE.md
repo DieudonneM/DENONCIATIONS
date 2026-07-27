@@ -57,7 +57,7 @@ python manage.py runserver
 
 ### ÉTAPE 5 : Tester
 
-Allez à http://localhost:8000/ et vérifiez que tout fonctionne.
+Allez à https://denonciation-abus-rdc.net/ et vérifiez que tout fonctionne.
 
 ---
 
@@ -177,3 +177,4 @@ python manage.py makemigrations users
 **Status Final** : ✅ **PRÊT À L'EMPLOI**
 
 Tous les fichiers sont en place. Exécutez les migrations et testez ! 🚀
+

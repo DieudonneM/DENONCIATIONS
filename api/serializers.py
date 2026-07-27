@@ -56,6 +56,9 @@ class CommentaireSerializer(serializers.ModelSerializer):
 class IncidentSerializer(serializers.ModelSerializer):
     travailleur = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(role='travailleur'), required=False, allow_null=True)
     employeur = serializers.PrimaryKeyRelatedField(queryset=Employeur.objects.all())
+    employeur_address = serializers.SerializerMethodField()
+    agent_assigne = serializers.PrimaryKeyRelatedField(source='agent_assigné', queryset=User.objects.filter(role='agent'), required=False, allow_null=True)
+    department_assigne = serializers.PrimaryKeyRelatedField(source='department_assigné', queryset=Department.objects.all(), required=False, allow_null=True)
     province = serializers.PrimaryKeyRelatedField(queryset=Province.objects.all(), required=False, allow_null=True)
     pieces_jointes = PieceJointeSerializer(many=True, read_only=True)
 
@@ -63,12 +66,17 @@ class IncidentSerializer(serializers.ModelSerializer):
         model = Incident
         fields = [
             'id', 'code_suivi', 'travailleur', 'employeur', 'employeur_address', 'ville', 'province',
-            'type_incident', 'type_incident_autre', 'le_fautif', 'description', 'statut', 'agent_assigné',
-            'department_assigné', 'est_anonyme', 'email_contact_anonyme', 'telephone_contact_anonyme',
+            'type_incident', 'type_incident_autre', 'le_fautif', 'description', 'statut', 'agent_assigne',
+            'department_assigne', 'est_anonyme', 'email_contact_anonyme', 'telephone_contact_anonyme',
             'accepted_privacy', 'accepted_privacy_at', 'date_creation', 'date_modification', 'date_resolution',
             'est_lu', 'pieces_jointes'
         ]
         read_only_fields = ['code_suivi', 'date_creation', 'date_modification']
+
+    def get_employeur_address(self, obj):
+        if obj.employeur:
+            return getattr(obj.employeur, 'adresse_complete', '')
+        return ''
 
     def validate(self, data):
         # If est_anonyme is False, require travailleur (identity) or at least an associated user

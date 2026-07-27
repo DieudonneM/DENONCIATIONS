@@ -221,7 +221,7 @@ export DEBUG=True
 # Testez
 python manage.py runserver
 
-# Visitez http://127.0.0.1:8000
+# Visitez https://denonciation-abus-rdc.net
 ```
 
 ---
@@ -255,3 +255,4 @@ python manage.py runserver
 ## 🎉 C'est Fini !
 
 Votre application est maintenant prête pour la production ! 🚀
+

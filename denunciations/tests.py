@@ -1,5 +1,6 @@
 from io import BytesIO
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from openpyxl import load_workbook
@@ -73,3 +74,62 @@ class IncidentExportAuthorizationTests(TestCase):
         ]
         self.assertNotIn(private_incident.code_suivi, values)
         self.assertNotIn(private_incident.description, values)
+
+
+class PublicIncidentAttachmentTests(TestCase):
+    def test_public_incident_accepts_allowed_attachments(self):
+        province = Province.objects.create(nom='Kinshasa', code='KIN')
+        Employeur.objects.create(
+            nom='Entreprise privée',
+            secteur='services',
+            province=province,
+        )
+
+        payload = {
+            'employeur': 'Entreprise privée',
+            'employeur_address': '123 Rue',
+            'ville': 'Kinshasa',
+            'province': province.id,
+            'type_incident': 'salaire',
+            'description': 'Description suffisante pour le test de pièces jointes.',
+            'le_fautif': 'Entreprise privée',
+            'est_anonyme': True,
+            'email_contact_anonyme': 'test@example.com',
+            'telephone_contact_anonyme': '',
+            'secteur': 'services',
+            'autre_secteur': '',
+            'confirm_anonymous': True,
+        }
+        response = self.client.post(
+            reverse('api:public_incident_create'),
+            payload,
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, 201)
+
+    def test_public_incident_accepts_non_existing_province_name(self):
+        payload = {
+            'employeur': 'Entreprise privée',
+            'employeur_address': '123 Rue',
+            'ville': 'Kinshasa',
+            'province': 'Bas-Uélé',
+            'type_incident': 'salaire',
+            'description': 'Description suffisante pour valider le choix d’une province non encore créée.',
+            'le_fautif': 'Entreprise privée',
+            'est_anonyme': True,
+            'email_contact_anonyme': 'test@example.com',
+            'telephone_contact_anonyme': '',
+            'secteur': 'services',
+            'autre_secteur': '',
+            'confirm_anonymous': True,
+        }
+
+        response = self.client.post(
+            reverse('api:public_incident_create'),
+            payload,
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(Province.objects.filter(nom__iexact='Bas-Uélé').exists())

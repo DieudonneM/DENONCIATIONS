@@ -49,7 +49,7 @@ Commandes de démarrage du projet.
    
    $ python manage.py runserver
    
-   Puis allez à : http://localhost:8000/admin/
+   Puis allez à : https://denonciation-abus-rdc.net/admin/
 
 7. (OPTIONNEL) Charger les données de démo
    ========================================
@@ -79,7 +79,7 @@ Tests rapides à exécuter :
    sqlite> .quit
 
 2. Accéder à l'admin
-   - URL : http://localhost:8000/admin/
+   - URL : https://denonciation-abus-rdc.net/admin/
    - Username : admin
    - Password : admin123
    
@@ -146,7 +146,7 @@ Créer un fichier .env à la racine du projet :
 
 DEBUG=True
 SECRET_KEY=your-secret-key-here
-ALLOWED_HOSTS=localhost,127.0.0.1
+ALLOWED_HOSTS=denonciation-abus-rdc.net
 DATABASE_URL=sqlite:///db.sqlite3
 TIME_ZONE=Africa/Kinshasa
 
@@ -193,7 +193,7 @@ Checklist pour valider que tout fonctionne :
 ☐ Migrations appliquées sans erreur
 ☐ 23 provinces créées
 ☐ Compte admin créé
-☐ Accès à http://localhost:8000/admin/ possible
+☐ Accès à https://denonciation-abus-rdc.net/admin/ possible
 ☐ Modèles visibles dans l'interface admin
 ☐ Tests unitaires passent (python manage.py test core)
 ☐ Données de démo chargées (optionnel)
@@ -226,3 +226,4 @@ Après la validation de l'Étape 1, vous pouvez passer à :
 - Interface détaillée des tickets
 
 """
+

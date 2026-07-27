@@ -58,7 +58,7 @@ Password (again) : (confirmez)
 python manage.py runserver
 ```
 
-Allez à : http://localhost:8000/admin/
+Allez à : https://denonciation-abus-rdc.net/admin/
 
 Connectez-vous avec votre compte administrateur.
 
@@ -66,7 +66,7 @@ Connectez-vous avec votre compte administrateur.
 
 #### Test d'Inscription
 
-1. Allez à http://localhost:8000/auth/register/
+1. Allez à https://denonciation-abus-rdc.net/auth/register/
 2. Remplissez le formulaire :
    - Email : `test@example.com`
    - Prénom : `Jean`
@@ -77,8 +77,8 @@ Connectez-vous avec votre compte administrateur.
 
 #### Test de Connexion
 
-1. Déconnectez-vous (http://localhost:8000/auth/logout/)
-2. Allez à http://localhost:8000/auth/login/
+1. Déconnectez-vous (https://denonciation-abus-rdc.net/auth/logout/)
+2. Allez à https://denonciation-abus-rdc.net/auth/login/
 3. Email : `test@example.com`
 4. Mot de passe : `SecurePassword123`
 5. Cliquez sur "Se connecter"
@@ -93,17 +93,17 @@ Visitez ces pages et vérifiez les couleurs :
 - **Gris clair #fafafa** : Arrière-plans
 
 Pages à vérifier :
-- http://localhost:8000/auth/login/
-- http://localhost:8000/auth/register/
-- http://localhost:8000/admin/
+- https://denonciation-abus-rdc.net/auth/login/
+- https://denonciation-abus-rdc.net/auth/register/
+- https://denonciation-abus-rdc.net/admin/
 
 ### 5️⃣ Créer une Dénonciation (Test)
 
-1. Allez à http://localhost:8000/denonciation/
+1. Allez à https://denonciation-abus-rdc.net/denonciation/
 2. Remplissez le formulaire de dénonciation
 3. Cliquez sur "Soumettre"
 4. Notez le code de suivi
-5. Allez à http://localhost:8000/rechercher/ et testez la recherche
+5. Allez à https://denonciation-abus-rdc.net/rechercher/ et testez la recherche
 
 ---
 
@@ -326,3 +326,4 @@ Si vous rencontrez des problèmes :
 **Status** : ✅ Prêt pour le démarrage!
 
 Exécutez `python setup_restructuring.py` pour commencer! 🎉
+

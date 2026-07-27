@@ -357,10 +357,10 @@ ADMINISTRATEUR (Authentifié)
   4. python manage.py runserver
   
   Accéder à:
-  • http://localhost:8000/                (accueil)
-  • http://localhost:8000/denoncier/      (formulaire)
-  • http://localhost:8000/auth/login/     (connexion)
-  • http://localhost:8000/dashboard/      (dashboard)
+  • https://denonciation-abus-rdc.net/                (accueil)
+  • https://denonciation-abus-rdc.net/denoncier/      (formulaire)
+  • https://denonciation-abus-rdc.net/auth/login/     (connexion)
+  • https://denonciation-abus-rdc.net/dashboard/      (dashboard)
   
   Comptes de test:
   • Admin: admin / admin123
@@ -436,3 +436,4 @@ if __name__ == "__main__":
     import sys
     print(__doc__)
     sys.exit(0)
+
