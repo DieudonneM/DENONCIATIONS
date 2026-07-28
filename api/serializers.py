@@ -55,19 +55,24 @@ class CommentaireSerializer(serializers.ModelSerializer):
 
 class IncidentSerializer(serializers.ModelSerializer):
     travailleur = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(role='travailleur'), required=False, allow_null=True)
+    travailleur_nom = serializers.SerializerMethodField()
     employeur = serializers.PrimaryKeyRelatedField(queryset=Employeur.objects.all())
+    employeur_nom = serializers.SerializerMethodField()
     employeur_address = serializers.SerializerMethodField()
     agent_assigne = serializers.PrimaryKeyRelatedField(source='agent_assigné', queryset=User.objects.filter(role='agent'), required=False, allow_null=True)
+    agent_assigne_nom = serializers.SerializerMethodField()
     department_assigne = serializers.PrimaryKeyRelatedField(source='department_assigné', queryset=Department.objects.all(), required=False, allow_null=True)
+    department_assigne_nom = serializers.SerializerMethodField()
     province = serializers.PrimaryKeyRelatedField(queryset=Province.objects.all(), required=False, allow_null=True)
+    province_nom = serializers.SerializerMethodField()
     pieces_jointes = PieceJointeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Incident
         fields = [
-            'id', 'code_suivi', 'travailleur', 'employeur', 'employeur_address', 'ville', 'province',
-            'type_incident', 'type_incident_autre', 'le_fautif', 'description', 'statut', 'agent_assigne',
-            'department_assigne', 'est_anonyme', 'email_contact_anonyme', 'telephone_contact_anonyme',
+            'id', 'code_suivi', 'travailleur', 'travailleur_nom', 'employeur', 'employeur_nom', 'employeur_address', 'ville', 'province', 'province_nom',
+            'type_incident', 'type_incident_autre', 'le_fautif', 'description', 'statut', 'agent_assigne', 'agent_assigne_nom',
+            'department_assigne', 'department_assigne_nom', 'est_anonyme', 'email_contact_anonyme', 'telephone_contact_anonyme',
             'accepted_privacy', 'accepted_privacy_at', 'date_creation', 'date_modification', 'date_resolution',
             'est_lu', 'pieces_jointes'
         ]
@@ -76,6 +81,39 @@ class IncidentSerializer(serializers.ModelSerializer):
     def get_employeur_address(self, obj):
         if obj.employeur:
             return getattr(obj.employeur, 'adresse_complete', '')
+        return ''
+
+    def get_travailleur_nom(self, obj):
+        if obj.travailleur:
+            full_name = f'{getattr(obj.travailleur, "first_name", "").strip()} {getattr(obj.travailleur, "last_name", "").strip()}'.strip()
+            if full_name:
+                return full_name
+            return getattr(obj.travailleur, 'username', '')
+        return ''
+
+    def get_employeur_nom(self, obj):
+        if obj.employeur:
+            return getattr(obj.employeur, 'nom', '')
+        return ''
+
+    def get_agent_assigne_nom(self, obj):
+        agent = getattr(obj, 'agent_assigné', None)
+        if agent:
+            full_name = f'{getattr(agent, "first_name", "").strip()} {getattr(agent, "last_name", "").strip()}'.strip()
+            if full_name:
+                return full_name
+            return getattr(agent, 'username', '')
+        return ''
+
+    def get_department_assigne_nom(self, obj):
+        department = getattr(obj, 'department_assigné', None)
+        if department:
+            return getattr(department, 'nom', '')
+        return ''
+
+    def get_province_nom(self, obj):
+        if obj.province:
+            return getattr(obj.province, 'nom', '')
         return ''
 
     def validate(self, data):

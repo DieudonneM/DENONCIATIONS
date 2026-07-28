@@ -48,15 +48,15 @@ est une fonction utilitaire, pas une méthode du manager.
 
 **Avant:**
 ```python
-'password': User.objects.make_password('Admin@123456'),  # ❌ Erreur
-'password': User.objects.make_password(password),         # ❌ Erreur
+'password': make_password('valeur_depuis_env'),  # ✅ Correct
+'password': make_password(password),             # ✅ Correct
 ```
 
 **Après:**
 ```python
 from django.contrib.auth.hashers import make_password
 
-'password': make_password('Admin@123456'),  # ✅ Correct
+'password': make_password('valeur_depuis_env'),  # ✅ Correct
 'password': make_password(password),         # ✅ Correct
 ```
 
@@ -111,10 +111,10 @@ Fichier: core/templates/core/dashboard_agent.html, ligne 646
    python manage.py create_demo_accounts
 
    Résultats:
-   ✅ Admin créé: admin@mept-rdc.com
-   ✅ Agent créé: agent.kinshasa@mept-rdc.com (Province: Kinshasa)
-   ✅ Agent créé: agent.katanga@mept-rdc.com (Province: Katanga)
-   ✅ Agent créé: agent.nordkivu@mept-rdc.com (Provinces: Nord-Kivu, Sud-Kivu)
+    ✅ Admin créé: admin@mept-rdc.com
+    ✅ Agent créé: agent.kinshasa@mept-rdc.com (Province: Kinshasa)
+    ✅ Agent créé: agent.katanga@mept-rdc.com (Province: Katanga)
+    ✅ Agent créé: agent.nordkivu@mept-rdc.com (Provinces: Nord-Kivu, Sud-Kivu)
    ✅ 6 Provinces créées automatiquement
 ```
 
@@ -122,7 +122,7 @@ Fichier: core/templates/core/dashboard_agent.html, ligne 646
 
 #### 1. Dashboard Admin ✅
 ```
-Connecté avec: admin@mept-rdc.com / Admin@123456
+Connecté avec: admin@mept-rdc.com / mot_de_passe_de_demo
 Route: https://denonciation-abus-rdc.net/dashboard/admin/
 
 ✅ Titre: "🎛️ Tableau de Bord Administrateur"
@@ -135,7 +135,7 @@ Route: https://denonciation-abus-rdc.net/dashboard/admin/
 
 #### 2. Dashboard Agent ✅
 ```
-Connecté avec: agent.kinshasa@mept-rdc.com / Agent@123456
+Connecté avec: agent.kinshasa@mept-rdc.com / mot_de_passe_de_demo
 Route: https://denonciation-abus-rdc.net/dashboard/agent/
 
 ✅ Titre: "🕵️ Tableau de Bord Agent"
@@ -208,7 +208,7 @@ python manage.py create_demo_accounts --reset
 
 # Accéder à l'admin
 https://denonciation-abus-rdc.net/admin/
-Admin: admin@mept-rdc.com / Admin@123456
+Admin: admin@mept-rdc.com / mot_de_passe_de_demo
 
 # Dashboards
 Dashboard Admin: https://denonciation-abus-rdc.net/dashboard/admin/

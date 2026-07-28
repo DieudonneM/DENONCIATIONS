@@ -240,27 +240,45 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 # ==============================================================================
 # EMAIL CONFIGURATION
 # ==============================================================================
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.hostinger.com')
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.smtp.EmailBackend' if IS_PRODUCTION else 'django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.example.com')
 # 587 pour STARTTLS, 465 pour SSL
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='contact@denonciation-abus-rdc.net')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='contact@example.com')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
 
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default="Ministère d'Emploi et Travail <contact@denonciation-abus-rdc.net>")
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Web site <no-reply@example.com>')
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
 ADMINS = tuple(config('ADMINS', default='', cast=Csv()))
 
 # IMAP/POP settings (Optionnel)
-IMAP_HOST = config('IMAP_HOST', default='imap.hostinger.com')
+IMAP_HOST = config('IMAP_HOST', default='imap.example.com')
 IMAP_PORT = config('IMAP_PORT', default=993, cast=int)
 IMAP_USE_SSL = config('IMAP_USE_SSL', default=True, cast=bool)
 IMAP_USER = config('IMAP_USER', default=EMAIL_HOST_USER)
 IMAP_PASSWORD = config('IMAP_PASSWORD', default=EMAIL_HOST_PASSWORD)
+
+if IS_PRODUCTION and EMAIL_BACKEND.endswith('smtp.EmailBackend'):
+    missing_email_settings = [
+        name for name, value in (
+            ('EMAIL_HOST', EMAIL_HOST),
+            ('EMAIL_HOST_USER', EMAIL_HOST_USER),
+            ('EMAIL_HOST_PASSWORD', EMAIL_HOST_PASSWORD),
+        )
+        if not value
+    ]
+    if missing_email_settings:
+        raise ImproperlyConfigured(
+            'Les variables SMTP suivantes sont obligatoires en production: '
+            + ', '.join(missing_email_settings)
+        )
 
 
 # ==============================================================================
