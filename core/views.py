@@ -35,6 +35,38 @@ from .models import Department
 from django.utils.crypto import get_random_string
 
 
+def notify_staff_about_new_incident(incident):
+    """Envoyer une notification email aux agents et administrateurs actifs."""
+    recipients = list(
+        User.objects.filter(
+            is_active=True
+        ).filter(
+            Q(role='agent') | Q(role='administrateur') | Q(is_superuser=True)
+        ).exclude(email='').values_list('email', flat=True).distinct()
+    )
+
+    if not recipients:
+        return False
+
+    subject = f"Nouvelle dénonciation soumise : {incident.code_suivi}"
+    message = (
+        f"Une nouvelle dénonciation a été soumise sur la plateforme.\n\n"
+        f"Code : {incident.code_suivi}\n"
+        f"Type : {incident.get_type_incident_display()}\n"
+        f"Ville : {incident.ville}\n"
+        f"Province : {incident.province.nom if incident.province else 'N/A'}\n"
+        f"Employeur : {incident.employeur.nom if incident.employeur else 'N/A'}\n"
+        f"Statut : {incident.get_statut_display()}\n\n"
+        "Veuillez vous connecter au tableau de bord pour plus de détails."
+    )
+
+    try:
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True)
+        return True
+    except Exception:
+        return False
+
+
 # ============================================================================
 # VUES PUBLIQUES (Sans authentification requise)
 # ============================================================================
@@ -187,6 +219,8 @@ class IncidentPublicFormView(View):
                     type_fichier=file.content_type,
                     taille_fichier=file.size,
                 )
+
+            notify_staff_about_new_incident(incident)
             
             # Rediriger vers la page de succès
             # Si nous devons inviter l'utilisateur à changer son mot de passe, faire la connexion

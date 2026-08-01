@@ -3,7 +3,7 @@ Admin pour l'application denunciations.
 """
 
 from django.contrib import admin
-from .models import Incident, PieceJointe, Commentaire, LogAudit
+from .models import Incident, PieceJointe, Commentaire, LogAudit, MobileDeviceToken
 
 
 @admin.register(Incident)
@@ -79,3 +79,11 @@ class LogAuditAdmin(admin.ModelAdmin):
     
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+
+
+@admin.register(MobileDeviceToken)
+class MobileDeviceTokenAdmin(admin.ModelAdmin):
+    list_display = ['id', 'platform', 'code_suivi', 'incident', 'is_active', 'last_notified_at', 'updated_at']
+    list_filter = ['platform', 'is_active', 'created_at', 'updated_at']
+    search_fields = ['token', 'code_suivi', 'incident__code_suivi']
+    readonly_fields = ['created_at', 'updated_at', 'last_notified_at', 'last_error']

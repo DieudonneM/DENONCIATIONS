@@ -292,3 +292,61 @@ class LogAudit(models.Model):
     
     def __str__(self):
         return f'{self.action} - {self.incident.code_suivi}'
+
+
+class MobileDeviceToken(models.Model):
+    """Token FCM d'un appareil mobile, optionnellement rattaché à un incident."""
+
+    PLATFORM_ANDROID = 'android'
+    PLATFORM_IOS = 'ios'
+    PLATFORM_WEB = 'web'
+    PLATFORM_OTHER = 'other'
+
+    PLATFORM_CHOICES = (
+        (PLATFORM_ANDROID, 'Android'),
+        (PLATFORM_IOS, 'iOS'),
+        (PLATFORM_WEB, 'Web'),
+        (PLATFORM_OTHER, 'Autre'),
+    )
+
+    token = models.CharField(max_length=255, unique=True, db_index=True)
+    platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default=PLATFORM_OTHER)
+    incident = models.ForeignKey(
+        Incident,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='device_tokens',
+    )
+    code_suivi = models.CharField(max_length=20, blank=True, db_index=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    last_notified_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Token mobile'
+        verbose_name_plural = 'Tokens mobiles'
+        indexes = [
+            models.Index(fields=['is_active', 'platform']),
+            models.Index(fields=['code_suivi', 'is_active']),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.token = (self.token or '').strip()
+        platform = (self.platform or self.PLATFORM_OTHER).strip().lower()
+        allowed = {choice[0] for choice in self.PLATFORM_CHOICES}
+        self.platform = platform if platform in allowed else self.PLATFORM_OTHER
+
+        if self.incident and not self.code_suivi:
+            self.code_suivi = self.incident.code_suivi
+
+        if self.code_suivi:
+            self.code_suivi = self.code_suivi.strip().upper()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        suffix = self.code_suivi or (self.incident.code_suivi if self.incident else 'sans-code')
+        return f'{self.platform}:{suffix}'

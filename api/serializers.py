@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from users.models import User, UserProfile
 from core.models import Province, Employeur, Department
-from denunciations.models import Incident, PieceJointe, Commentaire, LogAudit
+from denunciations.models import Incident, PieceJointe, Commentaire, LogAudit, MobileDeviceToken
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -116,6 +116,29 @@ class IncidentSerializer(serializers.ModelSerializer):
             return getattr(obj.province, 'nom', '')
         return ''
 
+    def to_representation(self, instance):
+        """
+        Retourne les champs employeur/province en libellés lisibles,
+        tout en exposant aussi les IDs pour compatibilité client.
+        """
+        data = super().to_representation(instance)
+
+        employeur_obj = getattr(instance, 'employeur', None)
+        if employeur_obj is not None:
+            data['employeur_id'] = data.get('employeur')
+            data['employeur'] = getattr(employeur_obj, 'nom', '') or data.get('employeur')
+            if not data.get('employeur_nom'):
+                data['employeur_nom'] = data['employeur']
+
+        province_obj = getattr(instance, 'province', None)
+        if province_obj is not None:
+            data['province_id'] = data.get('province')
+            data['province'] = getattr(province_obj, 'nom', '') or data.get('province')
+            if not data.get('province_nom'):
+                data['province_nom'] = data['province']
+
+        return data
+
     def validate(self, data):
         # If est_anonyme is False, require travailleur (identity) or at least an associated user
         est_anonyme = data.get('est_anonyme', getattr(self.instance, 'est_anonyme', True))
@@ -138,3 +161,28 @@ class LogAuditSerializer(serializers.ModelSerializer):
         model = LogAudit
         fields = ['id', 'incident', 'utilisateur', 'action', 'description', 'ancienne_valeur', 'nouvelle_valeur', 'date_creation']
         read_only_fields = ['date_creation']
+
+
+class MobileDeviceTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileDeviceToken
+        fields = ['token', 'platform', 'code_suivi', 'is_active']
+        read_only_fields = ['is_active']
+        extra_kwargs = {
+            'token': {'validators': []},
+        }
+
+    def validate_token(self, value):
+        token = (value or '').strip()
+        if not token:
+            raise serializers.ValidationError('Le token est obligatoire.')
+        return token
+
+    def validate_code_suivi(self, value):
+        code = (value or '').strip().upper()
+        if not code:
+            return ''
+
+        if not Incident.objects.filter(code_suivi=code).exists():
+            raise serializers.ValidationError('Code de suivi introuvable.')
+        return code

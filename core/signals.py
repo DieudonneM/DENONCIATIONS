@@ -2,10 +2,18 @@
 Signaux Django pour les opérations automatiques.
 """
 
+import logging
+
 from django.db.models.signals import post_save, pre_save
+from django.db import transaction
 from django.dispatch import receiver
 from denunciations.models import Incident, Commentaire, LogAudit
 from django.utils import timezone
+
+from .push_notifications import send_incident_status_change_push
+
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=Incident)
@@ -36,6 +44,9 @@ def incident_status_changed(sender, instance, **kwargs):
     
     # Vérifier si le statut a changé
     if old_instance.statut != instance.statut:
+        # Mémorisé pour l'envoi push en post_save (après commit).
+        instance._old_status_for_push = old_instance.statut
+
         LogAudit.objects.create(
             incident=instance,
             action='modification_statut',
@@ -71,6 +82,35 @@ def incident_status_changed(sender, instance, **kwargs):
                 nouvelle_valeur=dept.nom
             )
 
+
+@receiver(post_save, sender=Incident)
+def incident_status_push_notification(sender, instance, created, **kwargs):
+    """Envoi push lorsque le statut d'un incident change."""
+    if created:
+        return
+
+    old_status = getattr(instance, '_old_status_for_push', None)
+    if not old_status or old_status == instance.statut:
+        return
+
+    def _send():
+        try:
+            result = send_incident_status_change_push(
+                incident=instance,
+                old_status=old_status,
+                new_status=instance.statut,
+            )
+            logger.info(
+                'Push statut incident=%s old=%s new=%s result=%s',
+                instance.code_suivi,
+                old_status,
+                instance.statut,
+                result,
+            )
+        except Exception:
+            logger.exception('Erreur envoi push statut incident=%s', instance.code_suivi)
+
+    transaction.on_commit(_send)
 
 @receiver(post_save, sender=Commentaire)
 def commentaire_created(sender, instance, created, **kwargs):

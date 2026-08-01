@@ -9,10 +9,11 @@ from django.contrib.auth import authenticate, login
 from users.models import User
 from users.forms import UserRegistrationForm
 from core.models import Province, Employeur, Department
-from denunciations.models import Incident, PieceJointe, Commentaire, LogAudit
+from denunciations.models import Incident, PieceJointe, Commentaire, LogAudit, MobileDeviceToken
 from .serializers import (
     UserSerializer, UserProfileSerializer, ProvinceSerializer, EmployeurSerializer,
-    DepartmentSerializer, IncidentSerializer, PieceJointeSerializer, CommentaireSerializer, LogAuditSerializer
+    DepartmentSerializer, IncidentSerializer, PieceJointeSerializer, CommentaireSerializer, LogAuditSerializer,
+    MobileDeviceTokenSerializer,
 )
 from rest_framework.views import APIView
 from django.utils.text import slugify
@@ -167,6 +168,42 @@ class IncidentViewSet(viewsets.ModelViewSet):
             logger.exception(f"Error while processing suivi for code={code}: {e}")
             return Response({'detail': 'Erreur serveur', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def dashboard_stats(self, request):
+        user = request.user
+        is_staff = bool(
+            user.is_authenticated and (
+                getattr(user, 'role', '') in {'agent', 'administrateur'}
+                or user.is_superuser
+            )
+        )
+        if not is_staff:
+            if request.headers.get('Authorization'):
+                return Response({'detail': 'Accès refusé'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Accès refusé'}, status=status.HTTP_403_FORBIDDEN)
+
+        incidents = Incident.objects.all()
+        return Response({
+            'total': incidents.count(),
+            'nouvelle': incidents.filter(statut='nouvelle').count(),
+            'analyse': incidents.filter(statut='analyse').count(),
+            'attente': incidents.filter(statut='attente').count(),
+            'resolue': incidents.filter(statut='resolue').count(),
+            'classée': incidents.filter(statut='classée').count(),
+            'non_lues': incidents.filter(est_lu=False).count(),
+            'anonymes': incidents.filter(est_anonyme=True).count(),
+            'recent': [
+                {
+                    'code_suivi': incident.code_suivi,
+                    'employeur': incident.employeur.nom if incident.employeur else '',
+                    'type_incident': incident.get_type_incident_display(),
+                    'statut': incident.statut,
+                    'date_creation': incident.date_creation.isoformat(),
+                }
+                for incident in incidents.order_by('-date_creation')[:10]
+            ],
+        })
+
 
 class PieceJointeViewSet(viewsets.ModelViewSet):
     queryset = PieceJointe.objects.all()
@@ -256,3 +293,52 @@ class PublicIncidentCreate(APIView):
         incident = form.save(commit=True)
         serializer = IncidentSerializer(incident, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class PublicDeviceTokenRegisterView(APIView):
+    """Enregistrer/mettre a jour un token FCM pour les notifications de suivi."""
+
+    permission_classes = [AllowAny]
+
+    def post(self, request, format=None):
+        serializer = MobileDeviceTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        validated = serializer.validated_data
+        token = validated['token']
+        platform = validated.get('platform') or MobileDeviceToken.PLATFORM_OTHER
+        code_suivi = (validated.get('code_suivi') or '').strip().upper()
+
+        incident = None
+        if code_suivi:
+            incident = Incident.objects.filter(code_suivi=code_suivi).first()
+
+        obj, created = MobileDeviceToken.objects.update_or_create(
+            token=token,
+            defaults={
+                'platform': platform,
+                'incident': incident,
+                'code_suivi': code_suivi,
+                'is_active': True,
+            },
+        )
+
+        response_data = {
+            'detail': 'Token enregistre' if created else 'Token mis a jour',
+            'created': created,
+            'platform': obj.platform,
+            'code_suivi': obj.code_suivi,
+            'is_active': obj.is_active,
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+    def delete(self, request, format=None):
+        token = str(request.data.get('token') or request.query_params.get('token') or '').strip()
+        if not token:
+            return Response({'detail': 'Token requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated = MobileDeviceToken.objects.filter(token=token).update(is_active=False)
+        if updated == 0:
+            return Response({'detail': 'Token introuvable.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'detail': 'Token desactive.', 'updated': updated}, status=status.HTTP_200_OK)

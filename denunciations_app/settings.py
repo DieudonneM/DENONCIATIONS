@@ -325,3 +325,11 @@ STORAGES = {
         "BACKEND": static_backend,
     },
 }
+
+
+# ============================================================================
+# FIREBASE / PUSH NOTIFICATIONS
+# ============================================================================
+# Fournir soit un chemin de fichier JSON de service account, soit le JSON brut.
+FIREBASE_CREDENTIALS_FILE = config('FIREBASE_CREDENTIALS_FILE', default='')
+FIREBASE_CREDENTIALS_JSON = config('FIREBASE_CREDENTIALS_JSON', default='')
