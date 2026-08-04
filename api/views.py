@@ -91,6 +91,30 @@ def _extract_uploaded_attachments(files_dict):
     return unique_files
 
 
+def _build_public_incident_payload(incident):
+    """Return a stable subset used by mobile clients without traversing optional serializer fields."""
+    return {
+        'id': incident.id,
+        'code_suivi': incident.code_suivi,
+        'statut': incident.statut,
+        'date_creation': incident.date_creation.isoformat() if incident.date_creation else None,
+        'date_modification': incident.date_modification.isoformat() if incident.date_modification else None,
+        'employeur': incident.employeur.nom if getattr(incident, 'employeur', None) else '',
+        'employeur_nom': incident.employeur.nom if getattr(incident, 'employeur', None) else '',
+        'employeur_address': getattr(getattr(incident, 'employeur', None), 'adresse_complete', '') if getattr(incident, 'employeur', None) else '',
+        'ville': incident.ville,
+        'province': incident.province.nom if getattr(incident, 'province', None) else '',
+        'province_nom': incident.province.nom if getattr(incident, 'province', None) else '',
+        'type_incident': incident.type_incident,
+        'type_incident_autre': incident.type_incident_autre,
+        'description': incident.description,
+        'le_fautif': incident.le_fautif,
+        'est_anonyme': incident.est_anonyme,
+        'email_contact_anonyme': incident.email_contact_anonyme,
+        'telephone_contact_anonyme': incident.telephone_contact_anonyme,
+    }
+
+
 class ApiLoginView(APIView):
     """Connexion mobile via JSON (email + mot de passe)."""
     permission_classes = [AllowAny]
@@ -428,8 +452,7 @@ class PublicIncidentCreate(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        serializer = IncidentSerializer(incident, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(_build_public_incident_payload(incident), status=status.HTTP_201_CREATED)
 
 
 class PublicIncidentDetailView(APIView):
@@ -460,8 +483,7 @@ class PublicIncidentDetailView(APIView):
         except Exception:
             pass
 
-        serializer = IncidentSerializer(updated_incident, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(_build_public_incident_payload(updated_incident), status=status.HTTP_200_OK)
 
     def delete(self, request, code, format=None):
         incident = Incident.objects.filter(code_suivi=code).first()
