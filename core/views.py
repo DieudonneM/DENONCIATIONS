@@ -723,7 +723,7 @@ class IncidentDetailView(LoginRequiredMixin, View):
             'incident': incident,
             'commentaires': commentaires,
             'pieces_jointes': incident.pieces_jointes.all(),
-            'form': CommentaireForm() if (user_is_agent(request.user) or user_is_admin(request.user)) else None,
+            'form': CommentaireForm(initial={'type_commentaire': 'public'}) if (user_is_agent(request.user) or user_is_admin(request.user)) else None,
             'available_agents': available_agents,
             'available_departments': available_departments,
             'user_can_edit': user_is_agent(request.user) or user_is_admin(request.user),
@@ -747,6 +747,7 @@ class IncidentDetailView(LoginRequiredMixin, View):
             commentaire = form.save(commit=False)
             commentaire.incident = incident
             commentaire.auteur = request.user
+            commentaire.type_commentaire = 'public'
             commentaire.save()
 
             # Lorsqu'un agent ou admin ajoute un commentaire, passer en attente d'informations
@@ -786,17 +787,29 @@ class IncidentDetailView(LoginRequiredMixin, View):
             return redirect('core:incident_detail', code=code)
         
         available_agents = []
+        available_departments = []
         if user_is_admin(request.user) and incident.province:
             available_agents = User.objects.filter(
                 role='agent',
                 is_active=True,
                 provinces=incident.province
             ).distinct().order_by('first_name', 'last_name', 'id')
+        if user_is_admin(request.user):
+            available_departments = Department.objects.all().order_by('nom')
+
+        # Keep same comment visibility rules as GET for consistent rendering.
+        if request.user.role == 'travailleur':
+            commentaires = incident.commentaires.filter(type_commentaire='public')
+        else:
+            commentaires = incident.commentaires.all()
 
         context = {
             'incident': incident,
+            'commentaires': commentaires,
+            'pieces_jointes': incident.pieces_jointes.all(),
             'form': form,
             'available_agents': available_agents,
+            'available_departments': available_departments,
             'user_can_edit': user_is_agent(request.user) or user_is_admin(request.user),
             'user_is_admin': user_is_admin(request.user),
             'user_can_comment': user_is_agent(request.user) or user_is_admin(request.user),

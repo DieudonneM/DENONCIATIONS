@@ -41,19 +41,82 @@
                     </div>
                 </section>
 
-                {% if incident.pieces_jointes.all %}
                 <section class="card">
                     <h2 class="card-heading">Pièces jointes</h2>
-                    <div class="attachments-list modern-list">
-                        {% for piece in incident.pieces_jointes.all %}
-                        <div class="attachment-item">
-                            <a href="{{ piece.fichier.url }}" download class="attachment-link">📎 {{ piece.fichier.name|slice:"-60:" }}</a>
-                            <span class="file-meta">{{ piece.fichier.size|filesizeformat }}</span>
+                    {% if pieces_jointes %}
+                        <div class="attachments-list modern-list">
+                            {% for piece in pieces_jointes %}
+                            <div class="attachment-item">
+                                <a href="{{ piece.fichier.url }}" download class="attachment-link">📎 {{ piece.fichier.name|slice:"-60:" }}</a>
+                                <span class="file-meta">{{ piece.fichier.size|filesizeformat }}</span>
+                            </div>
+                            {% endfor %}
                         </div>
+                    {% else %}
+                        <p class="no-comments">Aucune pièce jointe pour cette dénonciation.</p>
+                    {% endif %}
+                </section>
+
+                <section class="card">
+                    <div class="comments-head">
+                        <h2 class="card-heading no-border">Commentaires</h2>
+                        <span class="comment-count">{{ commentaires|length }} message{{ commentaires|length|pluralize }}</span>
+                    </div>
+
+                    {% if user_can_comment and form %}
+                    <form method="post" class="comment-composer">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                        <div class="form-error">{{ form.non_field_errors|striptags }}</div>
+                        {% endif %}
+
+                        <div class="form-row">
+                            <label for="id_type_commentaire">Visibilité</label>
+                            {{ form.type_commentaire }}
+                            {% if form.type_commentaire.errors %}
+                            <small class="form-error">{{ form.type_commentaire.errors|striptags }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-row">
+                            <label for="id_texte">Votre commentaire</label>
+                            {{ form.texte }}
+                            {% if form.texte.errors %}
+                            <small class="form-error">{{ form.texte.errors|striptags }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="composer-actions">
+                            <button type="submit" class="btn btn-primary">Publier le commentaire</button>
+                        </div>
+                    </form>
+                    {% endif %}
+
+                    {% if commentaires %}
+                    <div class="comments-list premium-comments">
+                        {% for commentaire in commentaires %}
+                        <article class="comment-item premium-item">
+                            <div class="comment-meta">
+                                <strong>
+                                    {% if commentaire.auteur %}
+                                        {{ commentaire.auteur.get_full_name|default:commentaire.auteur.username }}
+                                    {% else %}
+                                        Système
+                                    {% endif %}
+                                </strong>
+                                <span class="badge-small {% if commentaire.type_commentaire == 'public' %}badge-public{% else %}badge-interne{% endif %}">
+                                    {{ commentaire.get_type_commentaire_display }}
+                                </span>
+                                <span class="comment-date">{{ commentaire.date_creation|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div class="comment-body">{{ commentaire.texte|linebreaksbr }}</div>
+                        </article>
                         {% endfor %}
                     </div>
+                    {% else %}
+                    <p class="no-comments">Aucun commentaire pour le moment.</p>
+                    {% endif %}
                 </section>
-                {% endif %}
 
                 <div class="card">
                     <h3 class="sidebar-title">Confidentialité & contact</h3>
@@ -170,19 +233,42 @@
 </section>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap');
+
+:root {
+    --bg-a: #eef5ff;
+    --bg-b: #fff6ea;
+    --ink-900: #122138;
+    --ink-700: #35506f;
+    --line: #d8e5f7;
+    --brand: #12458c;
+    --brand-soft: #e8f1ff;
+    --card: #ffffff;
+    --danger: #b42318;
+}
+
 .py-5 {
-    padding: 3rem 0;
+    padding: 2.6rem 0;
 }
 
-.incident-detail-container {
-    max-width: 1000px;
-    margin: 0 auto;
-}
-
-/* Modern layout styles */
 .incident-detail-container.modern {
-    max-width: 1200px;
+    max-width: 1240px;
     padding: 1rem;
+    font-family: 'Manrope', 'Segoe UI', sans-serif;
+    position: relative;
+}
+
+.incident-detail-container.modern::before {
+    content: '';
+    position: absolute;
+    inset: -120px -100px auto;
+    height: 360px;
+    background:
+        radial-gradient(circle at 12% 12%, #dbeafe 0%, transparent 42%),
+        radial-gradient(circle at 85% 8%, #ffedd5 0%, transparent 38%),
+        linear-gradient(125deg, var(--bg-a), var(--bg-b));
+    z-index: -1;
+    border-radius: 28px;
 }
 
 .card-header {
@@ -190,309 +276,313 @@
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    background: linear-gradient(90deg,#ffffff,#f8fbff);
-    padding: 1.25rem 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(19,66,148,0.06);
-    margin-bottom: 1.25rem;
+    background: linear-gradient(145deg, #ffffff, #f7fbff);
+    border: 1px solid #e4edf9;
+    padding: 1.3rem 1.5rem;
+    border-radius: 18px;
+    box-shadow: 0 14px 32px rgba(17, 57, 109, 0.08);
+    margin-bottom: 1.1rem;
 }
 
-.card-title h1 { margin: 0; color: #0f2e5c; font-size: 1.6rem; }
-.card-title .muted { color: #556; margin: 0; }
-
-.status-pill { padding: .5rem 1rem; border-radius: 999px; font-weight:600; color: white; }
-.status-pill.status-nouvelle { background: #6c757d; }
-.status-pill.status-analyse { background: #0d6efd; }
-.status-pill.status-attente { background: #ffc107; color: #111; }
-.status-pill.status-resolue { background: #28a745; }
-.status-pill.status-classee { background: #6f42c1; }
-
-.grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem; align-items: start; }
-.main-col { min-width: 0; }
-.side-col { }
-
-.card { background: white; border-radius: 10px; padding: 1rem; box-shadow: 0 2px 10px rgba(15,46,92,0.04); margin-bottom: 1rem; }
-.card-heading { margin: 0 0 .75rem 0; color: #0f2e5c; font-size: 1.05rem; border-bottom: 1px solid #f0f4fb; padding-bottom: .5rem; }
-.info-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
-.info-list li { color: #333; }
-
-.description-box { background: #fbfdff; padding: 1rem; border-radius: 6px; border-left: 4px solid #0f2e5c; color: #233; }
-
-.attachments-list.modern-list { display: grid; gap: .5rem; }
-.attachment-item { display:flex; justify-content:space-between; align-items:center; padding:.5rem .75rem; background:#fbfdff; border-radius:6px; }
-.attachment-link { color:#0f2e5c; text-decoration:none; }
-.file-meta { color:#666; font-size:.9rem; }
-
-.meta-list { display:grid; gap:.5rem; margin:0; padding:0; }
-.meta-list dt { font-weight:600; color:#333; }
-.meta-list dd { margin:0 0 .5rem 0; color:#555; }
-
-.sticky { position:sticky; top:1rem; }
-.actions-card .block { display:block; width:100%; text-align:center; margin-bottom:.5rem; }
-.btn.block { display:block; width:100%; text-align:center; margin-bottom:.5rem; }
-
-/* Small tertiary button in header */
-.btn-tertiary { display:inline-block; padding:.4rem .65rem; border-radius:6px; background:#eef3ff; color:#0f2e5c; text-decoration:none; margin-right:.5rem; border:1px solid #dbe9ff; font-weight:600; }
-.btn-tertiary.small { font-size:0.85rem; padding:.35rem .6rem; }
-
-.actions-inline { display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; }
-.actions-inline .btn { display:inline-flex; }
-
-@media (max-width: 992px) { .grid { grid-template-columns: 1fr; } .sticky{position:static;} }
-
-
-.detail-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-}
-
-.header-left h1 {
-    color: #001F3F;
-    font-size: 2rem;
-    margin: 0 0 0.5rem 0;
-}
-
-.header-left p {
-    color: #666;
+.card-title h1 {
     margin: 0;
+    color: #0f356a;
+    font-size: clamp(1.45rem, 2.4vw, 2rem);
 }
 
-.badge-large {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+.card-title .muted {
+    margin: 0.35rem 0 0;
+    color: #59718e;
 }
 
-.detail-section {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+.status-pill {
+    padding: 0.42rem 0.92rem;
+    border-radius: 999px;
+    font-weight: 700;
+    color: white;
 }
 
-.detail-section h2 {
-    color: #001F3F;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
-}
+.status-pill.status-nouvelle { background: #475569; }
+.status-pill.status-analyse { background: #0d5dc0; }
+.status-pill.status-attente { background: #a16207; }
+.status-pill.status-resolue { background: #1d7a4a; }
+.status-pill.status-classee,
+.status-pill.status-classée { background: #5f4b8b; }
 
-.details-grid {
+.grid {
     display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 1rem 2rem;
+    grid-template-columns: minmax(0, 1fr) 336px;
+    gap: 1rem;
+    align-items: start;
 }
 
-.details-grid dt {
-    font-weight: 600;
-    color: #333;
+.main-col,
+.side-col {
+    min-width: 0;
 }
 
-.details-grid dd {
-    color: #666;
+.card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 1rem;
+    border: 1px solid #e5edf9;
+    box-shadow: 0 8px 24px rgba(17, 55, 105, 0.05);
+    margin-bottom: 0.95rem;
+}
+
+.card-heading {
+    margin: 0 0 0.75rem;
+    color: #103968;
+    font-size: 1.03rem;
+    border-bottom: 1px solid #edf3fc;
+    padding-bottom: 0.55rem;
+}
+
+.no-border {
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.info-list {
+    list-style: none;
+    padding: 0;
     margin: 0;
+    display: grid;
+    gap: 0.5rem;
+    color: #243a55;
 }
 
 .description-box {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 4px;
-    border-left: 4px solid #001F3F;
-    line-height: 1.6;
-    color: #333;
+    background: linear-gradient(160deg, #fbfdff, #f5f9ff);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #e2ecfb;
+    border-left: 4px solid var(--brand);
+    color: #1f344d;
+    line-height: 1.65;
 }
 
-.attachments-list {
+.attachments-list.modern-list {
     display: grid;
-    gap: 1rem;
+    gap: 0.55rem;
 }
 
 .attachment-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 4px;
+    padding: 0.6rem 0.78rem;
+    background: #f8fbff;
+    border: 1px solid #e0ebfa;
+    border-radius: 11px;
 }
 
 .attachment-link {
-    color: #001F3F;
+    color: #0f3b74;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 700;
 }
 
 .attachment-link:hover {
     text-decoration: underline;
 }
 
-.file-size {
-    color: #999;
-    font-size: 0.85rem;
+.file-meta {
+    color: #5d7390;
+    font-size: 0.84rem;
 }
 
-.update-section,
-.assign-section {
-    border-left: 4px solid #ff9800;
-}
-
-.status-note {
-    margin-bottom: 1.5rem;
-    padding: 1rem 1.25rem;
-    background: #eef6ff;
-    border: 1px solid #cfe3ff;
-    border-radius: 8px;
-    color: #1d3e6f;
-    line-height: 1.6;
-}
-
-.status-form,
-.assign-form,
-.comment-form {
+.comments-head {
     display: flex;
-    gap: 1rem;
-    align-items: flex-end;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
 }
 
-.status-form select,
-.assign-form select {
-    flex: 1;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.comment-count {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #5e7592;
+    background: #eff5ff;
+    border: 1px solid #dce8f8;
+    border-radius: 999px;
+    padding: 0.24rem 0.55rem;
 }
 
-.status-form button,
-.assign-form button {
-    white-space: nowrap;
+.comment-composer {
+    background: linear-gradient(150deg, #f8fbff, #f1f7ff);
+    border: 1px solid #dbe8fa;
+    border-radius: 12px;
+    padding: 0.8rem;
+    margin-bottom: 0.8rem;
 }
 
-.add-comment-box {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 4px;
-    margin-bottom: 2rem;
+.form-row {
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 0.65rem;
 }
 
-.add-comment-box h3 {
-    color: #001F3F;
-    margin-bottom: 1rem;
+.form-row label {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #274564;
 }
 
-.add-comment-box .form-group {
-    margin-bottom: 1rem;
-}
-
-.add-comment-box label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #333;
-}
-
-.add-comment-box select,
-.add-comment-box textarea {
+.form-row select,
+.form-row textarea,
+#status-form select,
+.actions-card select {
     width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 0.65rem 0.72rem;
+    border-radius: 10px;
+    border: 1px solid #cfe0f6;
+    background: #fff;
+    color: #20344d;
 }
 
-.add-comment-box textarea {
-    min-height: 100px;
-    font-family: inherit;
+.form-row textarea {
+    min-height: 110px;
     resize: vertical;
 }
 
-.comments-list {
-    display: grid;
-    gap: 1.5rem;
+.composer-actions {
+    display: flex;
+    justify-content: flex-end;
 }
 
-.comment-item {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 4px;
-    border-left: 4px solid #001F3F;
+.form-error {
+    color: var(--danger);
+    font-size: 0.82rem;
+}
+
+.premium-comments {
+    gap: 0.68rem;
+}
+
+.premium-item {
+    border-left: none;
+    border: 1px solid #e2ebf8;
+    border-radius: 12px;
+    padding: 0.82rem;
+    background: #fcfdff;
 }
 
 .comment-meta {
     display: flex;
-    gap: 1rem;
+    gap: 0.55rem;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.55rem;
     flex-wrap: wrap;
 }
 
 .comment-meta strong {
-    color: #333;
+    color: #1f3655;
 }
 
 .badge-small {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
 }
 
 .badge-public {
-    background: #e3f2fd;
-    color: #1976d2;
+    background: #e9f3ff;
+    color: #0f5ab6;
 }
 
 .badge-interne {
-    background: #ffe0b2;
-    color: #e65100;
+    background: #fff1dc;
+    color: #955f00;
 }
 
 .comment-date {
-    font-size: 0.85rem;
-    color: #999;
+    font-size: 0.82rem;
+    color: #627a96;
     margin-left: auto;
 }
 
 .comment-body {
-    color: #555;
-    line-height: 1.6;
+    color: #27425f;
+    line-height: 1.58;
 }
 
 .no-comments {
-    color: #999;
-    font-style: italic;
-    text-align: center;
-    padding: 2rem;
+    margin: 0;
+    color: #627790;
 }
 
-.detail-actions {
+.meta-list {
+    display: grid;
+    gap: 0.38rem;
+    margin: 0;
+    padding: 0;
+}
+
+.meta-list dt {
+    font-weight: 700;
+    color: #455f7c;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.meta-list dd {
+    margin: 0 0 0.46rem;
+    color: #21364f;
+}
+
+.sticky {
+    position: sticky;
+    top: 1rem;
+}
+
+.btn-tertiary {
+    display: inline-block;
+    padding: 0.4rem 0.64rem;
+    border-radius: 8px;
+    background: #eef4ff;
+    color: #0f376b;
+    text-decoration: none;
+    margin-right: 0.5rem;
+    border: 1px solid #dae8fd;
+    font-weight: 700;
+}
+
+.btn-tertiary.small {
+    font-size: 0.84rem;
+}
+
+.actions-inline {
     display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin-top: 2rem;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-@media (max-width: 768px) {
-    .detail-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
+.actions-inline .btn {
+    display: inline-flex;
+}
 
-    .details-grid {
+#status-form {
+    display: grid;
+    gap: 0.6rem;
+}
+
+@media (max-width: 992px) {
+    .grid {
         grid-template-columns: 1fr;
     }
 
-    .status-form,
-    .assign-form,
-    .comment-form {
-        flex-direction: column;
+    .sticky {
+        position: static;
     }
+}
 
-    .comment-meta {
+@media (max-width: 768px) {
+    .card-header {
         flex-direction: column;
         align-items: flex-start;
     }
@@ -501,12 +591,10 @@
         margin-left: 0;
     }
 
-    .detail-actions {
-        flex-direction: column;
-    }
-
-    .detail-actions a {
+    .actions-inline .btn,
+    .card-actions .btn-tertiary {
         width: 100%;
+        justify-content: center;
     }
 }
 </style>

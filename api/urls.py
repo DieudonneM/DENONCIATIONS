@@ -3,7 +3,7 @@ from django.urls import path, include
 from .views import (
     UserViewSet, ProvinceViewSet, EmployeurViewSet, DepartmentViewSet,
     IncidentViewSet, PieceJointeViewSet, CommentaireViewSet, LogAuditViewSet,
-    PublicIncidentCreate, ApiLoginView, ApiRegisterView, PublicDeviceTokenRegisterView
+    PublicIncidentCreate, PublicIncidentDetailView, ApiLoginView, ApiRegisterView, PublicDeviceTokenRegisterView
 )
 
 router = DefaultRouter()
@@ -24,6 +24,7 @@ urlpatterns = [
     path('register/', ApiRegisterView.as_view(), name='api_register'),
     path('', include(router.urls)),
     path('public/incidents/', PublicIncidentCreate.as_view(), name='public_incident_create'),
+    path('public/incidents/<str:code>/', PublicIncidentDetailView.as_view(), name='public_incident_detail'),
     path('public/device-tokens/', PublicDeviceTokenRegisterView.as_view(), name='public_device_token_register'),
     path('public/device-tokens/deactivate/', PublicDeviceTokenRegisterView.as_view(), name='public_device_token_deactivate'),
 ]

@@ -21,6 +21,54 @@ from denunciations.forms import IncidentForm
 from .permissions import IsAdminAgentOrOwner, IsAdmin
 
 
+def _normalize_public_incident_payload(data):
+    """Normalize mobile/public payload fields before binding the incident form."""
+    payload = data.copy()
+
+    province_val = payload.get('province')
+    if province_val:
+        province_text = str(province_val).strip()
+        if province_text.isdigit():
+            payload['province'] = int(province_text)
+        elif province_text:
+            try:
+                prov = Province.objects.filter(nom__iexact=province_text).first()
+                if prov:
+                    payload['province'] = prov.id
+                else:
+                    base_code = slugify(province_text).upper()[:8] or 'PROVINCE'
+                    code = base_code
+                    suffix = 1
+                    while Province.objects.filter(code=code).exists():
+                        code = f'{base_code}{suffix}'
+                        suffix += 1
+                    prov = Province.objects.create(nom=province_text, code=code)
+                    payload['province'] = prov.id
+            except Exception:
+                payload['province'] = ''
+        else:
+            payload['province'] = ''
+
+    secteur_val = payload.get('secteur')
+    allowed_secteurs = [s[0] for s in Employeur.SECTEUR_CHOICES]
+    if secteur_val and secteur_val not in allowed_secteurs:
+        payload['secteur'] = 'autre'
+
+    type_map = {
+        'Non-paiement': 'salaire',
+        'Discrimination': 'discrimination',
+        'Violence': 'harcèlement',
+        'Harcèlement': 'harcèlement',
+        'Autre': 'autre'
+    }
+    incident_type = payload.get('type_incident')
+    if incident_type and incident_type in type_map:
+        payload['type_incident'] = type_map[incident_type]
+
+    payload['confirm_anonymous'] = payload.get('confirm_anonymous', True)
+    return payload
+
+
 class ApiLoginView(APIView):
     """Connexion mobile via JSON (email + mot de passe)."""
     permission_classes = [AllowAny]
@@ -241,49 +289,7 @@ class PublicIncidentCreate(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, format=None):
-        data = request.data.copy()
-        # Normalize province: allow sending province name or id and create it if needed.
-        province_val = data.get('province')
-        if province_val:
-            province_text = str(province_val).strip()
-            if province_text.isdigit():
-                data['province'] = int(province_text)
-            elif province_text:
-                try:
-                    prov = Province.objects.filter(nom__iexact=province_text).first()
-                    if prov:
-                        data['province'] = prov.id
-                    else:
-                        base_code = slugify(province_text).upper()[:8] or 'PROVINCE'
-                        code = base_code
-                        suffix = 1
-                        while Province.objects.filter(code=code).exists():
-                            code = f'{base_code}{suffix}'
-                            suffix += 1
-                        prov = Province.objects.create(nom=province_text, code=code)
-                        data['province'] = prov.id
-                except Exception:
-                    data['province'] = ''
-            else:
-                data['province'] = ''
-
-        # Normalize secteur: if provided but not matching choice slugs, set to 'autre'
-        secteur_val = data.get('secteur')
-        allowed_secteurs = [s[0] for s in Employeur.SECTEUR_CHOICES]
-        if secteur_val and secteur_val not in allowed_secteurs:
-            data['secteur'] = 'autre'
-
-        # Map mobile-friendly type labels to backend keys
-        type_map = {
-            'Non-paiement': 'salaire',
-            'Discrimination': 'discrimination',
-            'Violence': 'harcèlement',
-            'Harcèlement': 'harcèlement',
-            'Autre': 'autre'
-        }
-        t = data.get('type_incident')
-        if t and t in type_map:
-            data['type_incident'] = type_map[t]
+        data = _normalize_public_incident_payload(request.data)
 
         # The public form uses 'employeur' as a text field and 'employeur_address', 'secteur', 'autre_secteur'
         form = IncidentForm(data, files=request.FILES)
@@ -291,8 +297,72 @@ class PublicIncidentCreate(APIView):
             return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         incident = form.save(commit=True)
+
+        # Persist uploaded files for mobile/public submissions.
+        files = request.FILES.getlist('pieces_jointes')
+        for file in files:
+            PieceJointe.objects.create(
+                incident=incident,
+                fichier=file,
+                nom_original=getattr(file, 'name', '') or 'piece_jointe',
+                type_fichier=getattr(file, 'content_type', '') or '',
+                taille_fichier=getattr(file, 'size', 0) or 0,
+            )
+
         serializer = IncidentSerializer(incident, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class PublicIncidentDetailView(APIView):
+    """Endpoint public pour modifier ou supprimer une dénonciation via son code de suivi."""
+
+    permission_classes = [AllowAny]
+
+    def patch(self, request, code, format=None):
+        incident = Incident.objects.filter(code_suivi=code).first()
+        if incident is None:
+            return Response({'detail': 'Incident introuvable.'}, status=status.HTTP_404_NOT_FOUND)
+
+        data = _normalize_public_incident_payload(request.data)
+        form = IncidentForm(data, files=request.FILES, instance=incident)
+        if not form.is_valid():
+            return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_incident = form.save(commit=True)
+        try:
+            LogAudit.objects.create(
+                incident=updated_incident,
+                utilisateur=None,
+                action='modification_statut',
+                description='Modification publique depuis l\'application mobile.',
+                ancienne_valeur='',
+                nouvelle_valeur='incident_updated',
+            )
+        except Exception:
+            pass
+
+        serializer = IncidentSerializer(updated_incident, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, code, format=None):
+        incident = Incident.objects.filter(code_suivi=code).first()
+        if incident is None:
+            return Response({'detail': 'Incident introuvable.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            LogAudit.objects.create(
+                incident=incident,
+                utilisateur=None,
+                action='suppression',
+                description='Suppression publique depuis l\'application mobile.',
+                ancienne_valeur=incident.code_suivi,
+                nouvelle_valeur='',
+            )
+        except Exception:
+            pass
+
+        incident.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PublicDeviceTokenRegisterView(APIView):

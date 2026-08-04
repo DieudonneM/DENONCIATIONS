@@ -66,6 +66,9 @@ class IncidentSerializer(serializers.ModelSerializer):
     province = serializers.PrimaryKeyRelatedField(queryset=Province.objects.all(), required=False, allow_null=True)
     province_nom = serializers.SerializerMethodField()
     pieces_jointes = PieceJointeSerializer(many=True, read_only=True)
+    commentaires_publics = serializers.SerializerMethodField()
+    nombre_commentaires_publics = serializers.SerializerMethodField()
+    dernier_commentaire_public_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Incident
@@ -74,7 +77,7 @@ class IncidentSerializer(serializers.ModelSerializer):
             'type_incident', 'type_incident_autre', 'le_fautif', 'description', 'statut', 'agent_assigne', 'agent_assigne_nom',
             'department_assigne', 'department_assigne_nom', 'est_anonyme', 'email_contact_anonyme', 'telephone_contact_anonyme',
             'accepted_privacy', 'accepted_privacy_at', 'date_creation', 'date_modification', 'date_resolution',
-            'est_lu', 'pieces_jointes'
+            'est_lu', 'pieces_jointes', 'commentaires_publics', 'nombre_commentaires_publics', 'dernier_commentaire_public_at'
         ]
         read_only_fields = ['code_suivi', 'date_creation', 'date_modification']
 
@@ -115,6 +118,37 @@ class IncidentSerializer(serializers.ModelSerializer):
         if obj.province:
             return getattr(obj.province, 'nom', '')
         return ''
+
+    def get_commentaires_publics(self, obj):
+        comments = obj.commentaires.filter(type_commentaire='public').select_related('auteur').order_by('-date_creation')[:5]
+        messages = []
+        for comment in comments:
+            author = getattr(comment, 'auteur', None)
+            author_name = 'Ministère'
+            if author is not None:
+                full_name = f'{getattr(author, "first_name", "").strip()} {getattr(author, "last_name", "").strip()}'.strip()
+                if full_name:
+                    author_name = full_name
+                elif getattr(author, 'username', ''):
+                    author_name = getattr(author, 'username')
+
+            messages.append({
+                'id': comment.id,
+                'texte': comment.texte,
+                'auteur_nom': author_name,
+                'date_creation': comment.date_creation.isoformat() if comment.date_creation else None,
+            })
+
+        return messages
+
+    def get_nombre_commentaires_publics(self, obj):
+        return obj.commentaires.filter(type_commentaire='public').count()
+
+    def get_dernier_commentaire_public_at(self, obj):
+        last_comment = obj.commentaires.filter(type_commentaire='public').order_by('-date_creation').first()
+        if last_comment and last_comment.date_creation:
+            return last_comment.date_creation.isoformat()
+        return None
 
     def to_representation(self, instance):
         """

@@ -177,7 +177,7 @@ class Incident(models.Model):
 class PieceJointe(models.Model):
     """Modèle pour les pièces jointes liées aux incidents."""
     
-    EXTENSIONS_AUTORISEES = ['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mp3', 'wav']
+    EXTENSIONS_AUTORISEES = ['pdf', 'docx', 'doc', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'mp3', 'wav']
     
     incident = models.ForeignKey(
         Incident,
