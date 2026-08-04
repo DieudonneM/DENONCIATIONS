@@ -4,7 +4,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import authenticate, login
+from django.db import transaction
+import mimetypes
 
 from users.models import User
 from users.forms import UserRegistrationForm
@@ -67,6 +70,25 @@ def _normalize_public_incident_payload(data):
 
     payload['confirm_anonymous'] = payload.get('confirm_anonymous', True)
     return payload
+
+
+def _extract_uploaded_attachments(files_dict):
+    """Extract uploaded files from common multipart field names used by web/mobile clients."""
+    candidates = ('pieces_jointes', 'pieces_jointes[]', 'files', 'files[]')
+    files = []
+    for key in candidates:
+        files.extend(files_dict.getlist(key))
+
+    # Deduplicate while preserving order.
+    unique_files = []
+    seen_ids = set()
+    for file in files:
+        file_id = id(file)
+        if file_id in seen_ids:
+            continue
+        seen_ids.add(file_id)
+        unique_files.append(file)
+    return unique_files
 
 
 class ApiLoginView(APIView):
@@ -363,6 +385,7 @@ class LogAuditViewSet(viewsets.ModelViewSet):
 class PublicIncidentCreate(APIView):
     """Endpoint public pour créer une dénonciation depuis des clients non-authentifiés (mobile)."""
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request, format=None):
         data = _normalize_public_incident_payload(request.data)
@@ -372,18 +395,25 @@ class PublicIncidentCreate(APIView):
         if not form.is_valid():
             return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        incident = form.save(commit=True)
+        with transaction.atomic():
+            incident = form.save(commit=True)
 
-        # Persist uploaded files for mobile/public submissions.
-        files = request.FILES.getlist('pieces_jointes')
-        for file in files:
-            PieceJointe.objects.create(
-                incident=incident,
-                fichier=file,
-                nom_original=getattr(file, 'name', '') or 'piece_jointe',
-                type_fichier=getattr(file, 'content_type', '') or '',
-                taille_fichier=getattr(file, 'size', 0) or 0,
-            )
+            # Persist uploaded files for mobile/public submissions.
+            files = _extract_uploaded_attachments(request.FILES)
+            for file in files:
+                name = (getattr(file, 'name', '') or 'piece_jointe').strip()
+                content_type = (getattr(file, 'content_type', '') or '').strip()
+                if not content_type:
+                    guessed_type, _ = mimetypes.guess_type(name)
+                    content_type = guessed_type or 'application/octet-stream'
+
+                PieceJointe.objects.create(
+                    incident=incident,
+                    fichier=file,
+                    nom_original=name[:255],
+                    type_fichier=content_type[:120],
+                    taille_fichier=getattr(file, 'size', 0) or 0,
+                )
 
         serializer = IncidentSerializer(incident, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)

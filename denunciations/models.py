@@ -191,7 +191,7 @@ class PieceJointe(models.Model):
     )
     
     nom_original = models.CharField(max_length=255)
-    type_fichier = models.CharField(max_length=50)
+    type_fichier = models.CharField(max_length=120)
     taille_fichier = models.BigIntegerField()  # en bytes
     
     date_ajout = models.DateTimeField(auto_now_add=True)
