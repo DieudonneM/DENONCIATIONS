@@ -292,12 +292,18 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
 }
 
-cloudinary.config(
-    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
-    api_key=CLOUDINARY_STORAGE['API_KEY'],
-    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
-    secure=True,
+_cloudinary_ready = all(
+    (CLOUDINARY_STORAGE.get(key) or '').strip()
+    for key in ('CLOUD_NAME', 'API_KEY', 'API_SECRET')
 )
+
+if _cloudinary_ready:
+    cloudinary.config(
+        cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+        api_key=CLOUDINARY_STORAGE['API_KEY'],
+        api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+        secure=True,
+    )
 
 
 # ==============================================================================
@@ -306,7 +312,7 @@ cloudinary.config(
 WHITENOISE_MANIFEST_STRICT = False
 
 # Détermination du backend pour les fichiers médias (Cloudinary en prod, Local en dev)
-if CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+if _cloudinary_ready:
     media_backend = 'core.cloudinary_storage.CustomMediaCloudinaryStorage'
 else:
     media_backend = 'django.core.files.storage.FileSystemStorage'
