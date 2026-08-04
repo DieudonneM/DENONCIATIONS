@@ -412,14 +412,14 @@ class PublicIncidentCreate(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request, format=None):
-        data = _normalize_public_incident_payload(request.data)
-
-        # The public form uses 'employeur' as a text field and 'employeur_address', 'secteur', 'autre_secteur'
-        form = IncidentForm(data, files=request.FILES)
-        if not form.is_valid():
-            return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
+            data = _normalize_public_incident_payload(request.data)
+
+            # The public form uses 'employeur' as a text field and 'employeur_address', 'secteur', 'autre_secteur'
+            form = IncidentForm(data, files=request.FILES)
+            if not form.is_valid():
+                return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
             with transaction.atomic():
                 incident = form.save(commit=True)
 
@@ -459,31 +459,41 @@ class PublicIncidentDetailView(APIView):
     """Endpoint public pour modifier ou supprimer une dénonciation via son code de suivi."""
 
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def patch(self, request, code, format=None):
-        incident = Incident.objects.filter(code_suivi=code).first()
-        if incident is None:
-            return Response({'detail': 'Incident introuvable.'}, status=status.HTTP_404_NOT_FOUND)
-
-        data = _normalize_public_incident_payload(request.data)
-        form = IncidentForm(data, files=request.FILES, instance=incident)
-        if not form.is_valid():
-            return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        updated_incident = form.save(commit=True)
         try:
-            LogAudit.objects.create(
-                incident=updated_incident,
-                utilisateur=None,
-                action='modification_statut',
-                description='Modification publique depuis l\'application mobile.',
-                ancienne_valeur='',
-                nouvelle_valeur='incident_updated',
-            )
-        except Exception:
-            pass
+            incident = Incident.objects.filter(code_suivi=code).first()
+            if incident is None:
+                return Response({'detail': 'Incident introuvable.'}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(_build_public_incident_payload(updated_incident), status=status.HTTP_200_OK)
+            data = _normalize_public_incident_payload(request.data)
+            form = IncidentForm(data, files=request.FILES, instance=incident)
+            if not form.is_valid():
+                return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            updated_incident = form.save(commit=True)
+            try:
+                LogAudit.objects.create(
+                    incident=updated_incident,
+                    utilisateur=None,
+                    action='modification_statut',
+                    description='Modification publique depuis l\'application mobile.',
+                    ancienne_valeur='',
+                    nouvelle_valeur='incident_updated',
+                )
+            except Exception:
+                pass
+
+            return Response(_build_public_incident_payload(updated_incident), status=status.HTTP_200_OK)
+        except Exception:
+            logging.getLogger(__name__).exception('Public incident update failed for code=%s', code)
+            return Response(
+                {
+                    'detail': 'Erreur serveur lors de la mise a jour.',
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def delete(self, request, code, format=None):
         incident = Incident.objects.filter(code_suivi=code).first()
