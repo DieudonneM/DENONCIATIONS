@@ -8,6 +8,8 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import authenticate, login
 from django.db import transaction
 import mimetypes
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 
 from users.models import User
 from users.forms import UserRegistrationForm
@@ -113,6 +115,35 @@ def _build_public_incident_payload(incident):
         'email_contact_anonyme': incident.email_contact_anonyme,
         'telephone_contact_anonyme': incident.telephone_contact_anonyme,
     }
+
+
+def _persist_piece_jointe_with_fallback(*, incident, uploaded_file, nom_original, type_fichier, taille_fichier):
+    """Try default storage first, then fallback to local media storage if backend upload fails."""
+    try:
+        return PieceJointe.objects.create(
+            incident=incident,
+            fichier=uploaded_file,
+            nom_original=nom_original,
+            type_fichier=type_fichier,
+            taille_fichier=taille_fichier,
+        )
+    except Exception as primary_error:
+        logging.getLogger(__name__).warning(
+            'Primary attachment storage failed for %s: %s. Falling back to local storage.',
+            nom_original,
+            primary_error,
+        )
+
+        attachment = PieceJointe(
+            incident=incident,
+            nom_original=nom_original,
+            type_fichier=type_fichier,
+            taille_fichier=taille_fichier,
+        )
+        attachment.fichier.storage = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
+        attachment.fichier.save(nom_original, uploaded_file, save=False)
+        attachment.save()
+        return attachment
 
 
 class ApiLoginView(APIView):
@@ -425,6 +456,7 @@ class PublicIncidentCreate(APIView):
 
                 # Persist uploaded files for mobile/public submissions.
                 files = _extract_uploaded_attachments(request.FILES)
+                failed_files = []
                 for file in files:
                     name = (getattr(file, 'name', '') or 'piece_jointe').strip()
                     content_type = (getattr(file, 'content_type', '') or '').strip()
@@ -434,14 +466,29 @@ class PublicIncidentCreate(APIView):
 
                     # Keep compatibility with deployments that may still have DB column length=50.
                     safe_content_type = content_type[:50]
+                    safe_name = name[:255]
+                    safe_size = getattr(file, 'size', 0) or 0
 
-                    PieceJointe.objects.create(
-                        incident=incident,
-                        fichier=file,
-                        nom_original=name[:255],
-                        type_fichier=safe_content_type,
-                        taille_fichier=getattr(file, 'size', 0) or 0,
-                    )
+                    try:
+                        _persist_piece_jointe_with_fallback(
+                            incident=incident,
+                            uploaded_file=file,
+                            nom_original=safe_name,
+                            type_fichier=safe_content_type,
+                            taille_fichier=safe_size,
+                        )
+                    except Exception as file_error:
+                        logging.getLogger(__name__).exception(
+                            'Attachment save failed for %s on incident %s: %s',
+                            safe_name,
+                            incident.code_suivi,
+                            file_error,
+                        )
+                        failed_files.append(safe_name)
+
+                if files and len(failed_files) == len(files):
+                    # If all attachments failed, fail explicitly to avoid silent data loss.
+                    raise RuntimeError('Toutes les pièces jointes ont échoué lors de l\'enregistrement.')
         except Exception as e:
             logging.getLogger(__name__).exception('Public incident create failed: %s', e)
             return Response(
