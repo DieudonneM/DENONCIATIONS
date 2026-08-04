@@ -97,16 +97,15 @@
                         {% for commentaire in commentaires %}
                         <article class="comment-item premium-item">
                             <div class="comment-meta">
-                                <strong>
-                                    {% if commentaire.auteur %}
-                                        {{ commentaire.auteur.get_full_name|default:commentaire.auteur.username }}
-                                    {% else %}
-                                        Système
-                                    {% endif %}
-                                </strong>
+                                <strong>{{ commentaire.get_auteur_display }}</strong>
                                 <span class="badge-small {% if commentaire.type_commentaire == 'public' %}badge-public{% else %}badge-interne{% endif %}">
                                     {{ commentaire.get_type_commentaire_display }}
                                 </span>
+                                {% if commentaire.type_commentaire == 'public' %}
+                                <span class="badge-small {% if commentaire.origine_public == 'denonciateur' %}badge-interne{% else %}badge-public{% endif %}">
+                                    {% if commentaire.origine_public == 'denonciateur' %}Réponse dénonciateur{% else %}Message ministère{% endif %}
+                                </span>
+                                {% endif %}
                                 <span class="comment-date">{{ commentaire.date_creation|date:"d/m/Y H:i" }}</span>
                             </div>
                             <div class="comment-body">{{ commentaire.texte|linebreaksbr }}</div>

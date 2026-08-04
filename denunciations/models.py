@@ -207,6 +207,13 @@ class PieceJointe(models.Model):
 
 class Commentaire(models.Model):
     """Modèle pour les commentaires/communications liées aux incidents."""
+
+    ORIGINE_MINISTERE = 'ministere'
+    ORIGINE_DENONCIATEUR = 'denonciateur'
+    ORIGINE_CHOICES = (
+        (ORIGINE_MINISTERE, 'Ministère'),
+        (ORIGINE_DENONCIATEUR, 'Dénonciateur'),
+    )
     
     incident = models.ForeignKey(
         Incident,
@@ -236,6 +243,14 @@ class Commentaire(models.Model):
         choices=TYPE_CHOICES,
         default=EST_INTERNE
     )
+
+    origine_public = models.CharField(
+        max_length=20,
+        choices=ORIGINE_CHOICES,
+        default=ORIGINE_MINISTERE,
+        db_index=True,
+        help_text='Origine des commentaires publics (ministère ou dénonciateur).',
+    )
     
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
@@ -247,6 +262,22 @@ class Commentaire(models.Model):
     
     def __str__(self):
         return f'Commentaire sur {self.incident.code_suivi} par {self.auteur}'
+
+    def get_auteur_display(self):
+        if self.auteur:
+            full_name = f'{getattr(self.auteur, "first_name", "").strip()} {getattr(self.auteur, "last_name", "").strip()}'.strip()
+            if full_name:
+                return full_name
+            username = getattr(self.auteur, 'username', '')
+            if username:
+                return username
+
+        if self.type_commentaire == self.EST_PUBLIC and self.origine_public == self.ORIGINE_DENONCIATEUR:
+            if self.incident.est_anonyme:
+                return 'Dénonciateur (anonyme)'
+            return 'Dénonciateur'
+
+        return 'Ministère'
 
 
 class LogAudit(models.Model):

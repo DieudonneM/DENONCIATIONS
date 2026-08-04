@@ -748,6 +748,7 @@ class IncidentDetailView(LoginRequiredMixin, View):
             commentaire.incident = incident
             commentaire.auteur = request.user
             commentaire.type_commentaire = 'public'
+            commentaire.origine_public = Commentaire.ORIGINE_MINISTERE
             commentaire.save()
 
             # Lorsqu'un agent ou admin ajoute un commentaire, passer en attente d'informations

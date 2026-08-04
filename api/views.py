@@ -216,6 +216,79 @@ class IncidentViewSet(viewsets.ModelViewSet):
             logger.exception(f"Error while processing suivi for code={code}: {e}")
             return Response({'detail': 'Erreur serveur', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def repondre(self, request):
+        code = (request.data.get('code') or request.data.get('code_suivi') or '').strip().upper()
+        texte = (request.data.get('texte') or request.data.get('message') or '').strip()
+
+        if not code:
+            return Response({'detail': 'Paramètre code manquant.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not texte:
+            return Response({'detail': 'Le message est obligatoire.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(texte) < 3:
+            return Response({'detail': 'Le message doit contenir au moins 3 caractères.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        incident = Incident.objects.filter(code_suivi=code).first()
+        if incident is None:
+            return Response({'detail': 'Incident introuvable.'}, status=status.HTTP_404_NOT_FOUND)
+
+        auteur = None
+        user = request.user
+        if user and user.is_authenticated:
+            if getattr(user, 'role', '') in {'agent', 'administrateur'} or user.is_superuser:
+                return Response({'detail': 'Cette action est réservée au dénonciateur.'}, status=status.HTTP_403_FORBIDDEN)
+            if getattr(user, 'role', '') == 'travailleur' and incident.travailleur_id and incident.travailleur_id != user.id:
+                return Response({'detail': 'Ce code ne correspond pas à votre dossier.'}, status=status.HTTP_403_FORBIDDEN)
+            if getattr(user, 'role', '') == 'travailleur':
+                auteur = user
+
+        commentaire = Commentaire.objects.create(
+            incident=incident,
+            auteur=auteur,
+            texte=texte,
+            type_commentaire=Commentaire.EST_PUBLIC,
+            origine_public=Commentaire.ORIGINE_DENONCIATEUR,
+        )
+
+        previous_status = incident.statut
+        if incident.statut == 'attente':
+            incident.statut = 'analyse'
+            incident.save(update_fields=['statut'])
+
+        try:
+            LogAudit.objects.create(
+                incident=incident,
+                utilisateur=auteur,
+                action='ajout_commentaire',
+                description=f'Réponse du dénonciateur via API publique: {commentaire.texte[:200]}',
+                ancienne_valeur='',
+                nouvelle_valeur=commentaire.texte[:200],
+            )
+        except Exception:
+            pass
+
+        if previous_status != incident.statut:
+            try:
+                LogAudit.objects.create(
+                    incident=incident,
+                    utilisateur=auteur,
+                    action='modification_statut',
+                    description='Statut changé automatiquement de attente à analyse après réponse du dénonciateur.',
+                    ancienne_valeur=previous_status,
+                    nouvelle_valeur=incident.statut,
+                )
+            except Exception:
+                pass
+
+        return Response(
+            {
+                'detail': 'Réponse enregistrée.',
+                'commentaire_id': commentaire.id,
+                'date_creation': commentaire.date_creation.isoformat() if commentaire.date_creation else None,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def dashboard_stats(self, request):
         user = request.user
@@ -272,10 +345,13 @@ class CommentaireViewSet(viewsets.ModelViewSet):
             if incident.travailleur != user:
                 raise PermissionDenied('Vous ne pouvez commenter que vos propres dénonciations.')
         # set auteur if authenticated
+        origine_public = Commentaire.ORIGINE_MINISTERE
+        if getattr(user, 'role', '') == 'travailleur':
+            origine_public = Commentaire.ORIGINE_DENONCIATEUR
         if user and user.is_authenticated:
-            serializer.save(auteur=user)
+            serializer.save(auteur=user, origine_public=origine_public)
         else:
-            serializer.save()
+            serializer.save(origine_public=origine_public)
 
 
 class LogAuditViewSet(viewsets.ModelViewSet):

@@ -49,7 +49,7 @@ class CommentaireSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Commentaire
-        fields = ['id', 'incident', 'auteur', 'texte', 'type_commentaire', 'date_creation']
+        fields = ['id', 'incident', 'auteur', 'texte', 'type_commentaire', 'origine_public', 'date_creation']
         read_only_fields = ['date_creation']
 
 
@@ -67,8 +67,11 @@ class IncidentSerializer(serializers.ModelSerializer):
     province_nom = serializers.SerializerMethodField()
     pieces_jointes = PieceJointeSerializer(many=True, read_only=True)
     commentaires_publics = serializers.SerializerMethodField()
+    commentaires_reponses_denonciateur = serializers.SerializerMethodField()
     nombre_commentaires_publics = serializers.SerializerMethodField()
+    nombre_reponses_denonciateur = serializers.SerializerMethodField()
     dernier_commentaire_public_at = serializers.SerializerMethodField()
+    dernier_reponse_denonciateur_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Incident
@@ -77,7 +80,9 @@ class IncidentSerializer(serializers.ModelSerializer):
             'type_incident', 'type_incident_autre', 'le_fautif', 'description', 'statut', 'agent_assigne', 'agent_assigne_nom',
             'department_assigne', 'department_assigne_nom', 'est_anonyme', 'email_contact_anonyme', 'telephone_contact_anonyme',
             'accepted_privacy', 'accepted_privacy_at', 'date_creation', 'date_modification', 'date_resolution',
-            'est_lu', 'pieces_jointes', 'commentaires_publics', 'nombre_commentaires_publics', 'dernier_commentaire_public_at'
+            'est_lu', 'pieces_jointes', 'commentaires_publics', 'commentaires_reponses_denonciateur',
+            'nombre_commentaires_publics', 'nombre_reponses_denonciateur',
+            'dernier_commentaire_public_at', 'dernier_reponse_denonciateur_at'
         ]
         read_only_fields = ['code_suivi', 'date_creation', 'date_modification']
 
@@ -120,7 +125,10 @@ class IncidentSerializer(serializers.ModelSerializer):
         return ''
 
     def get_commentaires_publics(self, obj):
-        comments = obj.commentaires.filter(type_commentaire='public').select_related('auteur').order_by('-date_creation')[:5]
+        comments = obj.commentaires.filter(
+            type_commentaire=Commentaire.EST_PUBLIC,
+            origine_public=Commentaire.ORIGINE_MINISTERE,
+        ).select_related('auteur').order_by('-date_creation')[:5]
         messages = []
         for comment in comments:
             author = getattr(comment, 'auteur', None)
@@ -136,16 +144,54 @@ class IncidentSerializer(serializers.ModelSerializer):
                 'id': comment.id,
                 'texte': comment.texte,
                 'auteur_nom': author_name,
+                'emetteur_type': 'ministere',
                 'date_creation': comment.date_creation.isoformat() if comment.date_creation else None,
             })
 
         return messages
 
+    def get_commentaires_reponses_denonciateur(self, obj):
+        comments = obj.commentaires.filter(
+            type_commentaire=Commentaire.EST_PUBLIC,
+            origine_public=Commentaire.ORIGINE_DENONCIATEUR,
+        ).select_related('auteur').order_by('-date_creation')[:5]
+        messages = []
+        for comment in comments:
+            messages.append({
+                'id': comment.id,
+                'texte': comment.texte,
+                'auteur_nom': comment.get_auteur_display(),
+                'emetteur_type': 'denonciateur',
+                'date_creation': comment.date_creation.isoformat() if comment.date_creation else None,
+            })
+        return messages
+
     def get_nombre_commentaires_publics(self, obj):
-        return obj.commentaires.filter(type_commentaire='public').count()
+        return obj.commentaires.filter(
+            type_commentaire=Commentaire.EST_PUBLIC,
+            origine_public=Commentaire.ORIGINE_MINISTERE,
+        ).count()
+
+    def get_nombre_reponses_denonciateur(self, obj):
+        return obj.commentaires.filter(
+            type_commentaire=Commentaire.EST_PUBLIC,
+            origine_public=Commentaire.ORIGINE_DENONCIATEUR,
+        ).count()
 
     def get_dernier_commentaire_public_at(self, obj):
-        last_comment = obj.commentaires.filter(type_commentaire='public').order_by('-date_creation').first()
+        last_comment = obj.commentaires.filter(
+            type_commentaire=Commentaire.EST_PUBLIC,
+            origine_public=Commentaire.ORIGINE_MINISTERE,
+        ).order_by('-date_creation').first()
+        if last_comment and last_comment.date_creation:
+            return last_comment.date_creation.isoformat()
+        return None
+
+    def get_dernier_reponse_denonciateur_at(self, obj):
+        last_comment = obj.commentaires.filter(
+            type_commentaire=Commentaire.EST_PUBLIC,
+            origine_public=Commentaire.ORIGINE_DENONCIATEUR,
+        ).order_by('-date_creation').first()
         if last_comment and last_comment.date_creation:
             return last_comment.date_creation.isoformat()
         return None

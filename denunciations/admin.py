@@ -53,8 +53,8 @@ class IncidentAdmin(admin.ModelAdmin):
 
 @admin.register(Commentaire)
 class CommentaireAdmin(admin.ModelAdmin):
-    list_display = ['incident', 'auteur', 'type_commentaire', 'date_creation']
-    list_filter = ['type_commentaire', 'date_creation']
+    list_display = ['incident', 'auteur', 'type_commentaire', 'origine_public', 'date_creation']
+    list_filter = ['type_commentaire', 'origine_public', 'date_creation']
     search_fields = ['incident__code_suivi', 'auteur__email', 'texte']
     readonly_fields = ['date_creation', 'date_modification']
 

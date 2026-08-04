@@ -96,6 +96,11 @@
                         <div class="comment-item">
                             <div class="comment-meta">
                                 <strong>{{ comment.get_auteur_display }}</strong>
+                                {% if comment.origine_public == 'denonciateur' %}
+                                <span class="badge badge-attente">Votre réponse</span>
+                                {% else %}
+                                <span class="badge badge-analyse">Ministère</span>
+                                {% endif %}
                                 <span class="comment-date">{{ comment.date_creation|date:"d/m/Y H:i" }}</span>
                             </div>
                             <div class="comment-body">
