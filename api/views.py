@@ -395,25 +395,38 @@ class PublicIncidentCreate(APIView):
         if not form.is_valid():
             return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        with transaction.atomic():
-            incident = form.save(commit=True)
+        try:
+            with transaction.atomic():
+                incident = form.save(commit=True)
 
-            # Persist uploaded files for mobile/public submissions.
-            files = _extract_uploaded_attachments(request.FILES)
-            for file in files:
-                name = (getattr(file, 'name', '') or 'piece_jointe').strip()
-                content_type = (getattr(file, 'content_type', '') or '').strip()
-                if not content_type:
-                    guessed_type, _ = mimetypes.guess_type(name)
-                    content_type = guessed_type or 'application/octet-stream'
+                # Persist uploaded files for mobile/public submissions.
+                files = _extract_uploaded_attachments(request.FILES)
+                for file in files:
+                    name = (getattr(file, 'name', '') or 'piece_jointe').strip()
+                    content_type = (getattr(file, 'content_type', '') or '').strip()
+                    if not content_type:
+                        guessed_type, _ = mimetypes.guess_type(name)
+                        content_type = guessed_type or 'application/octet-stream'
 
-                PieceJointe.objects.create(
-                    incident=incident,
-                    fichier=file,
-                    nom_original=name[:255],
-                    type_fichier=content_type[:120],
-                    taille_fichier=getattr(file, 'size', 0) or 0,
-                )
+                    # Keep compatibility with deployments that may still have DB column length=50.
+                    safe_content_type = content_type[:50]
+
+                    PieceJointe.objects.create(
+                        incident=incident,
+                        fichier=file,
+                        nom_original=name[:255],
+                        type_fichier=safe_content_type,
+                        taille_fichier=getattr(file, 'size', 0) or 0,
+                    )
+        except Exception as e:
+            logging.getLogger(__name__).exception('Public incident create failed: %s', e)
+            return Response(
+                {
+                    'detail': 'Erreur serveur lors de la soumission.',
+                    'error': str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         serializer = IncidentSerializer(incident, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
