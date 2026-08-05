@@ -48,7 +48,7 @@
                             {% for piece in pieces_jointes %}
                             <div class="attachment-item">
                                 <a href="{{ piece.fichier.url }}" download class="attachment-link">📎 {{ piece.fichier.name|slice:"-60:" }}</a>
-                                <span class="file-meta">{{ piece.fichier.size|filesizeformat }}</span>
+                                <span class="file-meta">{{ piece.taille_fichier|filesizeformat }}</span>
                             </div>
                             {% endfor %}
                         </div>
