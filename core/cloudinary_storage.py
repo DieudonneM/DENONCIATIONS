@@ -15,6 +15,8 @@ class CustomMediaCloudinaryStorage(MediaCloudinaryStorage):
 
     IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'}
     VIDEO_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv', 'webm'}
+    AUDIO_EXTENSIONS = {'mp3', 'wav', 'ogg', 'm4a', 'aac'}
+    DOCUMENT_EXTENSIONS = {'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf'}
 
     def _get_extension(self, name):
         if not name or '.' not in name:
@@ -29,6 +31,24 @@ class CustomMediaCloudinaryStorage(MediaCloudinaryStorage):
             return RESOURCE_TYPES['VIDEO']
         return RESOURCE_TYPES['RAW']
 
+    def _get_folder(self, name):
+        ext = self._get_extension(name)
+        if ext in self.IMAGE_EXTENSIONS:
+            category = 'photos'
+        elif ext in self.VIDEO_EXTENSIONS:
+            category = 'videos'
+        elif ext in self.AUDIO_EXTENSIONS:
+            category = 'audio'
+        elif ext in self.DOCUMENT_EXTENSIONS:
+            category = 'documents'
+        else:
+            category = 'autres'
+
+        folder = os.path.dirname(name)
+        if folder:
+            return f'VigiTravail/{category}/{folder}'
+        return f'VigiTravail/{category}'
+
     def _upload(self, name, content):
         """Upload using the inferred resource_type so Cloudinary doesn't try to validate
         non-image files as images (which caused "Invalid image file")."""
@@ -37,9 +57,8 @@ class CustomMediaCloudinaryStorage(MediaCloudinaryStorage):
             'resource_type': self._get_resource_type(name),
             'tags': self.TAG,
         }
-        folder = os.path.dirname(name)
-        if folder:
-            options['folder'] = folder
+
+        options['folder'] = self._get_folder(name)
 
         # For larger video uploads Cloudinary supports chunked upload; the default
         # uploader.upload can handle videos when resource_type='video'.

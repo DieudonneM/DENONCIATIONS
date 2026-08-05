@@ -1,13 +1,19 @@
+import importlib
+import os
 from io import BytesIO
+from unittest import mock
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from openpyxl import load_workbook
 
+import denunciations_app.settings as settings_module
+
+from api.serializers import PieceJointeSerializer
 from core.models import Employeur, Province
 from users.models import User
-from .models import Incident
+from .models import Incident, PieceJointe
 
 
 @override_settings(ALLOWED_HOSTS=['testserver'])
@@ -74,6 +80,58 @@ class IncidentExportAuthorizationTests(TestCase):
         ]
         self.assertNotIn(private_incident.code_suivi, values)
         self.assertNotIn(private_incident.description, values)
+
+
+class PieceJointeSerializerTests(TestCase):
+    def test_serializer_exposes_attachment_url_for_mobile_clients(self):
+        province = Province.objects.create(nom='Kinshasa', code='KIN')
+        employeur = Employeur.objects.create(
+            nom='Entreprise privée',
+            secteur='services',
+            province=province,
+        )
+        incident = Incident.objects.create(
+            employeur=employeur,
+            province=province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Description suffisante pour tester la sérialisation des pièces jointes.',
+            est_anonyme=True,
+        )
+        attachment = PieceJointe.objects.create(
+            incident=incident,
+            fichier=SimpleUploadedFile('preuve.pdf', b'abc123', content_type='application/pdf'),
+            nom_original='preuve.pdf',
+            type_fichier='application/pdf',
+            taille_fichier=6,
+        )
+
+        data = PieceJointeSerializer(attachment).data
+
+        self.assertIn('fichier_url', data)
+        self.assertTrue(data['fichier_url'])
+
+
+class CloudinaryConfigurationTests(SimpleTestCase):
+    def test_cloudinary_settings_support_cloudinary_url(self):
+        with mock.patch.dict(
+            os.environ,
+            {'CLOUDINARY_URL': 'cloudinary://123456:secret@demo-cloud'},
+            clear=False,
+        ):
+            for env_name in (
+                'CLOUDINARY_CLOUD_NAME',
+                'CLOUDINARY_API_KEY',
+                'CLOUDINARY_API_SECRET',
+            ):
+                os.environ.pop(env_name, None)
+
+            reloaded_settings = importlib.reload(settings_module)
+
+            self.assertTrue(reloaded_settings._cloudinary_ready)
+            self.assertEqual(reloaded_settings.CLOUDINARY_STORAGE['CLOUD_NAME'], 'demo-cloud')
+            self.assertEqual(reloaded_settings.CLOUDINARY_STORAGE['API_KEY'], '123456')
+            self.assertEqual(reloaded_settings.CLOUDINARY_STORAGE['API_SECRET'], 'secret')
 
 
 class PublicIncidentAttachmentTests(TestCase):

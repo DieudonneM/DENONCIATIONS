@@ -285,12 +285,37 @@ if IS_PRODUCTION and EMAIL_BACKEND.endswith('smtp.EmailBackend'):
 # CLOUDINARY CONFIGURATION
 # ==============================================================================
 import cloudinary
+from urllib.parse import urlparse
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
-}
+
+def _get_cloudinary_settings():
+    """Read Cloudinary settings from explicit vars or from CLOUDINARY_URL."""
+    cloud_name = config('CLOUDINARY_CLOUD_NAME', default='').strip()
+    api_key = config('CLOUDINARY_API_KEY', default='').strip()
+    api_secret = config('CLOUDINARY_API_SECRET', default='').strip()
+    cloudinary_url = config('CLOUDINARY_URL', default='').strip()
+
+    if not (cloud_name and api_key and api_secret) and cloudinary_url:
+        parsed = urlparse(cloudinary_url)
+        if parsed.scheme == 'cloudinary':
+            if parsed.hostname:
+                cloud_name = parsed.hostname or cloud_name
+            elif parsed.path:
+                cloud_name = parsed.path.lstrip('/') or cloud_name
+
+            if parsed.username:
+                api_key = parsed.username or api_key
+            if parsed.password:
+                api_secret = parsed.password or api_secret
+
+    return {
+        'CLOUD_NAME': cloud_name,
+        'API_KEY': api_key,
+        'API_SECRET': api_secret,
+    }
+
+
+CLOUDINARY_STORAGE = _get_cloudinary_settings()
 
 _cloudinary_ready = all(
     (CLOUDINARY_STORAGE.get(key) or '').strip()

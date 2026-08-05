@@ -38,10 +38,30 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 
 class PieceJointeSerializer(serializers.ModelSerializer):
+    fichier_url = serializers.SerializerMethodField()
+
     class Meta:
         model = PieceJointe
-        fields = ['id', 'incident', 'fichier', 'nom_original', 'type_fichier', 'taille_fichier', 'date_ajout']
+        fields = ['id', 'incident', 'fichier', 'fichier_url', 'nom_original', 'type_fichier', 'taille_fichier', 'date_ajout']
         read_only_fields = ['nom_original', 'type_fichier', 'taille_fichier', 'date_ajout']
+
+    def get_fichier_url(self, obj):
+        request = self.context.get('request')
+        fichier = getattr(obj, 'fichier', None)
+        if not fichier:
+            return None
+
+        try:
+            url = fichier.url
+        except Exception:
+            return None
+
+        if not url:
+            return None
+
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class CommentaireSerializer(serializers.ModelSerializer):
