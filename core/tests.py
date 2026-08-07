@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from core.models import Province, Employeur
+from core.views import _repair_cloudinary_url
 from denunciations.models import Incident, Commentaire, PieceJointe
 
 User = get_user_model()
@@ -217,6 +218,12 @@ class DashboardAccessTest(TestCase):
 
 class PieceJointeDownloadViewTest(TestCase):
     """Tests de l’endpoint de téléchargement des pièces jointes."""
+
+    def test_repair_cloudinary_url_for_documents(self):
+        url = 'https://res.cloudinary.com/demo/image/upload/v123/attachments/test.pdf'
+        repaired = _repair_cloudinary_url(url, 'test.pdf')
+        self.assertIn('/raw/upload/', repaired)
+        self.assertIn('test.pdf', repaired)
 
     @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
     def test_download_attachment_serves_file(self):

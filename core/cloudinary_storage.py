@@ -13,10 +13,10 @@ class CustomMediaCloudinaryStorage(MediaCloudinaryStorage):
     - others  -> resource_type='raw'
     """
 
-    IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'}
-    VIDEO_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv', 'webm'}
-    AUDIO_EXTENSIONS = {'mp3', 'wav', 'ogg', 'm4a', 'aac'}
-    DOCUMENT_EXTENSIONS = {'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf'}
+    IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg', 'heic', 'heif'}
+    VIDEO_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v', '3gp', '3g2'}
+    AUDIO_EXTENSIONS = {'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'wma', 'opus'}
+    DOCUMENT_EXTENSIONS = {'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'zip', 'rar', '7z'}
 
     def _get_extension(self, name):
         if not name or '.' not in name:
@@ -29,6 +29,8 @@ class CustomMediaCloudinaryStorage(MediaCloudinaryStorage):
             return RESOURCE_TYPES['IMAGE']
         if ext in self.VIDEO_EXTENSIONS:
             return RESOURCE_TYPES['VIDEO']
+        if ext in self.AUDIO_EXTENSIONS:
+            return RESOURCE_TYPES['VIDEO'] if hasattr(RESOURCE_TYPES, 'VIDEO') else 'video'
         return RESOURCE_TYPES['RAW']
 
     def _get_folder(self, name):

@@ -35,12 +35,37 @@ from .models import Department
 from django.utils.crypto import get_random_string
 import mimetypes
 import os
+from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 from urllib.request import Request, urlopen
 from django.core.files.storage import FileSystemStorage
 
 
 def _is_production_like_environment():
     return getattr(settings, 'IS_PRODUCTION', False) or not settings.DEBUG
+
+
+def _repair_cloudinary_url(url, file_name=None):
+    if not url:
+        return url
+
+    parsed = urlparse(url)
+    if not parsed.scheme or not parsed.netloc:
+        return url
+
+    path = parsed.path or ''
+    ext = (file_name or parsed.path).rsplit('.', 1)[-1].lower() if (file_name or parsed.path).rsplit('.', 1)[-1].lower() else ''
+
+    if 'cloudinary' in parsed.netloc and '/image/' in path:
+        new_path = path.replace('/image/', '/raw/', 1)
+        if ext and '/raw/' in new_path:
+            query_params = dict(parse_qsl(parsed.query, keep_blank_values=True))
+            query_params.pop('resource_type', None)
+            query_params.pop('sign', None)
+            query_params.pop('type', None)
+            query = urlencode(query_params)
+            return urlunparse(parsed._replace(path=new_path, query=query))
+
+    return url
 
 
 def _verify_remote_file_url(url):
@@ -105,11 +130,12 @@ def attachment_download(request, pk):
         return response
     except Exception:
         remote_url = getattr(piece.fichier, 'url', None)
-        if _is_production_like_environment() and remote_url:
-            if _verify_remote_file_url(remote_url):
-                return redirect(remote_url)
+        repaired_url = _repair_cloudinary_url(remote_url, piece.nom_original or file_name) if remote_url else None
+        if _is_production_like_environment() and repaired_url:
+            if _verify_remote_file_url(repaired_url):
+                return redirect(repaired_url)
 
-            local_file_obj = _store_remote_file_locally(piece, remote_url)
+            local_file_obj = _store_remote_file_locally(piece, repaired_url)
             if local_file_obj is not None:
                 content_type, _ = mimetypes.guess_type(piece.nom_original or file_name)
                 if not content_type:
@@ -119,6 +145,8 @@ def attachment_download(request, pk):
                 response['Content-Disposition'] = f'inline; filename="{piece.nom_original or file_name}"'
                 return response
 
+        if repaired_url:
+            return redirect(repaired_url)
         if remote_url:
             return redirect(remote_url)
         raise Http404
