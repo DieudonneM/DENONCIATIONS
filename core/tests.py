@@ -225,6 +225,12 @@ class PieceJointeDownloadViewTest(TestCase):
         self.assertIn('/raw/upload/', repaired)
         self.assertIn('test.pdf', repaired)
 
+    def test_repair_cloudinary_url_for_audio_files(self):
+        url = 'https://res.cloudinary.com/demo/image/upload/v123/attachments/test.mp3'
+        repaired = _repair_cloudinary_url(url, 'test.mp3')
+        self.assertIn('/video/upload/', repaired)
+        self.assertIn('test.mp3', repaired)
+
     @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
     def test_download_attachment_serves_file(self):
         province = Province.objects.create(nom='Province Test', code='PRT')

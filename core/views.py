@@ -38,6 +38,7 @@ import os
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 from urllib.request import Request, urlopen
 from django.core.files.storage import FileSystemStorage
+import re
 
 
 def _is_production_like_environment():
@@ -53,11 +54,20 @@ def _repair_cloudinary_url(url, file_name=None):
         return url
 
     path = parsed.path or ''
-    ext = (file_name or parsed.path).rsplit('.', 1)[-1].lower() if (file_name or parsed.path).rsplit('.', 1)[-1].lower() else ''
+    filename = file_name or parsed.path or ''
+    ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
 
-    if 'cloudinary' in parsed.netloc and '/image/' in path:
-        new_path = path.replace('/image/', '/raw/', 1)
-        if ext and '/raw/' in new_path:
+    if 'cloudinary' in parsed.netloc:
+        if ext in {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg', 'heic', 'heif'}:
+            resource_type = 'image'
+        elif ext in {'mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v', '3gp', '3g2', 'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'wma', 'opus'}:
+            resource_type = 'video'
+        else:
+            resource_type = 'raw'
+
+        new_path = re.sub(r'/(image|video|raw)/upload/', f'/{resource_type}/upload/', path, count=1)
+
+        if new_path != path:
             query_params = dict(parse_qsl(parsed.query, keep_blank_values=True))
             query_params.pop('resource_type', None)
             query_params.pop('sign', None)
