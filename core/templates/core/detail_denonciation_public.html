@@ -81,7 +81,7 @@
                 <div class="attachments-list">
                     {% for piece in pieces_jointes %}
                         <div class="attachment-item">
-                            <a href="{{ piece.fichier.url }}" download class="attachment-link">📎 {{ piece.nom_original }}</a>
+                            <a href="{{ piece.get_download_url }}" target="_blank" rel="noopener noreferrer" class="attachment-link">📎 {{ piece.nom_original }}</a>
                         </div>
                     {% endfor %}
                 </div>

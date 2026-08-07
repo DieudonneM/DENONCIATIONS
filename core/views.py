@@ -12,7 +12,7 @@ Contient :
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, Http404
 from django.db.models import Q, Count
 import json
 from django.db.models.functions import TruncDate
@@ -33,6 +33,95 @@ from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 from .models import Department
 from django.utils.crypto import get_random_string
+import mimetypes
+import os
+from urllib.request import Request, urlopen
+from django.core.files.storage import FileSystemStorage
+
+
+def _is_production_like_environment():
+    return getattr(settings, 'IS_PRODUCTION', False) or not settings.DEBUG
+
+
+def _verify_remote_file_url(url):
+    if not url:
+        return False
+
+    try:
+        request = Request(url, method='HEAD')
+        with urlopen(request, timeout=10) as response:
+            status = getattr(response, 'status', 0)
+            return status in {200, 206, 301, 302}
+    except Exception:
+        try:
+            request = Request(url, method='GET')
+            with urlopen(request, timeout=10) as response:
+                status = getattr(response, 'status', 0)
+                return status in {200, 206}
+        except Exception:
+            return False
+
+
+def _store_remote_file_locally(piece, remote_url):
+    if not remote_url:
+        return None
+
+    try:
+        request = Request(remote_url, method='GET', headers={'User-Agent': 'Mozilla/5.0'})
+        with urlopen(request, timeout=20) as response:
+            content = response.read()
+
+        if not content:
+            return None
+
+        local_storage = FileSystemStorage(location=settings.MEDIA_ROOT, base_url=settings.MEDIA_URL)
+        safe_name = os.path.basename(piece.fichier.name) or piece.nom_original or f'{piece.pk}_attachment'
+        relative_path = os.path.join('incidents', 'prod-fallback', str(piece.incident_id), safe_name)
+        with local_storage.open(relative_path, 'wb') as target:
+            target.write(content)
+        return local_storage.open(relative_path, 'rb')
+    except Exception:
+        return None
+
+
+def attachment_download(request, pk):
+    """Servir une pièce jointe depuis un endpoint Django robuste pour le web et la mobile."""
+    piece = get_object_or_404(PieceJointe, pk=pk)
+
+    if not piece.fichier:
+        raise Http404
+
+    file_name = piece.fichier.name
+    storage = piece.fichier.storage
+
+    try:
+        file_obj = storage.open(file_name, 'rb')
+        content_type, _ = mimetypes.guess_type(piece.nom_original or file_name)
+        if not content_type:
+            content_type = piece.type_fichier or 'application/octet-stream'
+
+        response = FileResponse(file_obj, content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{piece.nom_original or file_name}"'
+        return response
+    except Exception:
+        remote_url = getattr(piece.fichier, 'url', None)
+        if _is_production_like_environment() and remote_url:
+            if _verify_remote_file_url(remote_url):
+                return redirect(remote_url)
+
+            local_file_obj = _store_remote_file_locally(piece, remote_url)
+            if local_file_obj is not None:
+                content_type, _ = mimetypes.guess_type(piece.nom_original or file_name)
+                if not content_type:
+                    content_type = piece.type_fichier or 'application/octet-stream'
+
+                response = FileResponse(local_file_obj, content_type=content_type)
+                response['Content-Disposition'] = f'inline; filename="{piece.nom_original or file_name}"'
+                return response
+
+        if remote_url:
+            return redirect(remote_url)
+        raise Http404
 
 
 def notify_staff_about_new_incident(incident):

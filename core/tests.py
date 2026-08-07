@@ -2,8 +2,11 @@
 Tests pour les modèles et fonctionnalités de base.
 """
 
-from django.test import TestCase
+import tempfile
+
+from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from core.models import Province, Employeur
 from denunciations.models import Incident, Commentaire, PieceJointe
@@ -210,6 +213,41 @@ class DashboardAccessTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response['Location'])
+
+
+class PieceJointeDownloadViewTest(TestCase):
+    """Tests de l’endpoint de téléchargement des pièces jointes."""
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_download_attachment_serves_file(self):
+        province = Province.objects.create(nom='Province Test', code='PRT')
+        employeur = Employeur.objects.create(
+            nom='Entreprise Test',
+            secteur='industrie',
+            province=province,
+            ville='Kinshasa',
+        )
+        incident = Incident.objects.create(
+            employeur=employeur,
+            province=province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Test téléchargement',
+            est_anonyme=False,
+        )
+        piece = PieceJointe.objects.create(
+            incident=incident,
+            fichier=SimpleUploadedFile('test.pdf', b'pdf-content', content_type='application/pdf'),
+            nom_original='test.pdf',
+            type_fichier='application/pdf',
+            taille_fichier=11,
+        )
+
+        response = self.client.get(reverse('core:attachment_download', kwargs={'pk': piece.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(b''.join(response.streaming_content), b'pdf-content')
+        self.assertIn('inline; filename="test.pdf"', response['Content-Disposition'])
 
 
 class CommentaireModelTest(TestCase):

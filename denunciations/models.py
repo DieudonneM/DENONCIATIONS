@@ -204,6 +204,10 @@ class PieceJointe(models.Model):
     def __str__(self):
         return f'{self.nom_original} - {self.incident.code_suivi}'
 
+    def get_download_url(self):
+        from django.urls import reverse
+        return reverse('core:attachment_download', kwargs={'pk': self.pk})
+
 
 class Commentaire(models.Model):
     """Modèle pour les commentaires/communications liées aux incidents."""

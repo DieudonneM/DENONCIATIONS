@@ -38,14 +38,16 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 
 class PieceJointeSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
     fichier_url = serializers.SerializerMethodField()
+    download_url = serializers.SerializerMethodField()
 
     class Meta:
         model = PieceJointe
-        fields = ['id', 'incident', 'fichier', 'fichier_url', 'nom_original', 'type_fichier', 'taille_fichier', 'date_ajout']
+        fields = ['id', 'incident', 'fichier', 'url', 'fichier_url', 'download_url', 'nom_original', 'type_fichier', 'taille_fichier', 'date_ajout']
         read_only_fields = ['nom_original', 'type_fichier', 'taille_fichier', 'date_ajout']
 
-    def get_fichier_url(self, obj):
+    def _build_absolute_url(self, obj):
         request = self.context.get('request')
         fichier = getattr(obj, 'fichier', None)
         if not fichier:
@@ -62,6 +64,18 @@ class PieceJointeSerializer(serializers.ModelSerializer):
         if request is not None:
             return request.build_absolute_uri(url)
         return url
+
+    def get_url(self, obj):
+        return self._build_absolute_url(obj)
+
+    def get_fichier_url(self, obj):
+        return self._build_absolute_url(obj)
+
+    def get_download_url(self, obj):
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(obj.get_download_url())
+        return obj.get_download_url()
 
 
 class CommentaireSerializer(serializers.ModelSerializer):
