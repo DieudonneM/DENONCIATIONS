@@ -49,21 +49,13 @@ class PieceJointeSerializer(serializers.ModelSerializer):
 
     def _build_absolute_url(self, obj):
         request = self.context.get('request')
-        fichier = getattr(obj, 'fichier', None)
-        if not fichier:
-            return None
-
-        try:
-            url = fichier.url
-        except Exception:
-            return None
-
-        if not url:
+        download_url = obj.get_download_url()
+        if not download_url:
             return None
 
         if request is not None:
-            return request.build_absolute_uri(url)
-        return url
+            return request.build_absolute_uri(download_url)
+        return download_url
 
     def get_url(self, obj):
         return self._build_absolute_url(obj)
