@@ -3,6 +3,10 @@ Modèles pour l'application denunciations (gestion des dénonciations).
 """
 
 import uuid
+from urllib.parse import urlparse
+
+from cloudinary.utils import cloudinary_url
+from django.conf import settings
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.utils import timezone
@@ -204,9 +208,62 @@ class PieceJointe(models.Model):
         verbose_name = 'Pièce Jointe'
         verbose_name_plural = 'Pièces Jointes'
         ordering = ['-date_ajout']
+
+    IMAGE_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg', 'heic', 'heif'}
+    VIDEO_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v', '3gp', '3g2'}
+    AUDIO_EXTENSIONS = {'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'wma', 'opus'}
     
     def __str__(self):
         return f'{self.nom_original} - {self.incident.code_suivi}'
+
+    def _get_reference_filename(self):
+        return (self.nom_original or self.fichier.name or '').strip()
+
+    def _get_reference_extension(self):
+        reference_name = self._get_reference_filename()
+        if '.' not in reference_name:
+            return ''
+        return reference_name.rsplit('.', 1)[-1].lower()
+
+    def get_cloudinary_resource_type(self):
+        content_type = (self.type_fichier or '').lower()
+        if content_type.startswith('image/'):
+            return 'image'
+        if content_type.startswith('video/') or content_type.startswith('audio/'):
+            return 'video'
+
+        extension = self._get_reference_extension()
+        if extension in self.IMAGE_EXTENSIONS:
+            return 'image'
+        if extension in self.VIDEO_EXTENSIONS or extension in self.AUDIO_EXTENSIONS:
+            return 'video'
+        return 'raw'
+
+    def get_cloudinary_public_id(self):
+        file_name = (self.fichier.name or '').strip().lstrip('/')
+        if not file_name:
+            return ''
+
+        parsed = urlparse(file_name)
+        if parsed.scheme or parsed.netloc:
+            return ''
+
+        return file_name
+
+    def get_cloudinary_url(self):
+        cloud_name = (getattr(settings, 'CLOUDINARY_STORAGE', {}) or {}).get('CLOUD_NAME', '').strip()
+        public_id = self.get_cloudinary_public_id()
+        if not cloud_name or not public_id:
+            return None
+
+        resource_type = self.get_cloudinary_resource_type()
+        url, _ = cloudinary_url(
+            public_id,
+            cloud_name=cloud_name,
+            resource_type=resource_type,
+            secure=True,
+        )
+        return url
 
     def get_download_url(self):
         from django.urls import reverse

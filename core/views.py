@@ -119,6 +119,24 @@ def _store_remote_file_locally(piece, remote_url):
         return None
 
 
+def _get_attachment_remote_urls(piece, remote_url=None):
+    candidate_urls = []
+
+    for url in (
+        piece.get_cloudinary_url(),
+        remote_url,
+    ):
+        if not url:
+            continue
+
+        repaired_url = _repair_cloudinary_url(url, piece.nom_original or piece.fichier.name)
+        for candidate in (repaired_url, url):
+            if candidate and candidate not in candidate_urls:
+                candidate_urls.append(candidate)
+
+    return candidate_urls
+
+
 def attachment_download(request, pk):
     """Servir une pièce jointe depuis un endpoint Django robuste pour le web et la mobile."""
     piece = get_object_or_404(PieceJointe, pk=pk)
@@ -140,25 +158,24 @@ def attachment_download(request, pk):
         return response
     except Exception:
         remote_url = getattr(piece.fichier, 'url', None)
-        repaired_url = _repair_cloudinary_url(remote_url, piece.nom_original or file_name) if remote_url else None
-        if _is_production_like_environment() and repaired_url:
-            if _verify_remote_file_url(repaired_url):
-                return redirect(repaired_url)
+        candidate_urls = _get_attachment_remote_urls(piece, remote_url=remote_url)
+        if _is_production_like_environment():
+            for candidate_url in candidate_urls:
+                if _verify_remote_file_url(candidate_url):
+                    return redirect(candidate_url)
 
-            local_file_obj = _store_remote_file_locally(piece, repaired_url)
-            if local_file_obj is not None:
-                content_type, _ = mimetypes.guess_type(piece.nom_original or file_name)
-                if not content_type:
-                    content_type = piece.type_fichier or 'application/octet-stream'
+                local_file_obj = _store_remote_file_locally(piece, candidate_url)
+                if local_file_obj is not None:
+                    content_type, _ = mimetypes.guess_type(piece.nom_original or file_name)
+                    if not content_type:
+                        content_type = piece.type_fichier or 'application/octet-stream'
 
-                response = FileResponse(local_file_obj, content_type=content_type)
-                response['Content-Disposition'] = f'inline; filename="{piece.nom_original or file_name}"'
-                return response
+                    response = FileResponse(local_file_obj, content_type=content_type)
+                    response['Content-Disposition'] = f'inline; filename="{piece.nom_original or file_name}"'
+                    return response
 
-        if repaired_url:
-            return redirect(repaired_url)
-        if remote_url:
-            return redirect(remote_url)
+        if candidate_urls:
+            return redirect(candidate_urls[0])
         raise Http404
 
 

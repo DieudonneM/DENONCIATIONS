@@ -3,6 +3,7 @@ Tests pour les modèles et fonctionnalités de base.
 """
 
 import tempfile
+from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
@@ -261,6 +262,43 @@ class PieceJointeDownloadViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(b''.join(response.streaming_content), b'pdf-content')
         self.assertIn('inline; filename="test.pdf"', response['Content-Disposition'])
+
+    @override_settings(
+        DEBUG=False,
+        CLOUDINARY_STORAGE={'CLOUD_NAME': 'demo', 'API_KEY': 'key', 'API_SECRET': 'secret'},
+    )
+    @patch('core.views._verify_remote_file_url', return_value=True)
+    def test_download_attachment_redirects_to_cloudinary_when_local_url_is_invalid(self, _mock_verify):
+        province = Province.objects.create(nom='Province Test', code='PRT')
+        employeur = Employeur.objects.create(
+            nom='Entreprise Test',
+            secteur='industrie',
+            province=province,
+            ville='Kinshasa',
+        )
+        incident = Incident.objects.create(
+            employeur=employeur,
+            province=province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Test redirection Cloudinary',
+            est_anonyme=False,
+        )
+        piece = PieceJointe.objects.create(
+            incident=incident,
+            fichier='VigiTravail/documents/incidents/2026/07/23/test.pdf',
+            nom_original='test.pdf',
+            type_fichier='application/pdf',
+            taille_fichier=11,
+        )
+
+        response = self.client.get(reverse('core:attachment_download', kwargs={'pk': piece.pk}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response['Location'],
+            'https://res.cloudinary.com/demo/raw/upload/v1/VigiTravail/documents/incidents/2026/07/23/test.pdf',
+        )
 
 
 class CommentaireModelTest(TestCase):
