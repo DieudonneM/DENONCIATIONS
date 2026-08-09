@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from core.models import Employeur, Province
-from denunciations.models import Incident, MobileDeviceToken
+from denunciations.models import Commentaire, Incident, MobileDeviceToken
 
 
 class PublicDeviceTokenApiTest(TestCase):
@@ -93,3 +93,37 @@ class StatusChangePushSignalTest(TestCase):
         self.assertEqual(kwargs['incident'].id, self.incident.id)
         self.assertEqual(kwargs['old_status'], 'nouvelle')
         self.assertEqual(kwargs['new_status'], 'analyse')
+
+
+class CommentairePushSignalTest(TestCase):
+    def setUp(self):
+        self.province = Province.objects.create(nom='Kongo Central', code='KON')
+        self.employeur = Employeur.objects.create(
+            nom='Entreprise Commentaire',
+            secteur='services',
+            province=self.province,
+        )
+        self.incident = Incident.objects.create(
+            employeur=self.employeur,
+            province=self.province,
+            ville='Matadi',
+            type_incident='salaire',
+            description='Description commentaire',
+            est_anonyme=True,
+            statut='analyse',
+        )
+
+    def test_commentaire_public_ministere_triggers_push_service(self):
+        with patch('core.signals.send_incident_comment_push') as mocked_sender:
+            with self.captureOnCommitCallbacks(execute=True):
+                Commentaire.objects.create(
+                    incident=self.incident,
+                    texte='Commentaire de suivi',
+                    type_commentaire='public',
+                    origine_public='ministere',
+                )
+
+        mocked_sender.assert_called_once()
+        kwargs = mocked_sender.call_args.kwargs
+        self.assertEqual(kwargs['incident'].id, self.incident.id)
+        self.assertEqual(kwargs['commentaire'].texte, 'Commentaire de suivi')

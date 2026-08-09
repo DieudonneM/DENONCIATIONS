@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from denunciations.models import Incident, Commentaire, LogAudit
 from django.utils import timezone
 
-from .push_notifications import send_incident_status_change_push
+from .push_notifications import send_incident_comment_push, send_incident_status_change_push
 
 
 logger = logging.getLogger(__name__)
@@ -116,7 +116,7 @@ def incident_status_push_notification(sender, instance, created, **kwargs):
 def commentaire_created(sender, instance, created, **kwargs):
     """
     Appelé après la création d'un commentaire.
-    Crée un log d'audit.
+    Crée un log d'audit et envoie une notification push si le commentaire est public et émis par le ministère.
     """
     if created:
         LogAudit.objects.create(
@@ -126,3 +126,26 @@ def commentaire_created(sender, instance, created, **kwargs):
             description=f'Commentaire ajouté ({instance.get_type_commentaire_display()})',
             nouvelle_valeur=instance.texte[:100]
         )
+
+        if (
+            instance.type_commentaire == Commentaire.EST_PUBLIC
+            and instance.origine_public == Commentaire.ORIGINE_MINISTERE
+        ):
+            def _send_comment_push():
+                try:
+                    result = send_incident_comment_push(
+                        incident=instance.incident,
+                        commentaire=instance,
+                    )
+                    logger.info(
+                        'Push commentaire incident=%s result=%s',
+                        instance.incident.code_suivi,
+                        result,
+                    )
+                except Exception:
+                    logger.exception(
+                        'Erreur envoi push commentaire incident=%s',
+                        instance.incident.code_suivi,
+                    )
+
+            transaction.on_commit(_send_comment_push)
