@@ -405,6 +405,16 @@ class MobileDeviceToken(models.Model):
         (PLATFORM_OTHER, 'Autre'),
     )
 
+    ROLE_TRAVAILLEUR = 'travailleur'
+    ROLE_AGENT = 'agent'
+    ROLE_ADMINISTRATEUR = 'administrateur'
+
+    USER_ROLE_CHOICES = (
+        (ROLE_TRAVAILLEUR, 'Travailleur'),
+        (ROLE_AGENT, 'Agent'),
+        (ROLE_ADMINISTRATEUR, 'Administrateur'),
+    )
+
     token = models.CharField(max_length=255, unique=True, db_index=True)
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default=PLATFORM_OTHER)
     incident = models.ForeignKey(
@@ -415,6 +425,8 @@ class MobileDeviceToken(models.Model):
         related_name='device_tokens',
     )
     code_suivi = models.CharField(max_length=20, blank=True, db_index=True)
+    user_role = models.CharField(max_length=20, blank=True, choices=USER_ROLE_CHOICES, db_index=True)
+    receives_staff_notifications = models.BooleanField(default=False, db_index=True)
     is_active = models.BooleanField(default=True, db_index=True)
     last_notified_at = models.DateTimeField(null=True, blank=True)
     last_error = models.TextField(blank=True)
@@ -440,6 +452,13 @@ class MobileDeviceToken(models.Model):
 
         if self.code_suivi:
             self.code_suivi = self.code_suivi.strip().upper()
+
+        allowed_roles = {choice[0] for choice in self.USER_ROLE_CHOICES}
+        normalized_role = (self.user_role or '').strip().lower()
+        self.user_role = normalized_role if normalized_role in allowed_roles else ''
+
+        if self.user_role not in {self.ROLE_AGENT, self.ROLE_ADMINISTRATEUR}:
+            self.receives_staff_notifications = False
 
         super().save(*args, **kwargs)
 

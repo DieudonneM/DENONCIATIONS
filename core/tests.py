@@ -217,6 +217,100 @@ class DashboardAccessTest(TestCase):
         self.assertIn('/login/', response['Location'])
 
 
+class StaffNouvellesApiTest(TestCase):
+    """Tests du flux mobile staff pour la liste des dénonciations nouvelles."""
+
+    def setUp(self):
+        self.province = Province.objects.create(nom='Kinshasa', code='KIN')
+        self.employeur = Employeur.objects.create(
+            nom='Entreprise Dashboard',
+            secteur='services',
+            province=self.province,
+            ville='Kinshasa',
+        )
+        self.agent = User.objects.create_user(
+            username='agent_staff_dashboard',
+            email='agent_staff_dashboard@test.cd',
+            password='password123',
+            role='agent',
+            first_name='Marie',
+            last_name='Kalonda',
+        )
+        self.agent.provinces.add(self.province)
+
+        self.travailleur = User.objects.create_user(
+            username='travailleur_dashboard',
+            email='travailleur_dashboard@test.cd',
+            password='password123',
+            role='travailleur',
+        )
+
+    def _auth_headers(self, user):
+        return {'HTTP_AUTHORIZATION': f'Bearer session-{user.id}'}
+
+    def test_requires_authentication(self):
+        response = self.client.get('/api/incidents/staff-nouvelles/')
+        self.assertEqual(response.status_code, 401)
+
+    def test_forbidden_for_non_staff(self):
+        response = self.client.get(
+            '/api/incidents/staff-nouvelles/',
+            **self._auth_headers(self.travailleur),
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_returns_only_nouvelle_ordered_desc_with_pagination(self):
+        for idx in range(12):
+            Incident.objects.create(
+                employeur=self.employeur,
+                province=self.province,
+                ville='Kinshasa',
+                type_incident='salaire',
+                description=f'Incident nouvelle #{idx}',
+                statut='nouvelle',
+                est_anonyme=True,
+            )
+
+        Incident.objects.create(
+            employeur=self.employeur,
+            province=self.province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Incident analyse ignore',
+            statut='analyse',
+            est_anonyme=True,
+        )
+
+        page1 = self.client.get(
+            '/api/incidents/staff-nouvelles/?page=1',
+            **self._auth_headers(self.agent),
+        )
+        self.assertEqual(page1.status_code, 200)
+        body1 = page1.json()
+        self.assertEqual(body1.get('page'), 1)
+        self.assertEqual(body1.get('page_size'), 10)
+        self.assertEqual(body1.get('total'), 12)
+        self.assertTrue(body1.get('has_next'))
+
+        rows1 = body1.get('results', [])
+        self.assertEqual(len(rows1), 10)
+        for row in rows1:
+            self.assertEqual(row.get('statut'), 'nouvelle')
+
+        dates_page1 = [row.get('date_creation') for row in rows1]
+        self.assertEqual(dates_page1, sorted(dates_page1, reverse=True))
+
+        page2 = self.client.get(
+            '/api/incidents/staff-nouvelles/?page=2',
+            **self._auth_headers(self.agent),
+        )
+        self.assertEqual(page2.status_code, 200)
+        body2 = page2.json()
+        self.assertEqual(body2.get('page'), 2)
+        self.assertFalse(body2.get('has_next'))
+        self.assertEqual(len(body2.get('results', [])), 2)
+
+
 class PieceJointeDownloadViewTest(TestCase):
     """Tests de l’endpoint de téléchargement des pièces jointes."""
 

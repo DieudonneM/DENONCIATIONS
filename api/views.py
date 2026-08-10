@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 import logging
+import re
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -24,6 +25,25 @@ from rest_framework.views import APIView
 from django.utils.text import slugify
 from denunciations.forms import IncidentForm
 from .permissions import IsAdminAgentOrOwner, IsAdmin
+
+
+def _resolve_mobile_bearer_user(request):
+    """Resolve user from mobile Bearer token format: session-<user_id>."""
+    user = getattr(request, 'user', None)
+    if user is not None and user.is_authenticated:
+        return user
+
+    header = str(request.headers.get('Authorization', '') or '').strip()
+    if not header.lower().startswith('bearer '):
+        return None
+
+    token = header[7:].strip()
+    match = re.fullmatch(r'session-(\d+)', token)
+    if not match:
+        return None
+
+    user_id = int(match.group(1))
+    return User.objects.filter(id=user_id, is_active=True).first()
 
 
 def _normalize_public_incident_payload(data):
@@ -402,6 +422,71 @@ class IncidentViewSet(viewsets.ModelViewSet):
             ],
         })
 
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny], url_path='staff-nouvelles')
+    def staff_nouvelles(self, request):
+        user = _resolve_mobile_bearer_user(request)
+        if user is None:
+            return Response({'detail': 'Authentification requise.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        is_staff = bool(
+            (callable(getattr(user, 'is_administrateur', None)) and user.is_administrateur())
+            or (callable(getattr(user, 'is_agent', None)) and user.is_agent())
+            or user.is_superuser
+            or getattr(user, 'role', '') in {'agent', 'administrateur'}
+        )
+
+        if not is_staff:
+            return Response({'detail': 'Accès réservé aux admins et agents.'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            page = int(str(request.query_params.get('page', '1')).strip() or '1')
+        except ValueError:
+            page = 1
+        page = max(page, 1)
+        page_size = 10
+
+        qs = (
+            Incident.objects.filter(statut='nouvelle')
+            .select_related('employeur', 'province', 'agent_assigné')
+            .order_by('-date_creation')
+        )
+
+        total = qs.count()
+        offset = (page - 1) * page_size
+        rows = qs[offset : offset + page_size]
+
+        results = [
+            {
+                'id': incident.id,
+                'code_suivi': incident.code_suivi,
+                'statut': incident.statut,
+                'type_incident': incident.type_incident,
+                'type_incident_display': incident.get_type_incident_display(),
+                'ville': incident.ville,
+                'date_creation': incident.date_creation.isoformat() if incident.date_creation else None,
+                'employeur': incident.employeur.nom if incident.employeur else '',
+                'employeur_nom': incident.employeur.nom if incident.employeur else '',
+                'province_nom': incident.province.nom if incident.province else '',
+                'agent_assigne_nom': (
+                    (incident.agent_assigné.get_full_name() or incident.agent_assigné.username)
+                    if incident.agent_assigné
+                    else ''
+                ),
+            }
+            for incident in rows
+        ]
+
+        return Response(
+            {
+                'page': page,
+                'page_size': page_size,
+                'total': total,
+                'has_next': (offset + page_size) < total,
+                'results': results,
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class PieceJointeViewSet(viewsets.ModelViewSet):
     queryset = PieceJointe.objects.all()
@@ -576,6 +661,11 @@ class PublicDeviceTokenRegisterView(APIView):
         token = validated['token']
         platform = validated.get('platform') or MobileDeviceToken.PLATFORM_OTHER
         code_suivi = (validated.get('code_suivi') or '').strip().upper()
+        user_role = (validated.get('user_role') or '').strip().lower()
+        receives_staff_notifications = bool(validated.get('receives_staff_notifications', False))
+
+        if user_role not in {MobileDeviceToken.ROLE_AGENT, MobileDeviceToken.ROLE_ADMINISTRATEUR}:
+            receives_staff_notifications = False
 
         incident = None
         if code_suivi:
@@ -587,6 +677,8 @@ class PublicDeviceTokenRegisterView(APIView):
                 'platform': platform,
                 'incident': incident,
                 'code_suivi': code_suivi,
+                'user_role': user_role,
+                'receives_staff_notifications': receives_staff_notifications,
                 'is_active': True,
             },
         )
@@ -596,6 +688,8 @@ class PublicDeviceTokenRegisterView(APIView):
             'created': created,
             'platform': obj.platform,
             'code_suivi': obj.code_suivi,
+            'user_role': obj.user_role,
+            'receives_staff_notifications': obj.receives_staff_notifications,
             'is_active': obj.is_active,
         }
         return Response(response_data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)

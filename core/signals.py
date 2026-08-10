@@ -10,7 +10,12 @@ from django.dispatch import receiver
 from denunciations.models import Incident, Commentaire, LogAudit
 from django.utils import timezone
 
-from .push_notifications import send_incident_comment_push, send_incident_status_change_push
+from .push_notifications import (
+    send_incident_comment_push,
+    send_incident_status_change_push,
+    send_staff_denonciateur_reply_push,
+    send_staff_incident_created_push,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -29,6 +34,22 @@ def incident_created(sender, instance, created, **kwargs):
             action='creation',
             description=f'Incident créé : {instance.code_suivi}'
         )
+
+        def _send_staff_creation_push():
+            try:
+                result = send_staff_incident_created_push(incident=instance)
+                logger.info(
+                    'Push staff creation incident=%s result=%s',
+                    instance.code_suivi,
+                    result,
+                )
+            except Exception:
+                logger.exception(
+                    'Erreur envoi push staff creation incident=%s',
+                    instance.code_suivi,
+                )
+
+        transaction.on_commit(_send_staff_creation_push)
 
 
 @receiver(pre_save, sender=Incident)
@@ -149,3 +170,26 @@ def commentaire_created(sender, instance, created, **kwargs):
                     )
 
             transaction.on_commit(_send_comment_push)
+
+        if (
+            instance.type_commentaire == Commentaire.EST_PUBLIC
+            and instance.origine_public == Commentaire.ORIGINE_DENONCIATEUR
+        ):
+            def _send_staff_reply_push():
+                try:
+                    result = send_staff_denonciateur_reply_push(
+                        incident=instance.incident,
+                        commentaire=instance,
+                    )
+                    logger.info(
+                        'Push staff reponse denonciateur incident=%s result=%s',
+                        instance.incident.code_suivi,
+                        result,
+                    )
+                except Exception:
+                    logger.exception(
+                        'Erreur envoi push staff reponse incident=%s',
+                        instance.incident.code_suivi,
+                    )
+
+            transaction.on_commit(_send_staff_reply_push)

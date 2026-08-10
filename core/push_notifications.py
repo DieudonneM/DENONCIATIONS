@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import Optional
 
 from django.conf import settings
 from django.db.models import Q
@@ -58,52 +57,17 @@ def _status_label(raw: str) -> str:
     return mapping.get(raw, raw)
 
 
-def send_incident_status_change_push(
-    *,
-    incident: Incident,
-    old_status: str,
-    new_status: str,
-) -> dict:
-    """Envoie une push FCM aux tokens concernés par un incident."""
-    app = _get_firebase_app()
-    if app is None or messaging is None:
-        return {'sent': 0, 'failed': 0, 'reason': 'firebase_not_configured'}
-
-    token_rows = list(
-        MobileDeviceToken.objects.filter(is_active=True)
-        .filter(Q(incident=incident) | Q(code_suivi=incident.code_suivi))
-        .exclude(token='')
-        .values_list('id', 'token')
-        .distinct()
-    )
-
+def _send_multicast_and_track(*, app, token_rows, message, error_log_message: str) -> dict:
     if not token_rows:
         return {'sent': 0, 'failed': 0, 'reason': 'no_tokens'}
 
     token_ids = [row[0] for row in token_rows]
     tokens = [row[1] for row in token_rows]
 
-    title = 'Mise a jour de votre denonciation'
-    body = (
-        f'Le dossier {incident.code_suivi} est passe de '
-        f'{_status_label(old_status)} a {_status_label(new_status)}.'
-    )
-
-    message = messaging.MulticastMessage(
-        tokens=tokens,
-        notification=messaging.Notification(title=title, body=body),
-        data={
-            'type': 'incident_status_changed',
-            'code_suivi': incident.code_suivi,
-            'old_status': old_status,
-            'new_status': new_status,
-        },
-    )
-
     try:
         response = messaging.send_each_for_multicast(message, app=app)
     except Exception:
-        logger.exception('Echec d\'envoi push pour incident=%s', incident.code_suivi)
+        logger.exception(error_log_message)
         MobileDeviceToken.objects.filter(id__in=token_ids).update(
             last_error='fcm_send_exception',
         )
@@ -152,6 +116,55 @@ def send_incident_status_change_push(
     }
 
 
+def send_incident_status_change_push(
+    *,
+    incident: Incident,
+    old_status: str,
+    new_status: str,
+) -> dict:
+    """Envoie une push FCM aux tokens concernés par un incident."""
+    app = _get_firebase_app()
+    if app is None or messaging is None:
+        return {'sent': 0, 'failed': 0, 'reason': 'firebase_not_configured'}
+
+    token_rows = list(
+        MobileDeviceToken.objects.filter(is_active=True)
+        .filter(Q(incident=incident) | Q(code_suivi=incident.code_suivi))
+        .exclude(token='')
+        .values_list('id', 'token')
+        .distinct()
+    )
+
+    if not token_rows:
+        return {'sent': 0, 'failed': 0, 'reason': 'no_tokens'}
+
+    tokens = [row[1] for row in token_rows]
+
+    title = 'Mise a jour de votre denonciation'
+    body = (
+        f'Le dossier {incident.code_suivi} est passe de '
+        f'{_status_label(old_status)} a {_status_label(new_status)}.'
+    )
+
+    message = messaging.MulticastMessage(
+        tokens=tokens,
+        notification=messaging.Notification(title=title, body=body),
+        data={
+            'type': 'incident_status_changed',
+            'code_suivi': incident.code_suivi,
+            'old_status': old_status,
+            'new_status': new_status,
+        },
+    )
+
+    return _send_multicast_and_track(
+        app=app,
+        token_rows=token_rows,
+        message=message,
+        error_log_message=f"Echec d'envoi push pour incident={incident.code_suivi}",
+    )
+
+
 def send_incident_comment_push(
     *,
     incident: Incident,
@@ -173,7 +186,6 @@ def send_incident_comment_push(
     if not token_rows:
         return {'sent': 0, 'failed': 0, 'reason': 'no_tokens'}
 
-    token_ids = [row[0] for row in token_rows]
     tokens = [row[1] for row in token_rows]
 
     author_name = 'Le ministère'
@@ -199,53 +211,97 @@ def send_incident_comment_push(
         },
     )
 
-    try:
-        response = messaging.send_each_for_multicast(message, app=app)
-    except Exception:
-        logger.exception('Echec d\'envoi push commentaire incident=%s', incident.code_suivi)
-        MobileDeviceToken.objects.filter(id__in=token_ids).update(
-            last_error='fcm_send_exception',
+    return _send_multicast_and_track(
+        app=app,
+        token_rows=token_rows,
+        message=message,
+        error_log_message=f"Echec d'envoi push commentaire incident={incident.code_suivi}",
+    )
+
+
+def send_staff_incident_created_push(*, incident: Incident) -> dict:
+    """Envoie une push aux comptes staff (admin/agent) lors d'une nouvelle dénonciation."""
+    app = _get_firebase_app()
+    if app is None or messaging is None:
+        return {'sent': 0, 'failed': 0, 'reason': 'firebase_not_configured'}
+
+    token_rows = list(
+        MobileDeviceToken.objects.filter(
+            is_active=True,
+            receives_staff_notifications=True,
         )
-        return {'sent': 0, 'failed': len(tokens), 'reason': 'send_exception'}
+        .exclude(token='')
+        .values_list('id', 'token')
+        .distinct()
+    )
 
-    sent_ids = []
-    failed_items = []
+    if not token_rows:
+        return {'sent': 0, 'failed': 0, 'reason': 'no_tokens'}
 
-    for idx, item in enumerate(response.responses):
-        token_id = token_ids[idx]
-        token = tokens[idx]
+    title = 'Nouvelle dénonciation publiée'
+    body = (
+        f'Nouveau dossier {incident.code_suivi} '
+        f'({incident.get_type_incident_display()}) a {incident.ville}.'
+    )
 
-        if item.success:
-            sent_ids.append(token_id)
-            continue
+    message = messaging.MulticastMessage(
+        tokens=[row[1] for row in token_rows],
+        notification=messaging.Notification(title=title, body=body),
+        data={
+            'type': 'staff_incident_created',
+            'code_suivi': incident.code_suivi,
+            'incident_type': incident.type_incident,
+            'ville': incident.ville,
+        },
+    )
 
-        code = ''
-        if item.exception is not None:
-            code = getattr(item.exception, 'code', '') or getattr(item.exception, 'message', '') or str(item.exception)
+    return _send_multicast_and_track(
+        app=app,
+        token_rows=token_rows,
+        message=message,
+        error_log_message=f"Echec d'envoi push staff creation incident={incident.code_suivi}",
+    )
 
-        failed_items.append((token_id, token, str(code)))
 
-    now = timezone.now()
-    if sent_ids:
-        MobileDeviceToken.objects.filter(id__in=sent_ids).update(
-            last_notified_at=now,
-            last_error='',
+def send_staff_denonciateur_reply_push(*, incident: Incident, commentaire) -> dict:
+    """Envoie une push aux comptes staff quand un dénonciateur répond publiquement."""
+    app = _get_firebase_app()
+    if app is None or messaging is None:
+        return {'sent': 0, 'failed': 0, 'reason': 'firebase_not_configured'}
+
+    token_rows = list(
+        MobileDeviceToken.objects.filter(
+            is_active=True,
+            receives_staff_notifications=True,
         )
+        .exclude(token='')
+        .values_list('id', 'token')
+        .distinct()
+    )
 
-    deactivate_codes = {
-        'registration-token-not-registered',
-        'invalid-argument',
-    }
+    if not token_rows:
+        return {'sent': 0, 'failed': 0, 'reason': 'no_tokens'}
 
-    for token_id, _, error_code in failed_items:
-        should_deactivate = any(code in error_code for code in deactivate_codes)
-        MobileDeviceToken.objects.filter(id=token_id).update(
-            is_active=False if should_deactivate else True,
-            last_error=error_code[:500],
-        )
+    preview = (commentaire.texte or '').strip()
+    if len(preview) > 120:
+        preview = preview[:117] + '...'
 
-    return {
-        'sent': len(sent_ids),
-        'failed': len(failed_items),
-        'reason': 'ok',
-    }
+    title = 'Nouvelle réponse du dénonciateur'
+    body = preview or f'Le dossier {incident.code_suivi} a reçu une nouvelle réponse.'
+
+    message = messaging.MulticastMessage(
+        tokens=[row[1] for row in token_rows],
+        notification=messaging.Notification(title=title, body=body),
+        data={
+            'type': 'staff_denonciateur_reply',
+            'code_suivi': incident.code_suivi,
+            'comment_id': str(commentaire.id),
+        },
+    )
+
+    return _send_multicast_and_track(
+        app=app,
+        token_rows=token_rows,
+        message=message,
+        error_log_message=f"Echec d'envoi push staff reponse incident={incident.code_suivi}",
+    )

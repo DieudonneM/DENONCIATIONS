@@ -272,7 +272,14 @@ class LogAuditSerializer(serializers.ModelSerializer):
 class MobileDeviceTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = MobileDeviceToken
-        fields = ['token', 'platform', 'code_suivi', 'is_active']
+        fields = [
+            'token',
+            'platform',
+            'code_suivi',
+            'user_role',
+            'receives_staff_notifications',
+            'is_active',
+        ]
         read_only_fields = ['is_active']
         extra_kwargs = {
             'token': {'validators': []},
@@ -292,3 +299,26 @@ class MobileDeviceTokenSerializer(serializers.ModelSerializer):
         if not Incident.objects.filter(code_suivi=code).exists():
             raise serializers.ValidationError('Code de suivi introuvable.')
         return code
+
+    def validate_user_role(self, value):
+        role = (value or '').strip().lower()
+        allowed = {choice[0] for choice in MobileDeviceToken.USER_ROLE_CHOICES}
+        if not role:
+            return ''
+        if role not in allowed:
+            raise serializers.ValidationError('Role utilisateur invalide.')
+        return role
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        role = (attrs.get('user_role') or '').strip().lower()
+        receives_staff = bool(attrs.get('receives_staff_notifications', False))
+
+        if receives_staff and role not in {
+            MobileDeviceToken.ROLE_AGENT,
+            MobileDeviceToken.ROLE_ADMINISTRATEUR,
+        }:
+            attrs['receives_staff_notifications'] = False
+
+        return attrs
