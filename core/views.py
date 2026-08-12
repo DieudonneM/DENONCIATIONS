@@ -1073,6 +1073,14 @@ def about_view(request):
     return render(request, 'core/about.html', context)
 
 
+def privacy_policy_view(request):
+    """Page de politique de confidentialité."""
+    context = {
+        'page_title': 'Politique de confidentialité',
+    }
+    return render(request, 'core/privacy_policy.html', context)
+
+
 def contact_view(request):
     """Page Contact."""
     context = {

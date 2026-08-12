@@ -21,6 +21,7 @@ urlpatterns = [
     # Pages publiques
     path('', views.home_view, name='home'),
     path('about/', views.about_view, name='about'),
+    path('politique-de-confidentialite/', views.privacy_policy_view, name='privacy_policy'),
     path('contact/', views.contact_view, name='contact'),
     path('mot_ministre/', views.mot_ministre, name='mot_ministre'),
     path('textes_legaux/', views.textes_legaux, name='textes_legaux'),
