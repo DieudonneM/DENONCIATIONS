@@ -21,6 +21,13 @@ from .push_notifications import (
 logger = logging.getLogger(__name__)
 
 
+def _is_public_ministry_comment(commentaire: Commentaire) -> bool:
+    return (
+        commentaire.type_commentaire == Commentaire.EST_PUBLIC
+        and commentaire.origine_public == Commentaire.ORIGINE_MINISTERE
+    )
+
+
 @receiver(post_save, sender=Incident)
 def incident_created(sender, instance, created, **kwargs):
     """
@@ -50,6 +57,20 @@ def incident_created(sender, instance, created, **kwargs):
                 )
 
         transaction.on_commit(_send_staff_creation_push)
+
+
+@receiver(pre_save, sender=Commentaire)
+def commentaire_push_state_changed(sender, instance, **kwargs):
+    """Mémorise l'ancien état public/ministère pour gérer les transitions."""
+    if instance.pk is None:
+        return
+
+    try:
+        old_instance = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        return
+
+    instance._was_public_ministry_for_push = _is_public_ministry_comment(old_instance)
 
 
 @receiver(pre_save, sender=Incident)
@@ -150,29 +171,6 @@ def commentaire_created(sender, instance, created, **kwargs):
 
         if (
             instance.type_commentaire == Commentaire.EST_PUBLIC
-            and instance.origine_public == Commentaire.ORIGINE_MINISTERE
-        ):
-            def _send_comment_push():
-                try:
-                    result = send_incident_comment_push(
-                        incident=instance.incident,
-                        commentaire=instance,
-                    )
-                    logger.info(
-                        'Push commentaire incident=%s result=%s',
-                        instance.incident.code_suivi,
-                        result,
-                    )
-                except Exception:
-                    logger.exception(
-                        'Erreur envoi push commentaire incident=%s',
-                        instance.incident.code_suivi,
-                    )
-
-            transaction.on_commit(_send_comment_push)
-
-        if (
-            instance.type_commentaire == Commentaire.EST_PUBLIC
             and instance.origine_public == Commentaire.ORIGINE_DENONCIATEUR
         ):
             def _send_staff_reply_push():
@@ -193,3 +191,35 @@ def commentaire_created(sender, instance, created, **kwargs):
                     )
 
             transaction.on_commit(_send_staff_reply_push)
+
+    should_send_comment_push = False
+    if _is_public_ministry_comment(instance):
+        if created:
+            should_send_comment_push = True
+        else:
+            was_public_ministry = getattr(
+                instance,
+                '_was_public_ministry_for_push',
+                False,
+            )
+            should_send_comment_push = not was_public_ministry
+
+    if should_send_comment_push:
+        def _send_comment_push():
+            try:
+                result = send_incident_comment_push(
+                    incident=instance.incident,
+                    commentaire=instance,
+                )
+                logger.info(
+                    'Push commentaire incident=%s result=%s',
+                    instance.incident.code_suivi,
+                    result,
+                )
+            except Exception:
+                logger.exception(
+                    'Erreur envoi push commentaire incident=%s',
+                    instance.incident.code_suivi,
+                )
+
+        transaction.on_commit(_send_comment_push)

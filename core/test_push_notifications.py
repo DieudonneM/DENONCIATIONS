@@ -145,6 +145,24 @@ class CommentairePushSignalTest(TestCase):
         self.assertEqual(kwargs['incident'].id, self.incident.id)
         self.assertEqual(kwargs['commentaire'].texte, 'Commentaire de suivi')
 
+    def test_commentaire_visibility_switch_to_public_triggers_push_service(self):
+        commentaire = Commentaire.objects.create(
+            incident=self.incident,
+            texte='Commentaire interne rendu public',
+            type_commentaire='interne',
+            origine_public='ministere',
+        )
+
+        with patch('core.signals.send_incident_comment_push') as mocked_sender:
+            with self.captureOnCommitCallbacks(execute=True):
+                commentaire.type_commentaire = 'public'
+                commentaire.save(update_fields=['type_commentaire'])
+
+        mocked_sender.assert_called_once()
+        kwargs = mocked_sender.call_args.kwargs
+        self.assertEqual(kwargs['incident'].id, self.incident.id)
+        self.assertEqual(kwargs['commentaire'].id, commentaire.id)
+
 
 class StaffPushSignalTest(TestCase):
     def setUp(self):
