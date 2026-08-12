@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
 import mimetypes
 from django.conf import settings
@@ -239,6 +239,35 @@ class ApiRegisterView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class DeleteUserAccountView(APIView):
+    """Supprime ou désactive le compte de l'utilisateur authentifié pour la conformité App Store."""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, format=None):
+        user = getattr(request, 'user', None)
+        if user is None or not getattr(user, 'is_authenticated', False):
+            return Response({'detail': 'Authentification requise.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_active:
+            return Response({'detail': 'Ce compte a déjà été désactivé.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user.is_active = False
+            user.email = f'deleted+{user.id}@met-rdc.invalid'
+            user.username = f'deleted_{user.id}'
+            user.first_name = ''
+            user.last_name = ''
+            user.telephone = ''
+            user.organisation = ''
+            user.set_unusable_password()
+            user.save(update_fields=['is_active', 'email', 'username', 'first_name', 'last_name', 'telephone', 'organisation', 'password'])
+        except Exception:
+            return Response({'detail': 'Impossible de supprimer ce compte pour le moment.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        logout(request)
+        return Response({'detail': 'Compte supprimé avec succès.'}, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):

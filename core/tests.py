@@ -24,7 +24,25 @@ class UserModelTest(TestCase):
             nom='Test Province',
             code='TST'
         )
-    
+
+    def test_delete_account_deletes_authenticated_user(self):
+        user = User.objects.create_user(
+            username='delete_user_test',
+            email='delete-user@test.cd',
+            password='password123',
+            role='travailleur',
+            first_name='Claire',
+            last_name='Test'
+        )
+        self.client.force_login(user)
+
+        response = self.client.delete(reverse('api:delete_user_account'))
+
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        self.assertFalse(user.is_active)
+        self.assertFalse(user.email.endswith('@test.cd'))
+
     def test_create_travailleur(self):
         """Test de création d'un utilisateur Travailleur."""
         user = User.objects.create_user(

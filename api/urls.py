@@ -3,7 +3,8 @@ from django.urls import path, include
 from .views import (
     UserViewSet, ProvinceViewSet, EmployeurViewSet, DepartmentViewSet,
     IncidentViewSet, PieceJointeViewSet, CommentaireViewSet, LogAuditViewSet,
-    PublicIncidentCreate, PublicIncidentDetailView, ApiLoginView, ApiRegisterView, PublicDeviceTokenRegisterView
+    PublicIncidentCreate, PublicIncidentDetailView, ApiLoginView, ApiRegisterView,
+    PublicDeviceTokenRegisterView, DeleteUserAccountView
 )
 
 router = DefaultRouter()
@@ -22,6 +23,7 @@ urlpatterns = [
     # The project-level urls.py will include this module under the '/api/' prefix.
     path('login/', ApiLoginView.as_view(), name='api_login'),
     path('register/', ApiRegisterView.as_view(), name='api_register'),
+    path('user/', DeleteUserAccountView.as_view(), name='delete_user_account'),
     path('', include(router.urls)),
     path('public/incidents/', PublicIncidentCreate.as_view(), name='public_incident_create'),
     path('public/incidents/<str:code>/', PublicIncidentDetailView.as_view(), name='public_incident_detail'),
