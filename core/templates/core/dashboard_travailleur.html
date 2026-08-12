@@ -183,6 +183,12 @@
             </div>
         </div>
     </div>
+
+    <div class="delete-account-row">
+        <a href="{% url 'users:delete_account' %}" class="btn-delete-account">
+            Supprimer mon compte
+        </a>
+    </div>
 </section>
 
 <style>
@@ -462,6 +468,28 @@
 
 .info-card .link:hover {
     text-decoration: underline;
+}
+
+.delete-account-row {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0 2rem;
+}
+
+.btn-delete-account {
+    background: transparent;
+    border: 1px solid #c62828;
+    color: #c62828;
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-delete-account:hover {
+    background: #fff5f5;
+    border-color: #b71c1c;
 }
 
 @media (max-width: 768px) {

@@ -128,6 +128,41 @@ class ProfileView(LoginRequiredMixin, View):
         })
 
 
+class DeleteAccountView(LoginRequiredMixin, View):
+    """Page de confirmation de suppression du compte connecté."""
+    template_name = 'users/delete_account.html'
+    login_url = 'users:login'
+
+    def get(self, request):
+        return render(request, self.template_name, {
+            'page_title': 'Supprimer mon compte',
+            'user': request.user,
+        })
+
+    def post(self, request):
+        user = request.user
+        if user.is_anonymous:
+            return redirect('users:login')
+
+        if not user.is_active:
+            messages.error(request, 'Ce compte a déjà été désactivé.')
+            return redirect('core:home')
+
+        user.is_active = False
+        user.email = f'deleted+{user.id}@met-rdc.invalid'
+        user.username = f'deleted_{user.id}'
+        user.first_name = ''
+        user.last_name = ''
+        user.telephone = ''
+        user.organisation = ''
+        user.set_unusable_password()
+        user.save(update_fields=['is_active', 'email', 'username', 'first_name', 'last_name', 'telephone', 'organisation', 'password'])
+
+        logout(request)
+        messages.success(request, 'Votre compte a été supprimé avec succès.')
+        return redirect('core:home')
+
+
 class ForcePasswordChangeView(PasswordChangeView):
     """Vue de changement de mot de passe qui désactive `must_change_password` après succès."""
     template_name = 'users/auth/password_change.html'

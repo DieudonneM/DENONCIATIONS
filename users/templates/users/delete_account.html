@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer mon compte - Gestion des Dénonciations-RDC{% endblock %}
+
+{% block content %}
+<section class="section-white section-padded">
+    <div class="container">
+        <div class="max-w-700 mx-auto">
+            <div class="card-ghost p-5 text-center">
+                <h1 class="section-title mb-3">Supprimer mon compte</h1>
+                <p class="mb-4">Cette action supprimera définitivement votre compte et vous déconnectera de la plateforme.</p>
+
+                <div class="alert alert-warning text-left mb-4">
+                    <strong>Attention :</strong>
+                    <ul class="muted-ul mb-0">
+                        <li>Votre accès au tableau de bord sera perdu ;</li>
+                        <li>Votre compte sera désactivé et vos informations seront anonymisées ;</li>
+                        <li>Cette action est irréversible.</li>
+                    </ul>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">Annuler</a>
+                        <button type="submit" class="btn btn-danger">Oui, supprimer mon compte</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

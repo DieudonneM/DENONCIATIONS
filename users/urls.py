@@ -14,6 +14,7 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('delete-account/', views.DeleteAccountView.as_view(), name='delete_account'),
     # Password change (force after first login)
     path('password/change/', ForcePasswordChangeView.as_view(), name='password_change'),
     path('password/change/done/', auth_views.PasswordChangeDoneView.as_view(
