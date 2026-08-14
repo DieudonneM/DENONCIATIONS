@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'users.middleware.ForcePasswordChangeMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -188,7 +189,6 @@ AUTH_USER_MODEL = 'users.User'
 # Backends d'authentification
 AUTHENTICATION_BACKENDS = [
     'users.auth_backends.EmailBackend',
-    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Login settings

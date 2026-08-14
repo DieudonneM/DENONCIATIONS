@@ -6,6 +6,18 @@
 </div>
 
 <div class="form-container">
+    {% if temporary_password %}
+        <div class="alert alert-warning" role="alert">
+            <strong>Mot de passe temporaire à transmettre une seule fois :</strong>
+            <code id="temporary-password">{{ temporary_password }}</code>
+            <button type="button" class="btn btn-secondary" id="copy-temporary-password">Copier</button>
+            <div class="help-text">
+                Ce code expire dans 5 minutes et ne peut servir qu'à une seule connexion.
+                Il ne sera plus affiché après avoir quitté ou actualisé cette page.
+            </div>
+        </div>
+    {% endif %}
+
     <form method="post">
         {% csrf_token %}
         
@@ -35,6 +47,27 @@
             <a href="{% url 'core:admin_users_list' %}" class="btn-cancel">Annuler</a>
         </div>
     </form>
+
+    {% if user %}
+        <hr>
+        <form method="post" onsubmit="return confirm('Réinitialiser le mot de passe de cet utilisateur ? Son mot de passe actuel cessera immédiatement de fonctionner.');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reset_password">
+            <button type="submit" class="btn btn-warning">Réinitialiser le mot de passe</button>
+            <small class="help-text">
+                Un code temporaire sera généré. L'utilisateur devra le remplacer dès sa première connexion.
+            </small>
+        </form>
+    {% endif %}
 </div>
+
+{% if temporary_password %}
+<script>
+document.getElementById('copy-temporary-password').addEventListener('click', function () {
+    navigator.clipboard.writeText(document.getElementById('temporary-password').textContent);
+    this.textContent = 'Copié';
+});
+</script>
+{% endif %}
 
 {% endblock %}

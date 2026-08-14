@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 
 from users.models import User
+from users.services import reset_to_temporary_password
 from .models import Province, Employeur
 from .admin_forms import (
     AdminUserCreateForm, AdminUserEditForm, AdminAgentProvinceForm,
@@ -45,22 +46,14 @@ def admin_required(view_func):
 @admin_required
 def admin_root(request):
     """Redirige l'URL /admin/ vers le tableau de bord administrateur personnalisé."""
-    return redirect('core:admin_dashboard')
+    return redirect('core:dashboard_admin')
 
 
 @login_required
 @admin_required
 def admin_dashboard(request):
-    """Tableau de bord administrateur personnalisé."""
-    context = {
-        'total_users': User.objects.count(),
-        'total_agents': User.objects.filter(role='agent').count(),
-        'total_travailleurs': User.objects.filter(role='travailleur').count(),
-        'total_provinces': Province.objects.count(),
-        'total_employeurs': Employeur.objects.count(),
-        'recent_users': User.objects.order_by('-date_joined')[:5],
-    }
-    return render(request, 'core/admin/dashboard.html', context)
+    """Conserve l'ancienne URL et redirige vers le dashboard canonique."""
+    return redirect('core:dashboard_admin')
 
 
 # ============================================================================
@@ -126,6 +119,25 @@ def admin_users_edit(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     
     if request.method == 'POST':
+        if request.POST.get('action') == 'reset_password':
+            if user.pk == request.user.pk:
+                messages.error(
+                    request,
+                    'Vous ne pouvez pas réinitialiser votre propre mot de passe depuis cette session.',
+                )
+                return redirect('core:admin_users_edit', user_id=user.pk)
+
+            temporary_password = reset_to_temporary_password(user)
+            request.session['admin_temporary_password'] = {
+                'user_id': user.pk,
+                'password': temporary_password,
+            }
+            messages.success(
+                request,
+                'Mot de passe réinitialisé. Communiquez le code temporaire de manière sécurisée.',
+            )
+            return redirect('core:admin_users_edit', user_id=user.pk)
+
         form = AdminUserEditForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
@@ -133,8 +145,18 @@ def admin_users_edit(request, user_id):
             return redirect('core:admin_users_list')
     else:
         form = AdminUserEditForm(instance=user)
-    
-    context = {'form': form, 'user': user, 'title': f'Modifier {user.get_full_name()}'}
+
+    temporary_password = None
+    pending_password = request.session.pop('admin_temporary_password', None)
+    if pending_password and pending_password.get('user_id') == user.pk:
+        temporary_password = pending_password.get('password')
+
+    context = {
+        'form': form,
+        'user': user,
+        'title': f'Modifier {user.get_full_name()}',
+        'temporary_password': temporary_password,
+    }
     return render(request, 'core/admin/user_form.html', context)
 
 

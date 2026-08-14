@@ -40,6 +40,8 @@ class User(AbstractUser):
     must_change_password = models.BooleanField(default=False)
     # Date/heure de création du mot de passe temporaire (si applicable)
     temp_password_set_at = models.DateTimeField(null=True, blank=True)
+    # Date/heure de la première authentification avec le mot de passe temporaire
+    temp_password_used_at = models.DateTimeField(null=True, blank=True)
     
     # USERNAME_FIELD = 'email'  # Utilise email au lieu de username pour l'authentification
     # REQUIRED_FIELDS = ['username']  # username toujours requis pour createsuperuser

@@ -286,6 +286,7 @@ class IncidentPublicFormView(View):
                             user.set_password(temp_pw)
                             # record timestamp for temporary password
                             user.temp_password_set_at = timezone.now()
+                            user.temp_password_used_at = None
                             user.save()
 
                             # stocker le mot de passe temporaire en session pour affichage
@@ -609,7 +610,7 @@ class DashboardAdminConsoleView(LoginRequiredMixin, TemplateView):
             return redirect('users:login')
         if not user_is_admin(request.user):
             return redirect('core:dashboard')
-        return super().dispatch(request, *args, **kwargs)
+        return redirect('core:dashboard_admin')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -648,14 +649,14 @@ def dashboard_stats_data(request):
     # KPIs
     data = {
         'kpis': {
-            'total': Incident.objects.count(),
-            'nouvelle': Incident.objects.filter(statut='nouvelle').count(),
-            'analyse': Incident.objects.filter(statut='analyse').count(),
-            'attente': Incident.objects.filter(statut='attente').count(),
-            'resolu': Incident.objects.filter(statut='resolue').count(),
-            'classee': Incident.objects.filter(statut='classée').count(),
-            'non_lue': Incident.objects.filter(est_lu=False).count(),
-            'anonyme': Incident.objects.filter(est_anonyme=True).count(),
+            'total': qs.count(),
+            'nouvelle': qs.filter(statut='nouvelle').count(),
+            'analyse': qs.filter(statut='analyse').count(),
+            'attente': qs.filter(statut='attente').count(),
+            'resolu': qs.filter(statut='resolue').count(),
+            'classee': qs.filter(statut='classée').count(),
+            'non_lue': qs.filter(est_lu=False).count(),
+            'anonyme': qs.filter(est_anonyme=True).count(),
         }
     }
 
@@ -674,7 +675,15 @@ def dashboard_stats_data(request):
         .annotate(count=Count('id'))
         .order_by('-count')
     )
-    data['types'] = list(types)
+    type_labels = dict(Incident.TYPE_INCIDENT_CHOICES)
+    data['types'] = [
+        {
+            'type_incident': item['type_incident'],
+            'label': type_labels.get(item['type_incident'], item['type_incident']),
+            'count': item['count'],
+        }
+        for item in types
+    ]
 
     # Chart 3: top 8 provinces
     provinces = (

@@ -3,9 +3,26 @@ Formulaires pour l'authentification et gestion des utilisateurs.
 """
 
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    UserCreationForm,
+)
 from django.core.exceptions import ValidationError
 from .models import User
+
+
+class RequiredPasswordChangeForm(PasswordChangeForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        old_password = cleaned_data.get('old_password')
+        new_password = cleaned_data.get('new_password1')
+        if old_password and new_password and old_password == new_password:
+            self.add_error(
+                'new_password1',
+                'Le nouveau mot de passe doit être différent du mot de passe temporaire.',
+            )
+        return cleaned_data
 
 
 class EmailAuthenticationForm(AuthenticationForm):

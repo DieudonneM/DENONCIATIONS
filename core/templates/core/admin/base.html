@@ -3,6 +3,12 @@
 
 {% block title %}Admin - {{ title|default:"Gestion" }} - MEPT-RDC{% endblock %}
 
+{% block body_class %}admin-page{% endblock %}
+{% block page_messages %}{% endblock %}
+{% block main_class %}admin-main{% endblock %}
+{% block content_container_class %}admin-root-container{% endblock %}
+{% block page_footer %}{% endblock %}
+
 {% block content %}
 <style>
 .admin-container {
@@ -360,54 +366,96 @@
 }
 </style>
 
-<div class="admin-container">
-    <!-- Sidebar -->
-    <nav class="admin-sidebar">
-        <h3>🎛️ Administration</h3>
-        
-        <ul>
-            <li><a href="{% url 'core:admin_dashboard' %}" 
-                   class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                📊 Tableau de Bord
-            </a></li>
-            
-            <li class="mt-4">
-                <strong class="nav-heading">👥 Utilisateurs</strong>
+<div class="admin-mobile-bar">
+    <button class="admin-menu-button" type="button" aria-controls="admin-sidebar" aria-expanded="false" aria-label="Ouvrir le menu d'administration">
+        <span class="material-icons" aria-hidden="true">menu</span>
+    </button>
+    <div>
+        <strong>Console administrative</strong>
+        <span>MEPT-RDC</span>
+    </div>
+</div>
+
+<div class="admin-shell">
+    <nav class="admin-sidebar" id="admin-sidebar" aria-label="Navigation administrative">
+        <div class="admin-sidebar-brand">
+            <span class="admin-brand-mark material-icons" aria-hidden="true">admin_panel_settings</span>
+            <div>
+                <strong>Administration</strong>
+                <span>Console de gestion</span>
+            </div>
+            <button class="admin-sidebar-close" type="button" aria-label="Fermer le menu">
+                <span class="material-icons" aria-hidden="true">close</span>
+            </button>
+        </div>
+
+        <ul class="admin-nav-list">
+            <li>
+                <a href="{% url 'core:dashboard_admin' %}"
+                   class="{% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'dashboard_admin' or request.resolver_match.url_name == 'dashboard_admin_console' %}active{% endif %}">
+                    <span class="material-icons" aria-hidden="true">space_dashboard</span>
+                    <span>Vue d'ensemble</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'core:dashboard_stats' %}"
+                   class="{% if request.resolver_match.url_name == 'dashboard_stats' %}active{% endif %}">
+                    <span class="material-icons" aria-hidden="true">monitoring</span>
+                    <span>Statistiques</span>
+                </a>
+            </li>
+
+            <li class="admin-nav-group">
+                <strong class="nav-heading">Utilisateurs</strong>
                 <a href="{% url 'core:admin_users_list' %}"
-                   class="{% if 'admin_users' in request.resolver_match.url_name %}active{% endif %}">
-                   👤 Tous les utilisateurs
+                   class="{% if 'admin_users' in request.resolver_match.url_name and request.resolver_match.url_name != 'admin_users_create' %}active{% endif %}">
+                    <span class="material-icons" aria-hidden="true">group</span>
+                    <span>Tous les utilisateurs</span>
                 </a>
-                <a href="{% url 'core:admin_users_create' %}">
-                   ➕ Créer un utilisateur
+                <a href="{% url 'core:admin_users_create' %}"
+                   class="{% if request.resolver_match.url_name == 'admin_users_create' %}active{% endif %}">
+                    <span class="material-icons" aria-hidden="true">person_add</span>
+                    <span>Créer un utilisateur</span>
                 </a>
             </li>
-            
-            <li class="mt-4">
-                <strong class="nav-heading">🗺️ Provinces</strong>
+
+            <li class="admin-nav-group">
+                <strong class="nav-heading">Référentiels</strong>
                 <a href="{% url 'core:admin_provinces_list' %}"
-                   class="{% if 'admin_provinces' in request.resolver_match.url_name %}active{% endif %}">
-                   🗺️ Toutes les provinces
+                   class="{% if 'admin_provinces' in request.resolver_match.url_name and request.resolver_match.url_name != 'admin_provinces_create' %}active{% endif %}">
+                    <span class="material-icons" aria-hidden="true">map</span>
+                    <span>Provinces</span>
                 </a>
-                <a href="{% url 'core:admin_provinces_create' %}">
-                   ➕ Créer une province
+                <a href="{% url 'core:admin_provinces_create' %}"
+                   class="{% if request.resolver_match.url_name == 'admin_provinces_create' %}active{% endif %}">
+                    <span class="material-icons" aria-hidden="true">add_location_alt</span>
+                    <span>Créer une province</span>
                 </a>
-            </li>
-            
-            <li class="mt-4">
-                <strong class="nav-heading">🏢 Entreprises</strong>
                 <a href="{% url 'core:admin_employeurs_list' %}"
-                   class="{% if 'admin_employeurs' in request.resolver_match.url_name %}active{% endif %}">
-                   🏢 Toutes les entreprises
+                   class="{% if 'admin_employeurs' in request.resolver_match.url_name and request.resolver_match.url_name != 'admin_employeurs_create' %}active{% endif %}">
+                    <span class="material-icons" aria-hidden="true">domain</span>
+                    <span>Entreprises</span>
                 </a>
-                <a href="{% url 'core:admin_employeurs_create' %}">
-                   ➕ Créer une entreprise
+                <a href="{% url 'core:admin_employeurs_create' %}"
+                   class="{% if request.resolver_match.url_name == 'admin_employeurs_create' %}active{% endif %}">
+                    <span class="material-icons" aria-hidden="true">add_business</span>
+                    <span>Créer une entreprise</span>
                 </a>
             </li>
         </ul>
+
+        <div class="admin-sidebar-footer">
+            <span class="material-icons" aria-hidden="true">verified_user</span>
+            <div>
+                <strong>{{ request.user.get_full_name|default:request.user.email }}</strong>
+                <span>Session sécurisée</span>
+            </div>
+        </div>
     </nav>
-    
-    <!-- Main Content -->
-    <main class="admin-content">
+
+    <button class="admin-sidebar-backdrop" type="button" aria-label="Fermer le menu"></button>
+
+    <div class="admin-content">
         {% if messages %}
             {% for message in messages %}
                 {% if message.tags == 'success' %}
@@ -421,7 +469,30 @@
         {% endif %}
         
         {% block admin_content %}{% endblock %}
-    </main>
+    </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var body = document.body;
+    var openButton = document.querySelector('.admin-menu-button');
+    var closeButton = document.querySelector('.admin-sidebar-close');
+    var backdrop = document.querySelector('.admin-sidebar-backdrop');
+
+    function setMenu(open) {
+        body.classList.toggle('admin-menu-open', open);
+        openButton.setAttribute('aria-expanded', String(open));
+    }
+
+    openButton.addEventListener('click', function () { setMenu(true); });
+    closeButton.addEventListener('click', function () { setMenu(false); });
+    backdrop.addEventListener('click', function () { setMenu(false); });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') setMenu(false);
+    });
+})();
+</script>
 {% endblock %}

@@ -8,12 +8,17 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import User
-from .forms import EmailAuthenticationForm, UserRegistrationForm, UserProfileForm
+from .forms import (
+    EmailAuthenticationForm,
+    RequiredPasswordChangeForm,
+    UserProfileForm,
+    UserRegistrationForm,
+)
 from django.urls import reverse
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from django.utils import timezone
-from datetime import timedelta
+from users.services import TEMPORARY_PASSWORD_TTL
 
 
 class LoginView(View):
@@ -43,12 +48,12 @@ class LoginView(View):
             
             # Si l'utilisateur doit changer son mot de passe, vérifier sa validité
             if getattr(user, 'must_change_password', False):
-                # vérifier expiration (5 minutes)
                 t0 = getattr(user, 'temp_password_set_at', None)
-                if t0 and (timezone.now() - t0) <= timedelta(minutes=5):
+                if t0 and (timezone.now() - t0) <= TEMPORARY_PASSWORD_TTL:
                     messages.info(request, 'Vous devez changer votre mot de passe avant de continuer.')
                     return redirect(reverse('users:password_change'))
                 else:
+                    logout(request)
                     messages.error(request, "Le mot de passe temporaire a expiré. Veuillez demander une réinitialisation de mot de passe.")
                     return redirect(reverse('users:login'))
 
@@ -166,6 +171,7 @@ class DeleteAccountView(LoginRequiredMixin, View):
 class ForcePasswordChangeView(PasswordChangeView):
     """Vue de changement de mot de passe qui désactive `must_change_password` après succès."""
     template_name = 'users/auth/password_change.html'
+    form_class = RequiredPasswordChangeForm
     success_url = reverse_lazy('users:password_change_done')
 
     def form_valid(self, form):
@@ -174,7 +180,13 @@ class ForcePasswordChangeView(PasswordChangeView):
         user = self.request.user
         if hasattr(user, 'must_change_password') and user.must_change_password:
             user.must_change_password = False
-            user.save(update_fields=['must_change_password'])
+            user.temp_password_set_at = None
+            user.temp_password_used_at = None
+            user.save(update_fields=[
+                'must_change_password',
+                'temp_password_set_at',
+                'temp_password_used_at',
+            ])
 
         # If this flow was started after submitting a denunciation, redirect
         # to the incident success page stored in session.
@@ -194,7 +206,7 @@ class ForcePasswordChangeView(PasswordChangeView):
         valid = False
         if temp and user and getattr(user, 'temp_password_set_at', None):
             age = timezone.now() - user.temp_password_set_at
-            if age <= timedelta(minutes=5):
+            if age <= TEMPORARY_PASSWORD_TTL:
                 valid = True
 
         if valid:

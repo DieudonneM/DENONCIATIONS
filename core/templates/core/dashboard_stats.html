@@ -1,119 +1,159 @@
-{% extends 'base.html' %}
+{% extends 'core/admin/base.html' %}
 {% load static %}
 
 {% block title %}Statistiques - Tableau de Bord{% endblock %}
 
-{% block extra_css %}
-<style>
-/* Basic layout for dashboard stats */
-.container > #dashboard-fullbleed { padding: 0; }
-#dashboard-fullbleed { position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; width: 100vw; box-sizing: border-box; }
-.dashboard-wrap { display:flex; gap:24px; align-items:flex-start; }
-.sidebar { width: 260px; background:#0d2e5e; color:#fff; padding:20px; border-radius:8px; min-height:80vh; }
-.sidebar .brand-btn { display:block; background:#ffd700; color:#07203b; text-align:center; padding:10px; border-radius:8px; font-weight:700; margin-bottom:18px; text-decoration:none; }
-.topbar { display:flex; justify-content:space-between; align-items:center; padding:12px 0; }
-.topbar .right-btn { background:#ffd700; color:#07203b; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:700; }
-.content { flex:1; }
-.kpis { display:flex; gap:16px; margin-bottom:18px; }
-.kpi { background:#fff; padding:16px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); cursor:pointer; flex:1; text-align:center; }
-.kpi .value { font-size:1.8rem; font-weight:800; color:#0d2e5e; }
-.filters label { display:block; margin-top:10px; font-weight:600; font-size:0.95rem; }
-.filters select { width:100%; padding:8px; border-radius:6px; border:1px solid #ddd; margin-top:6px; }
-/* Sidebar-specific styles to ensure readability on dark background */
-.sidebar .filters label { color: #ffd700; }
-.sidebar .filters select { color: #07203b; background: #fff; border-color: #ccc; }
-.sidebar .filters select option { color: #07203b; background: #fff; }
-.charts-grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
-.chart-card { background:#fff; padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
-@media (max-width:900px){ .charts-grid{ grid-template-columns:1fr; } .sidebar{display:none;} }
-/* Make sidebar stay visible while charts area scrolls */
-.dashboard-wrap { align-items:flex-start; }
-.sidebar { position:sticky; top:20px; height: calc(100vh - 40px); box-sizing: border-box; }
-.sidebar .filters { padding-bottom: 84px; }
-.content { flex:1; overflow:auto; max-height: calc(100vh - 40px); }
-.sidebar .reset-btn { position:absolute; left:20px; right:20px; bottom:20px; background:#ffd700; color:#07203b; padding:10px; border-radius:8px; border:none; font-weight:700; cursor:pointer; }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="topbar">
-    <h2>Tableau de Bord — Statistiques</br>
-    {{ user.first_name }} {{ user.last_name }} - Connecté 🟢</h2>
-    <div>
-        <!--<a href="{% url 'core:dashboard_admin' %}" class="right-btn">Console d'Administration</a>-->
-        <p>Profil Administrateur</p>
-    </div>
-</div>
-
-<!-- Full-bleed wrapper to cancel base .container padding/margins -->
-<div id="dashboard-fullbleed">
-<div class="dashboard-wrap">
-    <aside class="sidebar">
-        <a href="{% url 'core:dashboard_admin' %}" class="brand-btn">Console d'Administration</a>
-        <div class="filters">
-            <label for="filter-status">Status</label>
-            <select id="filter-status">
-                <option value="">Tous</option>
-                {% for val,label in statuses %}
-                <option value="{{ val }}">{{ label }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="filter-province">Province</label>
-            <select id="filter-province">
-                <option value="">Toutes</option>
-                {% for p in provinces %}
-                <option value="{{ p.id }}">{{ p.nom }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="filter-secteur">Secteur d'activité</label>
-            <select id="filter-secteur">
-                <option value="">Tous</option>
-                {% for val,label in secteurs %}
-                <option value="{{ val }}">{{ label }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="filter-type">Type de dénonciation</label>
-            <select id="filter-type">
-                <option value="">Tous</option>
-                {% for val,label in types %}
-                <option value="{{ val }}">{{ label }}</option>
-                {% endfor %}
-            </select>
+{% block admin_content %}
+<div class="stats-dashboard">
+    <header class="stats-dashboard-header">
+        <div>
+            <span class="dashboard-eyebrow">Analyse et pilotage</span>
+            <h1>Statistiques des dénonciations</h1>
+            <p>Analysez l'activité de la plateforme et affinez les résultats par critères.</p>
         </div>
-        <button id="reset-filters" class="reset-btn">Effacer les Filtres</button>
-    </aside>
+        <div class="stats-header-actions">
+            <div class="admin-session-status">
+                <span class="status-dot" aria-hidden="true"></span>
+                <div>
+                    <strong>{{ user.get_full_name|default:user.email }}</strong>
+                    <span>Données actualisées</span>
+                </div>
+            </div>
+            <a href="{% url 'core:dashboard_admin' %}" class="stats-secondary-action">
+                <span class="material-icons" aria-hidden="true">arrow_back</span>
+                Vue d'ensemble
+            </a>
+        </div>
+    </header>
 
-    <main class="content">
-        <div class="kpis" id="kpi-row">
-            <div class="kpi" data-filter=""><div class="label">Total</div><div class="value" id="kpi-total">{{ stats.total }}</div></div>
-            <div class="kpi" data-filter="nouvelle"><div class="label">Nouvelle</div><div class="value" id="kpi-nouvelle">{{ stats.nouvelle }}</div></div>
-            <div class="kpi" data-filter="analyse"><div class="label">En Cours</div><div class="value" id="kpi-analyse">{{ stats.analyse }}</div></div>
-            <div class="kpi" data-filter="attente"><div class="label">En Attente</div><div class="value" id="kpi-attente">{{ stats.attente }}</div></div>
-            <div class="kpi" data-filter="resolue"><div class="label">Résolu</div><div class="value" id="kpi-resolu">{{ stats.resolu }}</div></div>
-            <div class="kpi" data-filter="classée"><div class="label">Classée</div><div class="value" id="kpi-classee">{{ stats.classee }}</div></div>
-            <div class="kpi" data-filter=""><div class="label">Non Lue</div><div class="value" id="kpi-non-lue">{{ stats.non_lue }}</div></div>
-            <div class="kpi" data-filter=""><div class="label">Anonyme</div><div class="value" id="kpi-anonyme">{{ stats.anonyme|default:0 }}</div></div>
+    <section class="stats-filter-panel" aria-labelledby="filters-title">
+        <div class="stats-filter-heading">
+            <div>
+                <span class="material-icons" aria-hidden="true">filter_alt</span>
+                <div>
+                    <h2 id="filters-title">Filtres d'analyse</h2>
+                    <p id="active-filters-summary">Toutes les données sont affichées</p>
+                </div>
+            </div>
+            <button id="reset-filters" class="stats-reset-button" type="button">
+                <span class="material-icons" aria-hidden="true">restart_alt</span>
+                Réinitialiser
+            </button>
         </div>
 
-        <div class="charts-grid">
-            <div class="chart-card"><h4>Évolution (linéaire)</h4><canvas id="chart-evolution" height="180"></canvas></div>
-            <div class="chart-card"><h4>Type de dénonciation</h4><canvas id="chart-types" height="180"></canvas></div>
-            <div class="chart-card"><h4>Top 10 par Province</h4><canvas id="chart-provinces" height="220"></canvas></div>
-            <div class="chart-card"><h4>Répartition par identification</h4><canvas id="chart-identification" height="220"></canvas></div>
-            <!-- Secteur chart removed as requested -->
+        <div class="stats-filters">
+            <label for="filter-status">
+                <span>Statut</span>
+                <select id="filter-status">
+                    <option value="">Tous les statuts</option>
+                    {% for val,label in statuses %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label for="filter-province">
+                <span>Province</span>
+                <select id="filter-province">
+                    <option value="">Toutes les provinces</option>
+                    {% for p in provinces %}
+                    <option value="{{ p.id }}">{{ p.nom }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label for="filter-secteur">
+                <span>Secteur d'activité</span>
+                <select id="filter-secteur">
+                    <option value="">Tous les secteurs</option>
+                    {% for val,label in secteurs %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label for="filter-type">
+                <span>Type de dénonciation</span>
+                <select id="filter-type">
+                    <option value="">Tous les types</option>
+                    {% for val,label in types %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
         </div>
-    </main>
-</div>
-</div>
+    </section>
+
+    <div class="stats-feedback" id="stats-feedback" role="status" aria-live="polite"></div>
+
+    <section class="stats-kpi-grid" id="kpi-row" aria-label="Indicateurs clés">
+        <button class="stats-kpi-card kpi-total" type="button" data-filter="">
+            <span class="material-icons" aria-hidden="true">data_usage</span>
+            <span class="kpi-copy"><span class="label">Total</span><strong class="value" id="kpi-total">{{ stats.total }}</strong></span>
+        </button>
+        <button class="stats-kpi-card" type="button" data-filter="nouvelle">
+            <span class="material-icons" aria-hidden="true">fiber_new</span>
+            <span class="kpi-copy"><span class="label">Nouvelles</span><strong class="value" id="kpi-nouvelle">{{ stats.nouvelle }}</strong></span>
+        </button>
+        <button class="stats-kpi-card" type="button" data-filter="analyse">
+            <span class="material-icons" aria-hidden="true">manage_search</span>
+            <span class="kpi-copy"><span class="label">En cours</span><strong class="value" id="kpi-analyse">{{ stats.analyse }}</strong></span>
+        </button>
+        <button class="stats-kpi-card" type="button" data-filter="attente">
+            <span class="material-icons" aria-hidden="true">schedule</span>
+            <span class="kpi-copy"><span class="label">En attente</span><strong class="value" id="kpi-attente">{{ stats.attente }}</strong></span>
+        </button>
+        <button class="stats-kpi-card" type="button" data-filter="resolue">
+            <span class="material-icons" aria-hidden="true">task_alt</span>
+            <span class="kpi-copy"><span class="label">Résolues</span><strong class="value" id="kpi-resolu">{{ stats.resolu }}</strong></span>
+        </button>
+        <button class="stats-kpi-card" type="button" data-filter="classée">
+            <span class="material-icons" aria-hidden="true">inventory_2</span>
+            <span class="kpi-copy"><span class="label">Classées</span><strong class="value" id="kpi-classee">{{ stats.classee }}</strong></span>
+        </button>
+        <button class="stats-kpi-card" type="button" data-filter="">
+            <span class="material-icons" aria-hidden="true">mark_email_unread</span>
+            <span class="kpi-copy"><span class="label">Non lues</span><strong class="value" id="kpi-non-lue">{{ stats.non_lue }}</strong></span>
+        </button>
+        <button class="stats-kpi-card" type="button" data-filter="">
+            <span class="material-icons" aria-hidden="true">visibility_off</span>
+            <span class="kpi-copy"><span class="label">Anonymes</span><strong class="value" id="kpi-anonyme">{{ stats.anonyme|default:0 }}</strong></span>
+        </button>
+    </section>
+
+    <section class="stats-charts-grid" aria-label="Visualisations statistiques">
+        <article class="stats-chart-card chart-wide">
+            <div class="chart-card-heading">
+                <div><span class="material-icons" aria-hidden="true">show_chart</span><div><h2>Évolution des signalements</h2><p>Volume quotidien des dénonciations</p></div></div>
+            </div>
+            <div class="chart-canvas chart-evolution"><canvas id="chart-evolution"></canvas></div>
+        </article>
+        <article class="stats-chart-card">
+            <div class="chart-card-heading">
+                <div><span class="material-icons" aria-hidden="true">category</span><div><h2>Types de dénonciation</h2><p>Répartition par motif déclaré</p></div></div>
+            </div>
+            <div class="chart-canvas"><canvas id="chart-types"></canvas></div>
+        </article>
+        <article class="stats-chart-card">
+            <div class="chart-card-heading">
+                <div><span class="material-icons" aria-hidden="true">location_on</span><div><h2>Top 10 des provinces</h2><p>Territoires les plus représentés</p></div></div>
+            </div>
+            <div class="chart-canvas"><canvas id="chart-provinces"></canvas></div>
+        </article>
+        <article class="stats-chart-card chart-identification-card">
+            <div class="chart-card-heading">
+                <div><span class="material-icons" aria-hidden="true">donut_large</span><div><h2>Mode d'identification</h2><p>Dénonciations identifiées et anonymes</p></div></div>
+            </div>
+            <div class="chart-canvas chart-identification"><canvas id="chart-identification"></canvas></div>
+        </article>
+    </section>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script>
     // server-rendered fallback list of provinces (JSON)
@@ -121,7 +161,10 @@
 </script>
 <script>
 const apiUrl = "{% url 'core:dashboard_stats_data' %}";
-let charts = {};
+const incidentsUrl = "{% url 'core:incidents_list' %}";
+const filterIds = ['filter-status','filter-province','filter-secteur','filter-type'];
+const charts = {};
+let activeRequest = null;
 
 // Register datalabels plugin
 if(window.Chart && window.ChartDataLabels){
@@ -139,12 +182,43 @@ async function fetchData(){
     if(secteur) params.set('secteur', secteur);
     if(type) params.set('type', type);
 
-    const res = await fetch(apiUrl + '?' + params.toString(), { credentials: 'same-origin' });
-    if(!res.ok) return;
-    const data = await res.json();
-    populateFilters(data);
-    updateKPIs(data.kpis);
-    updateCharts(data);
+    if(activeRequest) activeRequest.abort();
+    activeRequest = new AbortController();
+    setFeedback('Actualisation des données…', 'loading');
+
+    try {
+        const res = await fetch(apiUrl + '?' + params.toString(), {
+            credentials: 'same-origin',
+            signal: activeRequest.signal,
+        });
+        if(!res.ok) throw new Error('Réponse serveur invalide');
+        const data = await res.json();
+        populateFilters(data);
+        updateKPIs(data.kpis);
+        updateCharts(data);
+        updateActiveFiltersSummary();
+        setFeedback('', 'idle');
+    } catch(error) {
+        if(error.name !== 'AbortError') {
+            setFeedback('Impossible d’actualiser les statistiques. Réessayez dans un instant.', 'error');
+        }
+    }
+}
+
+function setFeedback(message, state){
+    const feedback = document.getElementById('stats-feedback');
+    feedback.textContent = message;
+    feedback.dataset.state = state;
+}
+
+function updateActiveFiltersSummary(){
+    const activeLabels = filterIds.map(id=>{
+        const select = document.getElementById(id);
+        return select.value ? select.options[select.selectedIndex].text : null;
+    }).filter(Boolean);
+    document.getElementById('active-filters-summary').textContent = activeLabels.length
+        ? activeLabels.join(' · ')
+        : 'Toutes les données sont affichées';
 }
 
 function populateFilters(data){
@@ -152,11 +226,12 @@ function populateFilters(data){
     if(data.all_provinces && data.all_provinces.length){
         const sel = document.getElementById('filter-province');
         if(sel){
-            // remove existing options except the first default one
+            const selectedValue = sel.value;
             while(sel.options.length > 1){ sel.remove(1); }
             data.all_provinces.forEach(p=>{
                 const opt = document.createElement('option'); opt.value = String(p.id); opt.textContent = p.nom; sel.appendChild(opt);
             });
+            sel.value = selectedValue;
         }
     } else if(window.INITIAL_PROVINCES && window.INITIAL_PROVINCES.length){
         const sel = document.getElementById('filter-province');
@@ -203,19 +278,37 @@ function updateKPIs(kpis){
 }
 
 function initCharts(){
+    if(!window.Chart){
+        setFeedback('Le module de graphiques n’a pas pu être chargé.', 'error');
+        return false;
+    }
+
+    const sharedOptions = {
+        responsive:true,
+        maintainAspectRatio:false,
+        animation:{ duration:350 },
+        plugins:{
+            legend:{ display:false },
+            tooltip:{ backgroundColor:'#102a43', padding:10, cornerRadius:6 },
+        },
+        scales:{
+            x:{ grid:{ color:'rgba(100,119,134,0.12)' }, ticks:{ color:'#647786' } },
+            y:{ grid:{ color:'rgba(100,119,134,0.12)' }, ticks:{ color:'#647786' } },
+        },
+    };
+
     const ctxE = document.getElementById('chart-evolution').getContext('2d');
-    charts.evolution = new Chart(ctxE, { type:'line', data:{ labels:[], datasets:[{ label:'Dénonciations', data:[], borderColor:'#0d2e5e', backgroundColor:'rgba(13,46,94,0.06)', tension:0.3 }] }, options:{ responsive:true, plugins:{ datalabels:{ color:'#0d2e5e', align:'end', anchor:'end', formatter:function(value){ return value; } } } } });
+    charts.evolution = new Chart(ctxE, { type:'line', data:{ labels:[], datasets:[{ label:'Dénonciations', data:[], borderColor:'#1673b1', backgroundColor:'rgba(22,115,177,0.10)', fill:true, tension:0.35, pointRadius:3, pointBackgroundColor:'#1673b1' }] }, options:{ ...sharedOptions, plugins:{ ...sharedOptions.plugins, datalabels:{ display:false } }, scales:{ ...sharedOptions.scales, y:{ ...sharedOptions.scales.y, beginAtZero:true } } } });
 
     const ctxT = document.getElementById('chart-types').getContext('2d');
-    charts.types = new Chart(ctxT, { type:'bar', data:{ labels:[], datasets:[{ label:'Nombre', data:[], backgroundColor:'#1e5bb8' }] }, options:{ indexAxis:'y', responsive:true, plugins:{ datalabels:{ color:'#ffffff', anchor:'end', align:'start', formatter:function(value){ return value; } } } } });
+    charts.types = new Chart(ctxT, { type:'bar', data:{ labels:[], datasets:[{ label:'Nombre', data:[], backgroundColor:'#1673b1', borderRadius:4 }] }, options:{ ...sharedOptions, indexAxis:'y', plugins:{ ...sharedOptions.plugins, datalabels:{ color:'#ffffff', anchor:'end', align:'start', formatter:value=>value } }, scales:{ x:{ ...sharedOptions.scales.x, beginAtZero:true }, y:{ ...sharedOptions.scales.y, grid:{ display:false } } } } });
 
     const ctxP = document.getElementById('chart-provinces').getContext('2d');
-    charts.provinces = new Chart(ctxP, { type:'bar', data:{ labels:[], datasets:[{ label:'Top Provinces', data:[], backgroundColor:'#134294' }] }, options:{ indexAxis:'y', responsive:true, plugins:{ datalabels:{ color:'#ffffff', anchor:'end', align:'end', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); var pct = sum ? Math.round(value*100/sum) : 0; return value + ' (' + pct + '%)'; } } }, scales:{ x:{ beginAtZero:true } } } });
+    charts.provinces = new Chart(ctxP, { type:'bar', data:{ labels:[], datasets:[{ label:'Top Provinces', data:[], backgroundColor:'#31a7c4', borderRadius:4 }] }, options:{ ...sharedOptions, indexAxis:'y', plugins:{ ...sharedOptions.plugins, datalabels:{ color:'#ffffff', anchor:'end', align:'start', formatter:value=>value } }, scales:{ x:{ ...sharedOptions.scales.x, beginAtZero:true }, y:{ ...sharedOptions.scales.y, grid:{ display:false } } } } });
 
     const ctxI = document.getElementById('chart-identification').getContext('2d');
-    charts.identification = new Chart(ctxI, { type:'doughnut', data:{ labels:['Identifié','Anonyme'], datasets:[{ data:[0,0], backgroundColor:['#1e5bb8','#ffd700'] }] }, options:{ responsive:true, plugins:{ datalabels:{ color:'#07203b', formatter:function(value, ctx){ var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b;},0); if(!sum) return value; return Math.round(value*100/sum) + '%'; } } } } });
-
-    // sectors chart removed — no initialization
+    charts.identification = new Chart(ctxI, { type:'doughnut', data:{ labels:['Identifiées','Anonymes'], datasets:[{ data:[0,0], backgroundColor:['#1673b1','#f1c84b'], borderWidth:0, hoverOffset:4 }] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{ display:true, position:'bottom', labels:{ color:'#647786', usePointStyle:true, padding:18 } }, datalabels:{ color:'#102a43', font:{ weight:'700' }, formatter:function(value, ctx){ const sum=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return sum ? Math.round(value*100/sum)+'%' : '0%'; } } } } });
+    return true;
 }
 
 function updateCharts(data){
@@ -225,63 +318,46 @@ function updateCharts(data){
     charts.evolution.data.labels = evoLabels; charts.evolution.data.datasets[0].data = evoData; charts.evolution.update();
 
     // types
-    const typesLabels = data.types.map(t=>t.type_incident||t.type_incident);
+    const typesLabels = data.types.map(t=>t.label || t.type_incident);
     const typesData = data.types.map(t=>t.count);
     charts.types.data.labels = typesLabels; charts.types.data.datasets[0].data = typesData; charts.types.update();
 
     // provinces
-    const provLabels = data.provinces.map(p=>p.province__nom||p['province__nom']);
+    const provLabels = data.provinces.map(p=>p.province__nom || 'Non renseignée');
     const provData = data.provinces.map(p=>p.count);
     charts.provinces.data.labels = provLabels; charts.provinces.data.datasets[0].data = provData; charts.provinces.update();
 
     // identification
     charts.identification.data.datasets[0].data = [data.identification.identified, data.identification.anonymous]; charts.identification.update();
 
-    // secteurs chart removed — nothing to update
 }
 
 // wire filters
-['filter-status','filter-province','filter-secteur','filter-type'].forEach(id=>{
+filterIds.forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.addEventListener('change', ()=> fetchData());
 });
 
 // KPIs clickable
 document.addEventListener('DOMContentLoaded', ()=>{
-    initCharts();
-    fetchData();
-    document.querySelectorAll('.kpi').forEach(k=>{
+    if(initCharts()) fetchData();
+    document.querySelectorAll('.stats-kpi-card').forEach(k=>{
         k.addEventListener('click', ()=>{
             const filter = k.getAttribute('data-filter');
             const params = new URLSearchParams(); if(filter) params.set('status', filter);
-            window.location.href = "{% url 'core:incidents_list' %}?"+params.toString();
+            window.location.href = incidentsUrl + '?' + params.toString();
         });
     });
     // reset filters button
     const resetBtn = document.getElementById('reset-filters');
     if(resetBtn){
         resetBtn.addEventListener('click', ()=>{
-            ['filter-status','filter-province','filter-secteur','filter-type'].forEach(id=>{
+            filterIds.forEach(id=>{
                 const el = document.getElementById(id);
                 if(el) el.value = '';
             });
-            // refresh charts
             fetchData();
-            // scroll charts area to top
-            const content = document.querySelector('main.content'); if(content) content.scrollTop = 0;
         });
-    }
-    // ensure filters are applied on load and that full-bleed wrapper cancels container padding
-    const fb = document.getElementById('dashboard-fullbleed');
-    if(fb){
-        fb.style.position = 'relative';
-        fb.style.left = '50%';
-        fb.style.right = '50%';
-        fb.style.marginLeft = '-50vw';
-        fb.style.marginRight = '-50vw';
-        fb.style.width = '100vw';
-        fb.style.boxSizing = 'border-box';
-        fb.style.padding = '0';
     }
 });
 </script>

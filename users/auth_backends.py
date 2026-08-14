@@ -3,7 +3,9 @@ Authentification personnalisée pour l'application.
 """
 
 from django.contrib.auth.backends import ModelBackend
+from django.utils import timezone
 from users.models import User
+from users.services import TEMPORARY_PASSWORD_TTL
 
 
 class EmailBackend(ModelBackend):
@@ -23,11 +25,29 @@ class EmailBackend(ModelBackend):
             except User.DoesNotExist:
                 return None
         
-        if user.check_password(password) and user.is_active:
-            return user
+        if not user.check_password(password) or not user.is_active:
+            return None
+
+        if user.must_change_password:
+            set_at = user.temp_password_set_at
+            if (
+                set_at is None
+                or timezone.now() - set_at > TEMPORARY_PASSWORD_TTL
+                or user.temp_password_used_at is not None
+            ):
+                return None
+
+            used_at = timezone.now()
+            consumed = User.objects.filter(
+                pk=user.pk,
+                temp_password_used_at__isnull=True,
+            ).update(temp_password_used_at=used_at)
+            if not consumed:
+                return None
+            user.temp_password_used_at = used_at
+
+        return user
         
-        return None
-    
     def get_user(self, user_id):
         """Récupérer l'utilisateur par ID."""
         try:

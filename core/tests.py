@@ -16,6 +16,59 @@ from denunciations.models import Incident, Commentaire, PieceJointe
 User = get_user_model()
 
 
+class DashboardStatsDataTest(TestCase):
+    def setUp(self):
+        province = Province.objects.create(nom='Kinshasa Stats', code='KST')
+        employeur = Employeur.objects.create(
+            nom='Entreprise Stats',
+            secteur='industrie',
+            province=province,
+            ville='Kinshasa',
+        )
+        self.admin = User.objects.create_user(
+            username='stats_admin',
+            email='stats-admin@test.cd',
+            password='password123',
+            role='administrateur',
+        )
+        Incident.objects.create(
+            employeur=employeur,
+            province=province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Incident nouveau',
+            statut='nouvelle',
+        )
+        Incident.objects.create(
+            employeur=employeur,
+            province=province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Incident en analyse',
+            statut='analyse',
+        )
+
+    def test_kpis_follow_active_filters(self):
+        self.client.force_login(
+            self.admin,
+            backend='users.auth_backends.EmailBackend',
+        )
+
+        response = self.client.get(
+            reverse('core:dashboard_stats_data'),
+            {'status': 'nouvelle'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['kpis']['total'], 1)
+        self.assertEqual(response.json()['kpis']['nouvelle'], 1)
+        self.assertEqual(response.json()['kpis']['analyse'], 0)
+        self.assertEqual(
+            response.json()['types'][0]['label'],
+            'Non-paiement du salaire',
+        )
+
+
 class UserModelTest(TestCase):
     """Tests pour le modèle User personnalisé."""
     

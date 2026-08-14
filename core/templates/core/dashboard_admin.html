@@ -5,31 +5,50 @@
 
 {% block admin_content %}
 <div class="admin-dashboard">
-    <!-- Header -->
     <div class="dashboard-header">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div class="dashboard-heading">
             <div>
-                <h1>Tableau de Bord Administrateur</h1>
-                <h2>{{ user.get_full_name }} - Connecté 🟢</h2>
-                <p>Gestion complète de la plateforme de dénonciation</p>
+                <span class="dashboard-eyebrow">Console de pilotage</span>
+                <h1>Tableau de bord administrateur</h1>
+                <p>Supervisez les utilisateurs et les référentiels de la plateforme.</p>
             </div>
-            <div>
-                <a href="{% url 'core:dashboard_stats' %}" class="btn btn-primary" style="text-transform:none;padding:8px 12px;">Voir Statistiques</a>
+            <div class="dashboard-heading-actions">
+                <div class="admin-session-status">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <div>
+                        <strong>{{ user.get_full_name|default:user.email }}</strong>
+                        <span>Session active</span>
+                    </div>
+                </div>
+                <a href="{% url 'core:dashboard_stats' %}" class="dashboard-primary-action">
+                    <span class="material-icons" aria-hidden="true">insights</span>
+                    Statistiques
+                </a>
             </div>
         </div>
     </div>
 
-
-    <!-- SECTION 1: GESTION DES UTILISATEURS -->
     <div class="stats-section">
-        <div class="section-title">👥 Gestion des Utilisateurs</div>
+        <div class="dashboard-section-heading">
+            <div>
+                <span class="material-icons" aria-hidden="true">group</span>
+                <div>
+                    <h2>Gestion des utilisateurs</h2>
+                    <p>Comptes, rôles et accès à la plateforme</p>
+                </div>
+            </div>
+            <a href="{% url 'core:admin_users_list' %}">Voir tous</a>
+        </div>
         
         <div class="management-grid">
-            <!-- Agents -->
             <div class="management-card">
                 <div class="management-header">
-                    <div>
-                        <h3>🕵️ Agents</h3>
+                    <div class="management-title">
+                        <span class="material-icons" aria-hidden="true">support_agent</span>
+                        <div>
+                            <h3>Agents</h3>
+                            <span>Derniers comptes enregistrés</span>
+                        </div>
                     </div>
                     <div class="count">{{ total_agents }}</div>
                 </div>
@@ -54,28 +73,37 @@
                 </div>
             </div>
 
-            <!-- Travailleurs -->
             <div class="management-card">
                 <div class="management-header">
-                    <div>
-                        <h3>💼 Travailleurs</h3>
+                    <div class="management-title">
+                        <span class="material-icons" aria-hidden="true">badge</span>
+                        <div>
+                            <h3>Travailleurs</h3>
+                            <span>Utilisateurs de la plateforme</span>
+                        </div>
                     </div>
                     <div class="count">{{ total_travailleurs }}</div>
                 </div>
                 <div class="management-body">
-                    <p class="muted mt-4">Total des utilisateurs travailleurs enregistrés sur la plateforme.</p>
-                    <a href="{% url 'core:admin_users_list' %}?role=travailleur" class="btn-manage secondary">Gérer</a>
+                    <p class="management-description">Consultez les profils, leur statut et les informations associées.</p>
+                    <a href="{% url 'core:admin_users_list' %}?role=travailleur" class="management-inline-action">
+                        Gérer les comptes
+                        <span class="material-icons" aria-hidden="true">arrow_forward</span>
+                    </a>
                 </div>
                 <div class="management-footer">
                     <a href="{% url 'core:admin_users_list' %}?role=travailleur">Voir les Travailleurs →</a>
                 </div>
             </div>
 
-            <!-- Statistiques Utilisateurs -->
             <div class="management-card">
                 <div class="management-header">
-                    <div>
-                        <h3>📈 Statistiques</h3>
+                    <div class="management-title">
+                        <span class="material-icons" aria-hidden="true">analytics</span>
+                        <div>
+                            <h3>Répartition</h3>
+                            <span>Vue synthétique des comptes</span>
+                        </div>
                     </div>
                     <div class="count">{{ total_users }}</div>
                 </div>
@@ -102,16 +130,26 @@
         </div>
     </div>
 
-    <!-- SECTION 2: GESTION ADMINISTRATIVE -->
     <div class="stats-section">
-        <div class="section-title">⚙️ Gestion Administrative</div>
+        <div class="dashboard-section-heading">
+            <div>
+                <span class="material-icons" aria-hidden="true">tune</span>
+                <div>
+                    <h2>Gestion administrative</h2>
+                    <p>Référentiels et opérations courantes</p>
+                </div>
+            </div>
+        </div>
         
         <div class="management-grid">
-            <!-- Provinces -->
             <div class="management-card">
                 <div class="management-header">
-                    <div>
-                        <h3>🗺️ Provinces</h3>
+                    <div class="management-title">
+                        <span class="material-icons" aria-hidden="true">map</span>
+                        <div>
+                            <h3>Provinces</h3>
+                            <span>Couverture territoriale</span>
+                        </div>
                     </div>
                     <div class="count">{{ total_provinces }}</div>
                 </div>
@@ -134,19 +172,32 @@
                 </div>
             </div>
 
-            <!-- Actions Rapides -->
             <div class="management-card">
                 <div class="management-header">
-                    <div>
-                        <h3>⚡ Actions Rapides</h3>
+                    <div class="management-title">
+                        <span class="material-icons" aria-hidden="true">bolt</span>
+                        <div>
+                            <h3>Actions rapides</h3>
+                            <span>Créer un nouvel élément</span>
+                        </div>
                     </div>
                 </div>
-                <div class="management-body">
-                    <a href="{% url 'core:admin_users_create' %}" class="btn-manage">Ajouter un Agent</a>
-                    <br>
-                    <a href="{% url 'core:admin_provinces_create' %}" class="btn-manage">Ajouter une Province</a>
-                    <br>
-                    <a href="{% url 'core:admin_employeurs_create' %}" class="btn-manage">Ajouter une Entreprise</a>
+                <div class="management-body quick-actions-list">
+                    <a href="{% url 'core:admin_users_create' %}">
+                        <span class="material-icons" aria-hidden="true">person_add</span>
+                        <span><strong>Ajouter un agent</strong><small>Créer un nouveau compte</small></span>
+                        <span class="material-icons" aria-hidden="true">chevron_right</span>
+                    </a>
+                    <a href="{% url 'core:admin_provinces_create' %}">
+                        <span class="material-icons" aria-hidden="true">add_location_alt</span>
+                        <span><strong>Ajouter une province</strong><small>Étendre le référentiel</small></span>
+                        <span class="material-icons" aria-hidden="true">chevron_right</span>
+                    </a>
+                    <a href="{% url 'core:admin_employeurs_create' %}">
+                        <span class="material-icons" aria-hidden="true">add_business</span>
+                        <span><strong>Ajouter une entreprise</strong><small>Créer une fiche employeur</small></span>
+                        <span class="material-icons" aria-hidden="true">chevron_right</span>
+                    </a>
                 </div>
                 <div class="management-footer">
                     <a href="{% url 'core:admin_dashboard' %}">Accéder au Panel Admin →</a>

@@ -20,7 +20,7 @@
     </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <!-- Navigation winget install GitHub.Copilot -->
     <nav class="navbar">
         <div class="navbar-container">
@@ -62,6 +62,7 @@
     </nav>
 
 
+    {% block page_messages %}
     <!-- Messages -->
     {% if messages %}
         <div class="messages">
@@ -73,15 +74,16 @@
             {% endfor %}
         </div>
     {% endif %}
+    {% endblock %}
 
     <!-- Contenu principal -->
-    <!-- Contenu principal -->
-    <main class="main-content">
-        <div class="container">
+    <main class="main-content {% block main_class %}{% endblock %}">
+        <div class="{% block content_container_class %}container{% endblock %}">
             {% block content %}{% endblock %}
         </div>
     </main>
 
+    {% block page_footer %}
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-container">
@@ -139,6 +141,7 @@
             <p>&copy; 2026 Gestion des Dénonciations | Développé par <a href="https://www.nur-sarl.com" target="_blank">NUR SARL</a> | Tous droits réservés</p>
         </div>
     </footer>
+    {% endblock %}
 
     <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>

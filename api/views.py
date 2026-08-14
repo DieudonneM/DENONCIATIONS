@@ -180,6 +180,23 @@ class ApiLoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        temporary_user = User.objects.filter(email__iexact=email).first()
+        if (
+            temporary_user
+            and temporary_user.must_change_password
+            and temporary_user.check_password(password)
+        ):
+            return Response(
+                {
+                    'detail': (
+                        'Ce mot de passe temporaire doit être personnalisé sur le portail web '
+                        'avant la connexion mobile.'
+                    ),
+                    'password_change_required': True,
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         user = authenticate(request, username=email, password=password)
         if not user:
             return Response(
