@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'users',          # Gestion des utilisateurs
     'denunciations',  # Gestion des dénonciations
     'core',           # Application principale
+    'inspections',    # Gestion des ordres de mission d'inspection
     'cloudinary_storage',
     'cloudinary',
     

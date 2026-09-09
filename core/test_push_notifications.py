@@ -63,6 +63,60 @@ class PublicDeviceTokenApiTest(TestCase):
         saved = MobileDeviceToken.objects.get(token='tok_123')
         self.assertEqual(saved.platform, 'ios')
         self.assertEqual(saved.code_suivi, self.incident.code_suivi)
+        self.assertTrue(saved.tracked_incidents.filter(pk=self.incident.pk).exists())
+
+    def test_register_without_code_preserves_anonymous_subscription(self):
+        url = reverse('api:public_device_token_register')
+        self.client.post(
+            url,
+            data={
+                'token': 'tok_123',
+                'platform': 'android',
+                'code_suivi': self.incident.code_suivi,
+            },
+            content_type='application/json',
+        )
+
+        response = self.client.post(
+            url,
+            data={'token': 'tok_123', 'platform': 'android'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        saved = MobileDeviceToken.objects.get(token='tok_123')
+        self.assertEqual(saved.code_suivi, self.incident.code_suivi)
+        self.assertTrue(saved.tracked_incidents.filter(pk=self.incident.pk).exists())
+
+    def test_register_same_device_for_multiple_incidents(self):
+        second_incident = Incident.objects.create(
+            employeur=self.employeur,
+            province=self.province,
+            ville='Kinshasa',
+            type_incident='conge',
+            description='Deuxieme description test',
+            est_anonyme=True,
+        )
+        url = reverse('api:public_device_token_register')
+
+        for incident in (self.incident, second_incident):
+            response = self.client.post(
+                url,
+                data={
+                    'token': 'tok_multiple',
+                    'platform': 'android',
+                    'code_suivi': incident.code_suivi,
+                },
+                content_type='application/json',
+            )
+            self.assertIn(response.status_code, {200, 201})
+
+        saved = MobileDeviceToken.objects.get(token='tok_multiple')
+        self.assertEqual(MobileDeviceToken.objects.filter(token='tok_multiple').count(), 1)
+        self.assertSetEqual(
+            set(saved.tracked_incidents.values_list('pk', flat=True)),
+            {self.incident.pk, second_incident.pk},
+        )
 
     def test_register_device_token_staff_subscription(self):
         url = reverse('api:public_device_token_register')

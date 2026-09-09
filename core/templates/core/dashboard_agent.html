@@ -349,6 +349,16 @@
                 {% endif %}
             </div>
         </div>
+        <div class="management-card">
+            <div class="management-header">
+                <h3>📋 Missions d'inspection</h3>
+            </div>
+            <div class="management-body">
+                <p>Programmez une mission et verifiez les collisions avec les autres entites.</p>
+                <a href="{% url 'inspections:soumettre_mission' %}" class="btn btn-primary">Nouvelle mission</a>
+                <a href="{% url 'inspections:liste_ordres_mission' %}" class="btn btn-secondary">Consulter les missions</a>
+            </div>
+        </div>
     </div>
 
     <div class="filter-section">

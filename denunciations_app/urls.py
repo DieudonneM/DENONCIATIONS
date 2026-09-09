@@ -11,6 +11,7 @@ urlpatterns = [
     path('auth/', include('users.urls')),
     path('api/', include('api.urls')),
     path('', include('denunciations.urls')),
+    path('inspections/', include('inspections.urls')),
 ]
 
 if settings.DEBUG:

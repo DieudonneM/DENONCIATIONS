@@ -24,6 +24,14 @@
                     <span class="material-icons" aria-hidden="true">insights</span>
                     Statistiques
                 </a>
+                <a href="{% url 'inspections:soumettre_mission' %}" class="dashboard-primary-action">
+                    <span class="material-icons" aria-hidden="true">assignment_add</span>
+                    Nouvelle mission
+                </a>
+                <a href="{% url 'inspections:liste_ordres_mission' %}" class="dashboard-primary-action">
+                    <span class="material-icons" aria-hidden="true">fact_check</span>
+                    Consulter les missions
+                </a>
             </div>
         </div>
     </div>

@@ -424,6 +424,11 @@ class MobileDeviceToken(models.Model):
         blank=True,
         related_name='device_tokens',
     )
+    tracked_incidents = models.ManyToManyField(
+        Incident,
+        blank=True,
+        related_name='subscribed_device_tokens',
+    )
     code_suivi = models.CharField(max_length=20, blank=True, db_index=True)
     user_role = models.CharField(max_length=20, blank=True, choices=USER_ROLE_CHOICES, db_index=True)
     receives_staff_notifications = models.BooleanField(default=False, db_index=True)

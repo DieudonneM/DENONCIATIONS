@@ -129,7 +129,11 @@ def send_incident_status_change_push(
 
     token_rows = list(
         MobileDeviceToken.objects.filter(is_active=True)
-        .filter(Q(incident=incident) | Q(code_suivi=incident.code_suivi))
+        .filter(
+            Q(tracked_incidents=incident)
+            | Q(incident=incident)
+            | Q(code_suivi=incident.code_suivi)
+        )
         .exclude(token='')
         .values_list('id', 'token')
         .distinct()
@@ -177,7 +181,11 @@ def send_incident_comment_push(
 
     token_rows = list(
         MobileDeviceToken.objects.filter(is_active=True)
-        .filter(Q(incident=incident) | Q(code_suivi=incident.code_suivi))
+        .filter(
+            Q(tracked_incidents=incident)
+            | Q(incident=incident)
+            | Q(code_suivi=incident.code_suivi)
+        )
         .exclude(token='')
         .values_list('id', 'token')
         .distinct()

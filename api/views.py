@@ -717,17 +717,24 @@ class PublicDeviceTokenRegisterView(APIView):
         if code_suivi:
             incident = Incident.objects.filter(code_suivi=code_suivi).first()
 
-        obj, created = MobileDeviceToken.objects.update_or_create(
-            token=token,
-            defaults={
-                'platform': platform,
+        defaults = {
+            'platform': platform,
+            'user_role': user_role,
+            'receives_staff_notifications': receives_staff_notifications,
+            'is_active': True,
+        }
+        if incident is not None:
+            defaults.update({
                 'incident': incident,
                 'code_suivi': code_suivi,
-                'user_role': user_role,
-                'receives_staff_notifications': receives_staff_notifications,
-                'is_active': True,
-            },
+            })
+
+        obj, created = MobileDeviceToken.objects.update_or_create(
+            token=token,
+            defaults=defaults,
         )
+        if incident is not None:
+            obj.tracked_incidents.add(incident)
 
         response_data = {
             'detail': 'Token enregistre' if created else 'Token mis a jour',

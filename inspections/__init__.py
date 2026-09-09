@@ -1,0 +1,1 @@
+"""Application de gestion des inspections du travail."""

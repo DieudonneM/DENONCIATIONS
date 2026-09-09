@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Soumettre une mission d'inspection{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'inspections/css/inspections.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="inspection-submission">
+    <nav class="breadcrumb" aria-label="Fil d'ariane">
+        <a href="{% url 'core:dashboard' %}">Tableau de bord</a>
+        <span aria-hidden="true">/</span>
+        <span>Nouvelle mission</span>
+    </nav>
+
+    <div class="inspection-page-heading">
+        <p class="inspection-kicker">Coordination nationale</p>
+        <h1>Projet de mission d'inspection</h1>
+        <p>Verifiez les conflits de programmation avant l'emission de l'ordre de mission.</p>
+    </div>
+
+    {% if created_mission %}
+        <div class="mission-export-box">
+            <div>
+                <strong>Ordre de mission emis : {{ created_mission.numero_om }}</strong>
+                <p>Le document administratif est pret a etre exporte.</p>
+            </div>
+            <a href="{% url 'inspections:ordre_mission_pdf' created_mission.pk %}" class="btn btn-primary">Telecharger le PDF</a>
+        </div>
+    {% endif %}
+
+    <form method="post" class="inspection-card" id="mission-form" data-collision-url="{% url 'inspections:check_collision_api' %}" data-company-search-url="{% url 'inspections:search_entreprises_api' %}" data-establishment-search-url="{% url 'inspections:search_etablissements_api' %}" data-establishment-create-url="{% url 'inspections:create_etablissement_api' %}" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div id="collision-alert-banner" class="alert-collision-box" role="alert" hidden>
+            <strong>Conflit de mission detecte</strong>
+            <p id="collision-alert-details"></p>
+        </div>
+
+        <div class="inspection-form-grid">
+            {% for field in form %}
+                {% if field.name == 'entreprise' %}
+                    <div class="inspection-form-group company-search-group">
+                        <label for="entreprise-search">Entreprise <span aria-hidden="true">*</span></label>
+                        {{ field }}
+                        <input id="entreprise-search" class="form-control" type="search" autocomplete="off" placeholder="Tapez au moins 2 lettres" role="combobox" aria-autocomplete="list" aria-controls="entreprise-suggestions" aria-expanded="false" value="{% if form.instance.entreprise_id %}{{ form.instance.entreprise.nom }}{% endif %}">
+                        <div id="entreprise-suggestions" class="company-suggestions" role="listbox" hidden></div>
+                        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                    </div>
+                {% elif field.name == 'etablissement' %}
+                    <div class="inspection-form-group establishment-search-group">
+                        <label for="etablissement-search">Etablissement</label>
+                        {{ field }}
+                        <input id="etablissement-search" class="form-control" type="search" autocomplete="off" placeholder="Tapez le nom du site" role="combobox" aria-autocomplete="list" aria-controls="etablissement-suggestions" aria-expanded="false" disabled>
+                        <div id="etablissement-suggestions" class="company-suggestions" role="listbox" hidden></div>
+                        <button id="add-establishment-button" class="add-establishment-button" type="button" hidden>Ajouter cet etablissement</button>
+                        <div id="new-establishment-fields" class="new-establishment-fields" hidden>
+                            <select id="new-establishment-province" class="form-control"><option value="">Veuillez selectionner la province</option>{% for value, label in field.field.queryset.model.PROVINCE_CHOICES %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+                            <input id="new-establishment-city" class="form-control" type="text" placeholder="Ville ou territoire">
+                            <input id="new-establishment-address" class="form-control" type="text" placeholder="Adresse (facultatif)">
+                            <button id="save-establishment-button" class="btn btn-secondary" type="button">Enregistrer l'etablissement</button>
+                            <p id="establishment-error" class="field-error" hidden></p>
+                        </div>
+                        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                    </div>
+                {% else %}
+                <div class="inspection-form-group {% if field.name == 'objet_mission' %}inspection-form-group-wide{% endif %} {% if field.name == 'derogation_justification' %}derogation-field{% endif %}" {% if field.name == 'derogation_justification' %}hidden{% endif %}>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span aria-hidden="true"> *</span>{% endif %}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="inspection-actions">
+            <button type="submit" class="btn btn-primary inspection-submit-button" id="mission-submit-button">Valider et emettre la mission</button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'inspections/js/soumission.js' %}"></script>
+{% endblock %}

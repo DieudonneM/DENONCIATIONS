@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Consultation des ordres de mission{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'inspections/css/inspections.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="inspection-submission mission-list-page">
+    <nav class="breadcrumb" aria-label="Fil d'ariane">
+        <a href="{% url 'core:dashboard' %}">Tableau de bord</a>
+        <span aria-hidden="true">/</span>
+        <span>Ordres de mission</span>
+    </nav>
+
+    <div class="inspection-page-heading mission-list-heading">
+        <div>
+            <p class="inspection-kicker">Coordination nationale</p>
+            <h1>Ordres de mission</h1>
+            <p>Consultez les missions programmées et leurs documents administratifs.</p>
+        </div>
+        <a href="{% url 'inspections:soumettre_mission' %}" class="btn btn-primary">Nouvelle mission</a>
+    </div>
+
+    <form method="get" class="mission-filter-panel">
+        <input class="form-control" type="search" name="q" value="{{ request.GET.q }}" placeholder="Numero OM, entreprise ou site">
+        <select class="form-control" name="entite_emetteure">
+            <option value="">Toutes les entités</option>
+            {% for value, label in entite_choices %}<option value="{{ value }}" {% if request.GET.entite_emetteure == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select class="form-control" name="scope">
+            <option value="">Toutes les portées</option>
+            {% for value, label in scope_choices %}<option value="{{ value }}" {% if request.GET.scope == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select class="form-control" name="statut">
+            <option value="">Tous les statuts</option>
+            {% for value, label in statut_choices %}<option value="{{ value }}" {% if request.GET.statut == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Filtrer</button>
+    </form>
+
+    <div class="mission-table-wrap">
+        <table class="mission-table">
+            <thead><tr><th>Numéro</th><th>Entité</th><th>Entreprise / lieu</th><th>Période</th><th>Statut</th><th>Document</th></tr></thead>
+            <tbody>
+                {% for mission in missions %}
+                    <tr>
+                        <td><strong>{{ mission.numero_om }}</strong><small>{{ mission.objet_mission|truncatechars:55 }}</small></td>
+                        <td>{{ mission.get_entite_emetteure_display }}</td>
+                        <td>{{ mission.entreprise.nom }}<small>{% if mission.etablissement %}{{ mission.etablissement.nom_site }}{% else %}Siège / transversal{% endif %}</small></td>
+                        <td>{{ mission.date_debut|date:"d/m/Y" }}<small>au {{ mission.date_fin|date:"d/m/Y" }}</small></td>
+                        <td><span class="mission-status mission-status-{{ mission.statut|lower }}">{{ mission.get_statut_display }}</span></td>
+                        <td><a href="{% url 'inspections:ordre_mission_pdf' mission.pk %}" class="mission-pdf-link">PDF</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="mission-empty">Aucun ordre de mission ne correspond aux critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+        <nav class="mission-pagination" aria-label="Pagination">
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}" class="btn btn-secondary">Précédent</a>{% endif %}
+            <span>Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}" class="btn btn-secondary">Suivant</a>{% endif %}
+        </nav>
+    {% endif %}
+</section>
+{% endblock %}
