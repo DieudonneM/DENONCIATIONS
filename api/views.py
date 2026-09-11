@@ -576,14 +576,22 @@ class PublicIncidentCreate(APIView):
     def post(self, request, format=None):
         try:
             data = _normalize_public_incident_payload(request.data)
+            mobile_user = _resolve_mobile_bearer_user(request)
 
             # The public form uses 'employeur' as a text field and 'employeur_address', 'secteur', 'autre_secteur'
-            form = IncidentForm(data, files=request.FILES)
+            form = IncidentForm(data, files=request.FILES, user=mobile_user)
             if not form.is_valid():
                 return Response({'detail': 'Validation error', 'errors': form.errors}, status=status.HTTP_400_BAD_REQUEST)
 
             with transaction.atomic():
                 incident = form.save(commit=True)
+                if (
+                    not incident.est_anonyme
+                    and mobile_user is not None
+                    and getattr(mobile_user, 'role', '') == 'travailleur'
+                ):
+                    incident.travailleur = mobile_user
+                    incident.save(update_fields=['travailleur', 'date_modification'])
 
                 # Persist uploaded files for mobile/public submissions.
                 files = _extract_uploaded_attachments(request.FILES)
