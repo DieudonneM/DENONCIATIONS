@@ -11,6 +11,7 @@ from django.db import transaction
 import mimetypes
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.utils import timezone
 
 from users.models import User
 from users.forms import UserRegistrationForm
@@ -496,6 +497,7 @@ class IncidentViewSet(viewsets.ModelViewSet):
             .select_related('employeur', 'province', 'agent_assigné')
             .order_by('-date_creation')
         )
+        incidents = Incident.objects.all()
 
         total = qs.count()
         offset = (page - 1) * page_size
@@ -528,6 +530,13 @@ class IncidentViewSet(viewsets.ModelViewSet):
                 'page_size': page_size,
                 'total': total,
                 'has_next': (offset + page_size) < total,
+                'kpis': {
+                    'today': incidents.filter(
+                        date_creation__date=timezone.localdate(),
+                    ).count(),
+                    'in_analysis': incidents.filter(statut='analyse').count(),
+                    'awaiting_details': incidents.filter(statut='attente').count(),
+                },
                 'results': results,
             },
             status=status.HTTP_200_OK,

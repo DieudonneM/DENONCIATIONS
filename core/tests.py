@@ -372,6 +372,15 @@ class StaffNouvellesApiTest(TestCase):
             statut='analyse',
             est_anonyme=True,
         )
+        Incident.objects.create(
+            employeur=self.employeur,
+            province=self.province,
+            ville='Kinshasa',
+            type_incident='salaire',
+            description='Incident en attente de details',
+            statut='attente',
+            est_anonyme=True,
+        )
 
         page1 = self.client.get(
             '/api/incidents/staff-nouvelles/?page=1',
@@ -383,6 +392,14 @@ class StaffNouvellesApiTest(TestCase):
         self.assertEqual(body1.get('page_size'), 10)
         self.assertEqual(body1.get('total'), 12)
         self.assertTrue(body1.get('has_next'))
+        self.assertEqual(
+            body1.get('kpis'),
+            {
+                'today': 14,
+                'in_analysis': 1,
+                'awaiting_details': 1,
+            },
+        )
 
         rows1 = body1.get('results', [])
         self.assertEqual(len(rows1), 10)
